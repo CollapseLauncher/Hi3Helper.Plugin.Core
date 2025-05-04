@@ -9,9 +9,14 @@ namespace PluginTest
 {
     internal static unsafe class Test
     {
+        internal static void TestGetPluginStandardVersion(PluginGetPluginVersion delegateIn, ILogger logger)
+        {
+            logger.LogInformation("Plugin Standard Version: {DelegateGetPluginVersion}", delegateIn()->ToString());
+        }
+
         internal static void TestGetPluginVersion(PluginGetPluginVersion delegateIn, ILogger logger)
         {
-            logger.LogInformation("Plugin Version: {DelegateGetPluginVersion}", delegateIn());
+            logger.LogInformation("Plugin Version: {DelegateGetPluginVersion}", delegateIn()->ToString());
         }
 
         internal static void TestGetPlugin(PluginGetPlugin delegateIn, ILogger logger)

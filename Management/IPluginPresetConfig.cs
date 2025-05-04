@@ -4,7 +4,7 @@ using System.Runtime.InteropServices.Marshalling;
 namespace Hi3Helper.Plugin.Core.Management;
 
 [GeneratedComInterface]
-[Guid("39ae72f3-2269-420a-727f-000000000002")]
+[Guid(ComInterfaceId.PluginPresetConfig)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IPluginPresetConfig
 {

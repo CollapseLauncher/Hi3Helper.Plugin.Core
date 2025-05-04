@@ -6,7 +6,7 @@ using System.Runtime.InteropServices.Marshalling;
 namespace Hi3Helper.Plugin.Core;
 
 [GeneratedComInterface]
-[Guid("39ae72f3-2269-420a-727f-000000000001")]
+[Guid(ComInterfaceId.Plugin)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IPlugin
 {
@@ -31,6 +31,10 @@ public partial interface IPlugin
     [return: MarshalAs(UnmanagedType.LPWStr)]
     string GetPluginAuthor();
 
+    /// <summary>
+    /// Get the information of the plugin creation date.
+    /// </summary>
+    /// <returns>A pointer to <see cref="DateTime"/> instance</returns>
     unsafe DateTime* GetPluginCreationDate();
 
     /// <summary>

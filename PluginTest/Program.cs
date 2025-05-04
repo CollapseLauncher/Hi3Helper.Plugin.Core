@@ -40,7 +40,8 @@ namespace PluginTest
                     return false;
                 }
 
-                return LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion) &&
+                return LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginStandardVersion", out errorCode, Test.TestGetPluginStandardVersion) && 
+                       LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion) &&
                        LogInvokeTest<PluginGetPlugin>(libraryHandle, "GetPlugin", out errorCode, Test.TestGetPlugin);
             }
             finally

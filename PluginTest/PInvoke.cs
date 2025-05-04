@@ -1,10 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Hi3Helper.Plugin.Core.Management;
+using System.Runtime.CompilerServices;
 using System;
 using System.Runtime.InteropServices;
 
 namespace PluginTest
 {
-    internal delegate int PluginGetPluginVersion();
+    internal unsafe delegate GameVersion* PluginGetPluginVersion();
     internal unsafe delegate void* PluginGetPlugin();
 
     internal static partial class PInvoke
