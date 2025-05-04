@@ -1,24 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Management;
 
-public interface IPluginPresetConfig
+[GeneratedComInterface]
+[Guid("39ae72f3-2269-420a-727f-000000000002")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public partial interface IPluginPresetConfig
 {
     #region Generic Read-only Properties
-    public string             GameName        { get; }
-    public string             ProfileName     { get; }
-    public string             ZoneDescription { get; }
-    public string             ZoneShortName   { get; }
-    public string             ZoneFullName    { get; }
-    public string             ZoneLogoUrl     { get; }
-    public string             ZonePosterUrl   { get; }
-    public string             ZoneHomePageUrl { get; }
-    public GameReleaseChannel ReleaseChannel  { get; }
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameName();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_ProfileName();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_ZoneDescription();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_ZoneName();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_ZoneFullName();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_ZoneLogoUrl();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_ZonePosterUrl();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_ZoneHomePageUrl();
+    [PreserveSig]
+    GameReleaseChannel get_ReleaseChannel();
 
-    public string         GameMainLanguage       { get; }
-    public IList<string>? GameSupportedLanguages { get; }
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameMainLanguage();
+    [PreserveSig]
+    int get_GameSupportedLanguagesCount();
+    nint get_GameSupportedLanguages();
 
-    public string  GameExecutableName        { get; }
-    public string? LauncherGameDirectoryName { get; }
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameExecutableName();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_LauncherGameDirectoryName();
     #endregion
 }
