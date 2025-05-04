@@ -32,7 +32,8 @@ public partial interface IPluginPresetConfig
     string get_GameMainLanguage();
     [PreserveSig]
     int get_GameSupportedLanguagesCount();
-    nint get_GameSupportedLanguages();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameSupportedLanguages(int index);
 
     [return: MarshalAs(UnmanagedType.LPWStr)]
     string get_GameExecutableName();
