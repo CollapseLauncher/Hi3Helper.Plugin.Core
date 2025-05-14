@@ -16,6 +16,12 @@ public partial interface IGameManager
     [return: MarshalAs(UnmanagedType.Interface)]
     IVersion GetCurrentGameVersion();
 
+    [return: MarshalAs(UnmanagedType.Interface)]
+    IVersion GetApiGameVersion();
+
+    [return: MarshalAs(UnmanagedType.Interface)]
+    IVersion? GetApiPreloadGameVersion();
+
     void SetCurrentGameVersion([MarshalAs(UnmanagedType.Interface)] IVersion version);
 
     [return: MarshalAs(UnmanagedType.Bool)]
