@@ -2,7 +2,7 @@
 
 namespace Hi3Helper.Plugin.Core.Utility
 {
-    public static class PluginComUtility
+    public static class ComMarshalExtension
     {
         public static T[] CreateArrayFromSelector<T>(Func<int> countCallback, Func<int, T> selectorCallback)
         {

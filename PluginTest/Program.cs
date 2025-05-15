@@ -1,48 +1,55 @@
 ﻿using Hi3Helper.Plugin.Core;
 using System;
 using System.IO;
-using System.Runtime.InteropServices.Marshalling;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Hi3Helper.Plugin.Core.Management;
 
 #pragma warning disable CA2253
 namespace PluginTest
 {
     internal class Program
     {
-        private static int Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
             if (args.Length == 0)
             {
                 PrintHelp();
             }
 
+            SharedStatic.InstanceLogger = InvokeLogger;
+
             foreach (var arg in args)
             {
-                if (TryPerformLibraryTest(arg, out int errorCode)) continue;
-                Console.WriteLine($"An error has occurred with exit code: {errorCode}");
-                return errorCode;
+                var result = await TryPerformLibraryTest(arg);
+
+                if (result.IsSuccess)
+                    continue;
+
+                Console.WriteLine($"An error has occurred with exit code: {result.ErrorCode}");
+                return result.ErrorCode;
             }
 
             Console.WriteLine("All passed!");
             return 0;
         }
 
-        private static bool TryPerformLibraryTest(string libraryPath, out int errorCode)
+        private static async ValueTask<(bool IsSuccess, int ErrorCode)> TryPerformLibraryTest(string libraryPath)
         {
             Console.WriteLine($"Performing test for library: {libraryPath}");
 
             nint libraryHandle = nint.Zero;
             try
             {
-                if (!PInvoke.TryLoadLibrary(libraryPath, out errorCode, out libraryHandle))
+                if (!PInvoke.TryLoadLibrary(libraryPath, out int errorCode, out libraryHandle))
                 {
-                    return false;
+                    return (false, errorCode);
                 }
 
-                return LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginStandardVersion", out errorCode, Test.TestGetPluginStandardVersion) && 
-                       LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion) &&
-                       LogInvokeTest<PluginGetPlugin>(libraryHandle, "GetPlugin", out errorCode, Test.TestGetPlugin);
+                bool isGetPluginStandardVersion = LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginStandardVersion", out errorCode, Test.TestGetPluginStandardVersion);
+                bool isGetPluginVersion = errorCode == 0 && LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion);
+                (bool isGetPlugin, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
+
+                return (isGetPluginStandardVersion && isGetPluginVersion && isGetPlugin, errorCode);
             }
             finally
             {
@@ -57,7 +64,7 @@ namespace PluginTest
 
         private static bool LogInvokeTest<T>(nint libraryHandle, string entryPointName, out int errorCode, Action<T, ILogger> resultDelegate)
         {
-            errorCode = 0;
+            errorCode = int.MinValue;
             Console.WriteLine($"  [InvokeTest] {entryPointName}()");
             try
             {
@@ -77,7 +84,28 @@ namespace PluginTest
             }
         }
 
-        static void PrintHelp()
+        private static async ValueTask<(bool IsSuccess, int ErrorCode)> LogInvokeTestAsync<T>(nint libraryHandle, string entryPointName, Func<T, ILogger, Task> resultDelegate)
+        {
+            Console.WriteLine($"  [InvokeTest] {entryPointName}()");
+            try
+            {
+                if (!PInvoke.TryGetProcAddress(libraryHandle, entryPointName, out int errorCode, out T delegateOut))
+                {
+                    return (false, errorCode);
+                }
+                await resultDelegate(delegateOut, InvokeLogger);
+                Console.WriteLine("    Result OK!");
+
+                return (true, 0);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"    Result Failed! (Exception: {ex.Message})");
+                return (false, int.MinValue);
+            }
+        }
+
+        private static void PrintHelp()
             => Console.WriteLine($"Usage:\r\n{Path.GetFileName(Environment.ProcessPath)} Path_to_dll_1 Path_to_dll_2 ...");
     }
 

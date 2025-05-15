@@ -52,4 +52,10 @@ public partial interface IPlugin
     /// <returns>The address of the <see cref="IPluginPresetConfig"/> instance</returns>
     [return: MarshalAs(UnmanagedType.Interface)]
     IPluginPresetConfig GetPresetConfig(int index);
+
+    /// <summary>
+    /// This function will cancel the async operation that is currently running.
+    /// </summary>
+    /// <param name="cancelToken">The token of the currently running task.</param>
+    void CancelAsync(in Guid cancelToken);
 }

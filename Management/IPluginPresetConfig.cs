@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using Hi3Helper.Plugin.Core.Utility;
+using System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Management;
@@ -8,6 +10,10 @@ namespace Hi3Helper.Plugin.Core.Management;
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IPluginPresetConfig
 {
+    #region Return Callbacks
+    public delegate void InitAsyncIsSuccessCallback(int result);
+    #endregion
+
     #region Generic Read-only Properties
     [return: MarshalAs(UnmanagedType.LPWStr)]
     string get_GameName();
@@ -39,5 +45,13 @@ public partial interface IPluginPresetConfig
     string get_GameExecutableName();
     [return: MarshalAs(UnmanagedType.LPWStr)]
     string get_LauncherGameDirectoryName();
+
+    /// <summary>
+    /// Initialize the Preset config instance asynchronously.
+    /// </summary>
+    /// <param name="cancelToken"><see cref="Guid"/> instance for cancellation token</param>
+    /// <param name="isSuccessReturnCallback"></param>
+    /// <returns>A pointer to <see cref="ComAsyncResult"/>. You must call <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the method.</returns>
+    nint InitAsync(in Guid cancelToken, InitAsyncIsSuccessCallback isSuccessReturnCallback);
     #endregion
 }

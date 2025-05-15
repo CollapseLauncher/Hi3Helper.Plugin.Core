@@ -1,37 +1,59 @@
-﻿using Hi3Helper.Plugin.Core.Management;
-using Hi3Helper.Plugin.Core;
+﻿using Hi3Helper.Plugin.Core;
+using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading.Tasks;
 
 #pragma warning disable CA2253
 namespace PluginTest
 {
-    internal static unsafe class Test
+    internal static class Test
     {
-        internal static void TestGetPluginStandardVersion(PluginGetPluginVersion delegateIn, ILogger logger)
+        internal static unsafe void TestGetPluginStandardVersion(PluginGetPluginVersion delegateIn, ILogger logger)
         {
             logger.LogInformation("Plugin Standard Version: {DelegateGetPluginVersion}", delegateIn()->ToString());
         }
 
-        internal static void TestGetPluginVersion(PluginGetPluginVersion delegateIn, ILogger logger)
+        internal static unsafe void TestGetPluginVersion(PluginGetPluginVersion delegateIn, ILogger logger)
         {
             logger.LogInformation("Plugin Version: {DelegateGetPluginVersion}", delegateIn()->ToString());
         }
 
-        internal static void TestGetPlugin(PluginGetPlugin delegateIn, ILogger logger)
+        private static unsafe IPlugin? GetPlugin(PluginGetPlugin delegateIn, out nint address)
         {
             void* pluginInterfaceAddress = delegateIn();
-            IPlugin? pluginInterface = ComInterfaceMarshaller<IPlugin>.ConvertToManaged(pluginInterfaceAddress);
+            address = (nint)pluginInterfaceAddress;
+            return ComInterfaceMarshaller<IPlugin>.ConvertToManaged(pluginInterfaceAddress);
+        }
+
+        internal static unsafe DateTime GetDateTime(IPlugin pluginInterface)
+        {
+            DateTime* pluginCreationDate = pluginInterface.GetPluginCreationDate();
+            return *pluginCreationDate;
+        }
+
+        internal static unsafe IPluginPresetConfig GetPresetConfig(IPlugin pluginInterface, int index, out nint presetConfigAddress)
+        {
+            IPluginPresetConfig presetConfig = pluginInterface.GetPresetConfig(index);
+            presetConfigAddress = (nint)ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(presetConfig);
+
+            return presetConfig;
+        }
+
+        internal static async Task TestGetPlugin(PluginGetPlugin delegateIn, ILogger logger)
+        {
+            IPlugin? pluginInterface = GetPlugin(delegateIn, out nint pluginInterfaceAddress);
 
             if (pluginInterface == null)
             {
-                throw new InvalidOperationException($"Cannot marshal pointer at: 0x{(nint)pluginInterfaceAddress:x8} into IPlugin interface");
+                throw new InvalidOperationException($"Cannot marshal pointer at: 0x{pluginInterfaceAddress:x8} into IPlugin interface");
             }
-            logger.LogInformation("IPlugin marshalled at: 0x{0:x8}", (nint)pluginInterfaceAddress);
+            logger.LogInformation("IPlugin marshalled at: 0x{0:x8}", pluginInterfaceAddress);
 
-            DateTime* pluginCreationDate = pluginInterface.GetPluginCreationDate();
-            logger.LogInformation("IPlugin->GetPluginCreationDate(): {0} UTC", pluginCreationDate->ToString("F"));
+            DateTime pluginCreationDate = GetDateTime(pluginInterface);
+            logger.LogInformation("IPlugin->GetPluginCreationDate(): {0} UTC", pluginCreationDate.ToString("F"));
 
             string pluginName = pluginInterface.GetPluginName();
             logger.LogInformation("IPlugin->GetPluginName(): {0}", pluginName);
@@ -46,8 +68,7 @@ namespace PluginTest
             logger.LogInformation("IPlugin->GetPresetConfigCount(): Found {0} preset config!", pluginPresetConfigCount);
             for (int i = 0; i < pluginPresetConfigCount; i++)
             {
-                IPluginPresetConfig presetConfig = pluginInterface.GetPresetConfig(i);
-                nint presetConfigAddress = (nint)ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(presetConfig);
+                IPluginPresetConfig presetConfig = GetPresetConfig(pluginInterface, i, out nint presetConfigAddress);
                 logger.LogInformation("  IPlugin->GetPresetConfig({0}): Preset config found at: 0x{1:x8}", i, presetConfigAddress);
 
                 string presetConfigGameName = presetConfig.get_GameName();
@@ -93,6 +114,17 @@ namespace PluginTest
 
                 string presetConfigLauncherGameDirectoryName = presetConfig.get_LauncherGameDirectoryName();
                 logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_LauncherGameDirectoryName(): {1}", i, presetConfigLauncherGameDirectoryName);
+
+                Guid currentInitToken = Guid.CreateVersion7();
+                _ = Task.Run(() =>
+                {
+                    _ = Console.ReadLine();
+                    pluginInterface.CancelAsync(in currentInitToken);
+                });
+
+                long value = 0;
+                await presetConfig.InitAsync(in currentInitToken, a => value = a).WaitFromHandle();
+                Console.WriteLine(value);
             }
         }
     }
