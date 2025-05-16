@@ -1,5 +1,4 @@
-﻿using Hi3Helper.Plugin.Core;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -15,8 +14,6 @@ namespace PluginTest
             {
                 PrintHelp();
             }
-
-            SharedStatic.InstanceLogger = InvokeLogger;
 
             foreach (var arg in args)
             {
@@ -45,11 +42,12 @@ namespace PluginTest
                     return (false, errorCode);
                 }
 
+                bool isSetLoggerCallback = LogInvokeTest<PluginSetLoggerCallback>(libraryHandle, "SetLoggerCallback", out errorCode, Test.TestSetLoggerCallback);
                 bool isGetPluginStandardVersion = LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginStandardVersion", out errorCode, Test.TestGetPluginStandardVersion);
                 bool isGetPluginVersion = errorCode == 0 && LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion);
                 (bool isGetPlugin, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
 
-                return (isGetPluginStandardVersion && isGetPluginVersion && isGetPlugin, errorCode);
+                return (isSetLoggerCallback && isGetPluginStandardVersion && isGetPluginVersion && isGetPlugin, errorCode);
             }
             finally
             {
@@ -60,7 +58,7 @@ namespace PluginTest
             }
         }
 
-        private static readonly InvokeLogger InvokeLogger = new();
+        internal static readonly InvokeLogger InvokeLogger = new();
 
         private static bool LogInvokeTest<T>(nint libraryHandle, string entryPointName, out int errorCode, Action<T, ILogger> resultDelegate)
         {

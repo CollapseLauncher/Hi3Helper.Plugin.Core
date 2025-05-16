@@ -1,8 +1,10 @@
 ﻿using Hi3Helper.Plugin.Core;
 using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
 
@@ -11,6 +13,27 @@ namespace PluginTest
 {
     internal static class Test
     {
+        private static unsafe IPlugin? GetPlugin(PluginGetPlugin delegateIn, out nint address)
+        {
+            void* pluginInterfaceAddress = delegateIn();
+            address = (nint)pluginInterfaceAddress;
+            return ComInterfaceMarshaller<IPlugin>.ConvertToManaged(pluginInterfaceAddress);
+        }
+
+        private static unsafe DateTime GetDateTime(IPlugin pluginInterface)
+        {
+            DateTime* pluginCreationDate = pluginInterface.GetPluginCreationDate();
+            return *pluginCreationDate;
+        }
+
+        private static unsafe IPluginPresetConfig GetPresetConfig(IPlugin pluginInterface, int index, out nint presetConfigAddress)
+        {
+            IPluginPresetConfig presetConfig = pluginInterface.GetPresetConfig(index);
+            presetConfigAddress = (nint)ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(presetConfig);
+
+            return presetConfig;
+        }
+
         internal static unsafe void TestGetPluginStandardVersion(PluginGetPluginVersion delegateIn, ILogger logger)
         {
             logger.LogInformation("Plugin Standard Version: {DelegateGetPluginVersion}", delegateIn()->ToString());
@@ -21,25 +44,40 @@ namespace PluginTest
             logger.LogInformation("Plugin Version: {DelegateGetPluginVersion}", delegateIn()->ToString());
         }
 
-        private static unsafe IPlugin? GetPlugin(PluginGetPlugin delegateIn, out nint address)
+        internal static void TestSetLoggerCallback(PluginSetLoggerCallback delegateIn, ILogger logger)
         {
-            void* pluginInterfaceAddress = delegateIn();
-            address = (nint)pluginInterfaceAddress;
-            return ComInterfaceMarshaller<IPlugin>.ConvertToManaged(pluginInterfaceAddress);
+            nint pointerToCallback = Marshal.GetFunctionPointerForDelegate<SharedLoggerCallback>(PluginLoggerCallback);
+            delegateIn(pointerToCallback);
+            logger.LogInformation("Logger attached at address: 0x{DelegateSetLoggerCallback:x8}", pointerToCallback);
         }
 
-        internal static unsafe DateTime GetDateTime(IPlugin pluginInterface)
+        private static void PluginLoggerCallback(LogLevel logLevel, EventId eventId, string message)
         {
-            DateTime* pluginCreationDate = pluginInterface.GetPluginCreationDate();
-            return *pluginCreationDate;
-        }
-
-        internal static unsafe IPluginPresetConfig GetPresetConfig(IPlugin pluginInterface, int index, out nint presetConfigAddress)
-        {
-            IPluginPresetConfig presetConfig = pluginInterface.GetPresetConfig(index);
-            presetConfigAddress = (nint)ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(presetConfig);
-
-            return presetConfig;
+            switch (logLevel)
+            {
+                case LogLevel.None:
+                    break;
+                case LogLevel.Trace:
+                    Program.InvokeLogger.LogTrace(eventId, "[Plugin Log: TRACE] " + message);
+                    break;
+                case LogLevel.Information:
+                    Program.InvokeLogger.LogInformation(eventId, "[Plugin Log: INFO] " + message);
+                    break;
+                case LogLevel.Debug:
+                    Program.InvokeLogger.LogDebug(eventId, "[Plugin Log: DEBUG] " + message);
+                    break;
+                case LogLevel.Warning:
+                    Program.InvokeLogger.LogWarning(eventId, "[Plugin Log: WARNING] " + message);
+                    break;
+                case LogLevel.Error:
+                    Program.InvokeLogger.LogError(eventId, "[Plugin Log: ERROR] " + message);
+                    break;
+                case LogLevel.Critical:
+                    Program.InvokeLogger.LogCritical(eventId, "[Plugin Log: CRITICAL] " + message);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+            }
         }
 
         internal static async Task TestGetPlugin(PluginGetPlugin delegateIn, ILogger logger)
@@ -122,9 +160,10 @@ namespace PluginTest
                     pluginInterface.CancelAsync(in currentInitToken);
                 });
 
+                logger.LogInformation("    IPlugin->GetPresetConfig({0})->InitAsync(): Invoking Asynchronously...", i);
                 long value = 0;
-                await presetConfig.InitAsync(in currentInitToken, a => value = a).WaitFromHandle();
-                Console.WriteLine(value);
+                await presetConfig.InitAsync(in currentInitToken, result => value = result).WaitFromHandle();
+                logger.LogInformation("Return value: " + value);
             }
         }
     }
