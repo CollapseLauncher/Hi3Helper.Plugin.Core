@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Hi3Helper.Plugin.Core.Management.Api;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
@@ -115,5 +116,12 @@ public partial interface IPluginPresetConfig : IInitializable
     /// <returns>The launcher game directory name as a string.</returns>
     [return: MarshalAs(UnmanagedType.LPWStr)]
     string get_LauncherGameDirectoryName();
+
+    /// <summary>
+    /// Gets an instance to the <see cref="ILauncherApiMedia"/>.
+    /// </summary>
+    /// <returns>The launcher Media API instance.</returns>
+    [return: MarshalAs(UnmanagedType.Interface)]
+    ILauncherApiMedia get_LauncherApiMedia();
     #endregion
 }

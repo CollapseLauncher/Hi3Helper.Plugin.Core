@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Hi3Helper.Plugin.Core.Management.Api;
+using System.Collections.Generic;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
@@ -24,6 +25,7 @@ public abstract partial class PluginPresetConfigBase : Initializable, IPluginPre
     public abstract string GameMainLanguage { get; }
     public abstract string LauncherGameDirectoryName { get; }
     public abstract List<string> SupportedLanguages { get; }
+    public abstract ILauncherApiMedia LauncherApiMedia { get; }
 
     #region Generic Read-only Properties Callbacks
     string IPluginPresetConfig.get_GameSupportedLanguages(int index)
@@ -49,5 +51,6 @@ public abstract partial class PluginPresetConfigBase : Initializable, IPluginPre
     string IPluginPresetConfig.get_ZoneHomePageUrl() => ZoneHomePageUrl;
     GameReleaseChannel IPluginPresetConfig.get_ReleaseChannel() => ReleaseChannel;
     string IPluginPresetConfig.get_GameMainLanguage() => GameMainLanguage;
+    ILauncherApiMedia IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
     #endregion
 }
