@@ -46,8 +46,9 @@ namespace PluginTest
                 bool isGetPluginStandardVersion = LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginStandardVersion", out errorCode, Test.TestGetPluginStandardVersion);
                 bool isGetPluginVersion = errorCode == 0 && LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion);
                 (bool isGetPlugin, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
+                (bool isTestApiMedia, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestApiMedia);
 
-                return (isSetLoggerCallback && isGetPluginStandardVersion && isGetPluginVersion && isGetPlugin, errorCode);
+                return (isSetLoggerCallback && isGetPluginStandardVersion && isGetPluginVersion && isGetPlugin && isTestApiMedia, errorCode);
             }
             finally
             {

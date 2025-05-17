@@ -1,5 +1,6 @@
 ﻿using Hi3Helper.Plugin.Core;
 using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Management.Api;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
@@ -80,9 +81,19 @@ namespace PluginTest
             }
         }
 
+        private static readonly Guid CancelToken = Guid.CreateVersion7();
+        private static IPlugin? _pluginInterface;
+
         internal static async Task TestGetPlugin(PluginGetPlugin delegateIn, ILogger logger)
         {
+            _ = Task.Run(() =>
+            {
+                _ = Console.ReadLine();
+                _pluginInterface?.CancelAsync(in CancelToken);
+            });
+
             IPlugin? pluginInterface = GetPlugin(delegateIn, out nint pluginInterfaceAddress);
+            _pluginInterface = pluginInterface;
 
             if (pluginInterface == null)
             {
@@ -153,16 +164,30 @@ namespace PluginTest
                 string presetConfigLauncherGameDirectoryName = presetConfig.get_LauncherGameDirectoryName();
                 logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_LauncherGameDirectoryName(): {1}", i, presetConfigLauncherGameDirectoryName);
 
-                Guid currentInitToken = Guid.CreateVersion7();
-                _ = Task.Run(() =>
-                {
-                    _ = Console.ReadLine();
-                    pluginInterface.CancelAsync(in currentInitToken);
-                });
-
                 logger.LogInformation("    IPlugin->GetPresetConfig({0})->InitAsync(): Invoking Asynchronously...", i);
                 long value = 0;
-                await presetConfig.InitAsync(in currentInitToken, result => value = result).WaitFromHandle();
+                await presetConfig.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
+                logger.LogInformation("Return value: " + value);
+            }
+        }
+
+        internal static async Task TestApiMedia(PluginGetPlugin delegateIn, ILogger logger)
+        {
+            IPlugin? pluginInterface = GetPlugin(delegateIn, out nint pluginInterfaceAddress);
+            if (pluginInterface == null)
+            {
+                throw new InvalidOperationException($"Cannot marshal pointer at: 0x{pluginInterfaceAddress:x8} into IPlugin interface");
+            }
+
+            int pluginPresetConfigCount = pluginInterface.GetPresetConfigCount();
+            for (int i = 0; i < pluginPresetConfigCount; i++)
+            {
+                IPluginPresetConfig presetConfig = GetPresetConfig(pluginInterface, i, out _);
+                ILauncherApiMedia apiMedia = presetConfig.get_LauncherApiMedia();
+
+                long value = 0;
+                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", i);
+                await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
                 logger.LogInformation("Return value: " + value);
             }
         }

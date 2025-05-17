@@ -12,13 +12,9 @@ namespace Hi3Helper.Plugin.Core.Management.Api
 
         public virtual unsafe LauncherPathEntry* GetBackgroundEntries() => GetEntriesFromArray(LauncherBackgroundPathEntries);
 
-        public virtual int GetBackgroundEntriesCount() => LauncherBackgroundPathEntries.Length;
-
-        public virtual bool FreeBackgroundEntries() => FreeArray(LauncherLogoPathEntries);
-
         public virtual unsafe LauncherPathEntry* GetLogoOverlayEntries() => GetEntriesFromArray(LauncherLogoPathEntries);
 
-        public virtual int GetLogoOverlayEntriesCount() => LauncherLogoPathEntries.Length;
+        public virtual bool FreeBackgroundEntries() => FreeArray(LauncherLogoPathEntries);
 
         public virtual bool FreeLogoOverlayEntries() => FreeArray(LauncherLogoPathEntries);
 
@@ -33,6 +29,10 @@ namespace Hi3Helper.Plugin.Core.Management.Api
         protected virtual unsafe LauncherPathEntry* GetEntriesFromArray(LauncherPathEntry[] entries)
         {
             int len = entries.Length;
+            if (len == 0)
+            {
+                return null;
+            }
 
             LauncherPathEntry* returnAddress = (LauncherPathEntry*)Unsafe.AsPointer(ref entries[len]);
             ref LauncherPathEntry start = ref entries[len];

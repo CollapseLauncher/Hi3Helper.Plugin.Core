@@ -3,7 +3,6 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,26 +69,6 @@ public static partial class ComAsyncExtension
 #if DEBUG
         InstanceLogger?.LogDebug("AttachAfterCallState executed!");
 #endif
-    }
-
-    private static unsafe void WriteExceptionInfo(Exception exception, ref ComAsyncResult result)
-    {
-        exception = exception.InnerException ?? exception;
-
-        string exceptionName    = exception.GetType().Name;
-        string exceptionMessage = exception.Message;
-
-        fixed (byte* exceptionNameAddress    = result.ExceptionTypeByName)
-        fixed (byte* exceptionMessageAddress = result.ExceptionMessage)
-        {
-            Span<byte> exceptionNameSpan    = new(exceptionNameAddress, ComAsyncResult.ExceptionTypeNameMaxLength - 1);
-            Span<byte> exceptionMessageSpan = new(exceptionMessageAddress, ComAsyncResult.ExceptionMessageMaxLength - 1);
-
-            Encoding.UTF8.GetBytes(exceptionName,    exceptionNameSpan);
-            Encoding.UTF8.GetBytes(exceptionMessage, exceptionMessageSpan);
-        }
-
-        InstanceLogger?.LogError(exception, "An exception was thrown by a task! {ExFullMessage}", exception.ToString());
     }
 
     private static unsafe nint GetWaitHandle(nint handle)

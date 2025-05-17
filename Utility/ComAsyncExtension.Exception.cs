@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Data;
@@ -7,8 +8,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-// ReSharper disable InconsistentNaming
 
+using static Hi3Helper.Plugin.Core.SharedStatic;
+
+// ReSharper disable InconsistentNaming
 namespace Hi3Helper.Plugin.Core.Utility;
 
 public static partial class ComAsyncExtension
@@ -105,6 +108,26 @@ public static partial class ComAsyncExtension
 
             return exception;
         }
+    }
+
+    private static unsafe void WriteExceptionInfo(Exception exception, ref ComAsyncResult result)
+    {
+        exception = exception.InnerException ?? exception;
+
+        string exceptionName = exception.GetType().Name;
+        string exceptionMessage = exception.Message;
+
+        fixed (byte* exceptionNameAddress = result.ExceptionTypeByName)
+        fixed (byte* exceptionMessageAddress = result.ExceptionMessage)
+        {
+            Span<byte> exceptionNameSpan = new(exceptionNameAddress, ComAsyncResult.ExceptionTypeNameMaxLength - 1);
+            Span<byte> exceptionMessageSpan = new(exceptionMessageAddress, ComAsyncResult.ExceptionMessageMaxLength - 1);
+
+            Encoding.UTF8.GetBytes(exceptionName, exceptionNameSpan);
+            Encoding.UTF8.GetBytes(exceptionMessage, exceptionMessageSpan);
+        }
+
+        InstanceLogger?.LogError(exception, "An exception was thrown by a task! {ExFullMessage}", exception.ToString());
     }
 
     private static unsafe void ThrowExceptionFromInfo(ComAsyncResult* result)

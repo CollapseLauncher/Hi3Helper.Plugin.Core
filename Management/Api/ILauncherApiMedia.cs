@@ -33,6 +33,7 @@ public partial interface ILauncherApiMedia : IInitializable
     /// </returns>
     unsafe LauncherPathEntry* GetBackgroundEntries();
 
+    /*
     /// <summary>
     /// Get the count of the background image entries.
     /// </summary>
@@ -41,6 +42,7 @@ public partial interface ILauncherApiMedia : IInitializable
     /// </returns>
     [PreserveSig]
     int GetBackgroundEntriesCount();
+    */
 
     /// <summary>
     /// Free the background's local path entries. This function should be called if the entries are no longer needed.
@@ -68,6 +70,7 @@ public partial interface ILauncherApiMedia : IInitializable
     /// </returns>
     unsafe LauncherPathEntry* GetLogoOverlayEntries();
 
+    /*
     /// <summary>
     /// Gets the count of logo overlay entries.
     /// </summary>
@@ -76,6 +79,7 @@ public partial interface ILauncherApiMedia : IInitializable
     /// </returns>
     [PreserveSig]
     int GetLogoOverlayEntriesCount();
+    */
 
     /// <summary>
     /// Frees the memory allocated for the logo overlay's local path entries.
