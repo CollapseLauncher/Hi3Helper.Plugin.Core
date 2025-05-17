@@ -12,6 +12,15 @@ public class SharedStatic
     public static GameVersion           LibraryStandardVersion = new(0, 1, 0, 0);
     public static ILogger?              InstanceLogger         = new SharedLogger();
     public static SharedLoggerCallback? InstanceLoggerCallback;
+    public static Uri?                  ProxyHost;
+    public static string?               ProxyUsername;
+    public static string?               ProxyPassword;
+    public static bool                  IsDebug =
+#if DEBUG
+        true;
+#else
+        false;
+#endif
 
     private class SharedLogger : ILogger
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
@@ -20,9 +21,37 @@ public abstract partial class PluginBase : IPlugin
     public abstract unsafe DateTime* GetPluginCreationDate();
     public abstract int GetPresetConfigCount();
     public abstract IPluginPresetConfig GetPresetConfig(int index);
+
     void IPlugin.CancelAsync(in Guid cancelToken)
     {
         // Cancel the async operation using the provided cancel token
         ComCancellationTokenVault.CancelToken(in cancelToken);
+    }
+
+    bool IPlugin.SetPluginProxySettings(string? hostUri, string? username, string? password)
+    {
+        // If all nulls or empty, assume as it resets the configuration, then return true.
+        if (string.IsNullOrEmpty(hostUri) &&
+            string.IsNullOrEmpty(username) &&
+            string.IsNullOrEmpty(password))
+        {
+            SharedStatic.ProxyHost     = null;
+            SharedStatic.ProxyUsername = null;
+            SharedStatic.ProxyPassword = null;
+            return true;
+        }
+
+        // Try parse host URI and check if the username is not blank while the password isn't.
+        if (!Uri.TryCreate(hostUri, UriKind.Absolute, out SharedStatic.ProxyHost) ||
+            (string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password)))
+        {
+            SharedStatic.ProxyHost = null;
+            return false;
+        }
+
+        // Set the username and password and return true.
+        SharedStatic.ProxyUsername = username;
+        SharedStatic.ProxyPassword = password;
+        return true;
     }
 }

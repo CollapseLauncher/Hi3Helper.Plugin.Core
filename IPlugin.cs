@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+// ReSharper disable InconsistentNaming
 
 namespace Hi3Helper.Plugin.Core;
 
@@ -63,4 +64,19 @@ public partial interface IPlugin
     /// </summary>
     /// <param name="cancelToken">The token identifying the operation to cancel.</param>
     void CancelAsync(in Guid cancelToken);
+
+    /// <summary>
+    /// Sets the proxy settings used by the plugin. To reset the configuration, set all arguments as <c>null</c>
+    /// </summary>
+    /// <param name="hostUri">
+    /// The host URI of the proxy server.<br/>
+    /// Only few Proxy protocol supported by the plugin, including: http://, https://, socks4:// and socks5://
+    /// </param>
+    /// <param name="username">The username for proxy authentication. Leave it as <c>null</c> if none is needed.</param>
+    /// <param name="password">The password for proxy authentication. Leave it as <c>null</c> if none is needed.</param>
+    /// <returns>Returns <c>true</c> if the settings are valid. Otherwise, returns <c>false</c></returns>
+    [return: MarshalAs(UnmanagedType.Bool)]
+    bool SetPluginProxySettings([MarshalAs(UnmanagedType.LPWStr)] string? hostUri = null,
+                                [MarshalAs(UnmanagedType.LPWStr)] string? username = null,
+                                [MarshalAs(UnmanagedType.LPWStr)] string? password = null);
 }
