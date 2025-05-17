@@ -16,7 +16,7 @@ public delegate void ComAsyncGetResultDelegate<in T>(T result);
 
 public static partial class ComAsyncExtension
 {
-    public static nint AsHandle(this Task task)
+    public static unsafe nint AsHandle(this Task task)
     {
         IAsyncResult asyncResult = task;
         ComAsyncResult result = new ComAsyncResult
@@ -25,7 +25,8 @@ public static partial class ComAsyncExtension
         };
 
         task.GetAwaiter().OnCompleted(() => AttachAfterCallState(task, ref result));
-        return GCHandle.ToIntPtr(GCHandle.Alloc(result, GCHandleType.Normal));
+        // return GCHandle.ToIntPtr(GCHandle.Alloc(result, GCHandleType.Normal));
+        return (nint)Unsafe.AsPointer(ref Unsafe.AsRef(ref result));
     }
 
     [OverloadResolutionPriority(1)]
