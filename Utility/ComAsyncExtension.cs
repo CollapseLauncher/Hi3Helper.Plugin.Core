@@ -88,7 +88,7 @@ public static partial class ComAsyncExtension
             Encoding.UTF8.GetBytes(exceptionMessage, exceptionMessageSpan);
         }
 
-        InstanceLogger?.LogError(exception, "An exception was thrown by a task! {ExName}: {ExMessage}", exceptionName, exceptionMessage);
+        InstanceLogger?.LogError(exception, "An exception was thrown by a task! {ExFullMessage}", exception.ToString());
     }
 
     private static unsafe nint GetWaitHandle(nint handle)
