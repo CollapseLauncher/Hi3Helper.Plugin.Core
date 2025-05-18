@@ -8,11 +8,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Security;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Net.Sockets;
+
 // ReSharper disable StaticMemberInGenericType
 
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -24,15 +29,20 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
     private const int MaxConnectionsDefault = 32;
     private const double HttpTimeoutDefault = 90; // in Seconds
 
-    private bool IsUseProxy { get; set; } = true;
-    private bool IsUseSystemProxy { get; set; } = true;
+    private static bool IsUseProxy => SharedStatic.ProxyHost != null;
+    private static bool IsUseSystemProxy => true;
+    private static WebProxy? ExternalProxy => SharedStatic.ProxyHost == null ?
+        null :
+        SharedStatic.ProxyPassword == null ?
+            new WebProxy(SharedStatic.ProxyHost, true) :
+            new WebProxy(SharedStatic.ProxyHost, true, null, new NetworkCredential(SharedStatic.ProxyUsername, SharedStatic.ProxyPassword));
+
     private bool IsAllowHttpRedirections { get; set; }
     private bool IsAllowHttpCookies { get; set; }
     private bool IsAllowUntrustedCert { get; set; }
 
     private int MaxConnections { get; set; } = MaxConnectionsDefault;
     private DecompressionMethods DecompressionMethod { get; set; } = DecompressionMethods.All;
-    private WebProxy? ExternalProxy { get; set; }
     private Version HttpProtocolVersion { get; set; } = HttpVersion.Version30;
     private string? HttpUserAgent { get; set; } = GetDefaultUserAgent();
     private string? HttpAuthHeader { get; set; }
@@ -41,13 +51,6 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
     private Uri? HttpBaseUri { get; set; }
     private Dictionary<string, string?> HttpHeaders { get; } = new();
 
-    public PluginHttpClientBuilder<THandler> UseProxy(bool isUseSystemProxy = true)
-    {
-        IsUseProxy = true;
-        IsUseSystemProxy = isUseSystemProxy;
-        return this;
-    }
-
     private static string GetDefaultUserAgent()
     {
         Version operatingSystemVer = Environment.OSVersion.Version;
@@ -55,34 +58,6 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
         return $"Mozilla/5.0 (Windows NT {operatingSystemVer}; Win64; x64) "
             + $"{RuntimeInformation.FrameworkDescription.Replace(' ', '/')} (KHTML, like Gecko) "
             + $"CollapsePlugin/{SharedStatic.LibraryStandardVersion}-{(SharedStatic.IsDebug ? "Debug" : "Release")}";
-    }
-
-    public PluginHttpClientBuilder<THandler> UseExternalProxy(string host, string? username = null, SecureString? password = null)
-    {
-        // Try to create the Uri
-        if (Uri.TryCreate(host, UriKind.Absolute, out Uri? hostUri))
-        {
-            return UseExternalProxy(hostUri, username, password);
-        }
-
-        IsUseProxy = false;
-        IsUseSystemProxy = false;
-        ExternalProxy = null;
-        return this;
-    }
-
-    public PluginHttpClientBuilder<THandler> UseExternalProxy(Uri hostUri, string? username = null, SecureString? password = null)
-    {
-        IsUseSystemProxy = false;
-
-        // Initialize the proxy host
-        ExternalProxy =
-            !string.IsNullOrEmpty(username)
-         && password != null ?
-              new WebProxy(hostUri, true, null, new NetworkCredential(username, password))
-            : new WebProxy(hostUri, true);
-
-        return this;
     }
 
     public PluginHttpClientBuilder<THandler> SetMaxConnection(int maxConnections = MaxConnectionsDefault)
@@ -246,6 +221,8 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
             // Set if the external proxy is set
             if (!IsUseSystemProxy && ExternalProxy != null)
                 socketsHttpHandler.Proxy = ExternalProxy;
+
+            socketsHttpHandler.ConnectCallback = ExternalDnsConnectCallback;
         }
         else
         {
@@ -277,5 +254,37 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
         }
 
         return client;
+    }
+
+    private static async ValueTask<Stream> ExternalDnsConnectCallback(SocketsHttpConnectionContext context, CancellationToken token)
+    {
+        Socket socket = new(SocketType.Stream, ProtocolType.Tcp)
+        {
+            NoDelay = true
+        };
+
+        try
+        {
+            if (SharedStatic.InstanceDnsResolverCallback != null)
+            {
+                SharedStatic.InstanceDnsResolverCallback(context.DnsEndPoint.Host, out string[] ipAddresses);
+                IPAddress[] addresses = new IPAddress[ipAddresses.Length];
+                for (int i = 0; i < ipAddresses.Length; i++)
+                {
+                    addresses[i] = IPAddress.Parse(ipAddresses[i]);
+                }
+
+                await socket.ConnectAsync(addresses, context.DnsEndPoint.Port, token);
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+
+            await socket.ConnectAsync(context.DnsEndPoint, token);
+            return new NetworkStream(socket, ownsSocket: true);
+        }
+        catch
+        {
+            socket.Dispose();
+            throw;
+        }
     }
 }

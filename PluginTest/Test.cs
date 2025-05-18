@@ -5,6 +5,9 @@ using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
@@ -50,6 +53,24 @@ namespace PluginTest
             nint pointerToCallback = Marshal.GetFunctionPointerForDelegate<SharedLoggerCallback>(PluginLoggerCallback);
             delegateIn(pointerToCallback);
             logger.LogInformation("Logger attached at address: 0x{DelegateSetLoggerCallback:x8}", pointerToCallback);
+        }
+
+        internal static void TestSetDnsResolverCallback(PluginSetDnsResolverCallback delegateIn, ILogger logger)
+        {
+            nint pointerToCallback = Marshal.GetFunctionPointerForDelegate<SharedDnsResolverCallback>(PluginDnsResolverCallback);
+            delegateIn(pointerToCallback);
+            logger.LogInformation("DNS Resolver attached at address: 0x{DelegateSetDnsResolverCallback:x8}", pointerToCallback);
+        }
+
+        internal static void TestResetSetDnsResolverCallback(PluginSetDnsResolverCallback delegateIn, ILogger logger)
+        {
+            delegateIn(nint.Zero);
+            logger.LogInformation("DNS Resolver has been detached!");
+        }
+
+        private static void PluginDnsResolverCallback(string host, out string[] ipAddresses)
+        {
+            ipAddresses = ["127.0.0.1"];
         }
 
         private static void PluginLoggerCallback(LogLevel logLevel, EventId eventId, string message)
@@ -186,9 +207,37 @@ namespace PluginTest
                 ILauncherApiMedia apiMedia = presetConfig.get_LauncherApiMedia();
 
                 long value = 0;
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", i);
+                logger.LogInformation("IPlugin->GetPresetConfig({0})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", i);
                 await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
                 logger.LogInformation("Return value: " + value);
+
+                nint backgroundUrlHandle = apiMedia.GetBackgroundEntries();
+                int  backgroundUrlCount  = LauncherPathEntry.GetCountFromHandle(backgroundUrlHandle);
+                logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{addr:x8}", backgroundUrlCount, backgroundUrlHandle);
+
+                while (backgroundUrlHandle != nint.Zero)
+                {
+                    string fileUrl = LauncherPathEntry.GetStringFromHandle(backgroundUrlHandle);
+                    ArgumentException.ThrowIfNullOrEmpty(fileUrl);
+
+                    logger.LogInformation("  LauncherPathEntry.GetStringFromHandle(): Downloading {Url}", fileUrl);
+                    string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.get_ProfileName());
+                    string thisFileName  = Path.GetFileName(fileUrl);
+                    string thisFilePath  = Path.Combine(thisLocalPath, thisFileName);
+
+                    Directory.CreateDirectory(thisLocalPath);
+
+                    await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                    await apiMedia.DownloadAssetAsync(backgroundUrlHandle, fileStream.SafeFileHandle.DangerousGetHandle(), (read, current, total) =>
+                    {
+                        Console.Write($"Downloaded: {current} / {total}...\r");
+                    }, in CancelToken).WaitFromHandle();
+
+                    nint nextBackgroundUrlHandle = LauncherPathEntry.GetNextHandleAndFreed(backgroundUrlHandle);
+                    logger.LogInformation("  ILauncherApiMedia->GetBackgroundEntries(): Background handles at: 0x{addr:x8} freed! Move next to: 0x{addr2:x8}", backgroundUrlHandle, nextBackgroundUrlHandle);
+
+                    backgroundUrlHandle = nextBackgroundUrlHandle;
+                }
             }
         }
     }

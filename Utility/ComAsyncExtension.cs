@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32.SafeHandles;
-using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -12,62 +13,43 @@ using static Hi3Helper.Plugin.Core.SharedStatic;
 namespace Hi3Helper.Plugin.Core.Utility;
 
 public delegate void ComAsyncGetResultDelegate<in T>(T result);
+public unsafe delegate void ComAsyncResultAttachAfterCallStateDelegate(Task task, Lock threadLock, ComAsyncResult* resultP);
 
 public static partial class ComAsyncExtension
 {
-    public static unsafe nint AsHandle(this Task task)
-    {
-        IAsyncResult asyncResult = task;
-        ComAsyncResult result = new ComAsyncResult
-        {
-            Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle()
-        };
+    private static readonly Lock CurrentThreadLock = new();
 
-        task.GetAwaiter().OnCompleted(() => AttachAfterCallState(task, ref result));
-        // return GCHandle.ToIntPtr(GCHandle.Alloc(result, GCHandleType.Normal));
-        return (nint)Unsafe.AsPointer(ref Unsafe.AsRef(ref result));
-    }
+    public static unsafe nint AsResult(this Task task)
+        => ComAsyncResult.Alloc(CurrentThreadLock, task, AttachAfterCallState);
 
     [OverloadResolutionPriority(1)]
-    public static unsafe nint AsHandle<T>(this Task<T> task, ComAsyncGetResultDelegate<T>? getResultDelegate)
+    public static unsafe nint AsResult<T>(this Task<T> task, ComAsyncGetResultDelegate<T>? getResultDelegate)
     {
         task.ContinueWith(t =>
         {
-            if (t.IsCompletedSuccessfully)
+            using (CurrentThreadLock.EnterScope())
             {
-                getResultDelegate?.Invoke(t.Result);
-            }
+                if (t.IsCompletedSuccessfully)
+                {
+                    getResultDelegate?.Invoke(t.Result);
+                }
+
 
 #if DEBUG
-            InstanceLogger?.LogDebug("ContinueWith executed!");
+                InstanceLogger?.LogDebug("[ComAsyncExtension::AsResult::ContinueWith] Executed!");
 #endif
+            }
         });
 
-        IAsyncResult asyncResult = task;
-        ComAsyncResult result = new ComAsyncResult
-        {
-            Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle(),
-        };
-
-        task.GetAwaiter().OnCompleted(() => AttachAfterCallState(task, ref result));
-        // return GCHandle.ToIntPtr(GCHandle.Alloc(result, GCHandleType.Normal));
-        return (nint)Unsafe.AsPointer(ref Unsafe.AsRef(ref result));
+        return ComAsyncResult.Alloc(CurrentThreadLock, task, AttachAfterCallState);
     }
 
-    private static void AttachAfterCallState(Task task, ref ComAsyncResult result)
+    private static unsafe void AttachAfterCallState(Task task, Lock threadLock, ComAsyncResult* result)
     {
-        Interlocked.Exchange(ref result.IsSuccessful, task.IsCompletedSuccessfully);
-        Interlocked.Exchange(ref result.IsCancelled, task.IsCanceled);
-        Interlocked.Exchange(ref result.IsFaulty, task.IsFaulted);
-
-        Exception? exception = task.Exception?.Flatten();
-        if (exception != null)
-        {
-            WriteExceptionInfo(exception, ref result);
-        }
+        result->SetResult(threadLock, task);
 
 #if DEBUG
-        InstanceLogger?.LogDebug("AttachAfterCallState executed!");
+        InstanceLogger?.LogDebug("[ComAsyncExtension::AttachAfterCallState] AsyncResult state attached!");
 #endif
     }
 
@@ -96,6 +78,7 @@ public static partial class ComAsyncExtension
         {
             asyncSafeHandle?.Dispose();
             waitHandle?.Dispose();
+            ComAsyncResult.Free(handle);
         }
     }
 
@@ -103,14 +86,21 @@ public static partial class ComAsyncExtension
     {
         ComAsyncResult* asyncResult = (ComAsyncResult*)handle;
 
-        if (*asyncResult->ExceptionTypeByName != 0)
+        if (asyncResult->IsCancelled || asyncResult->IsFaulty)
         {
-            ThrowExceptionFromInfo(asyncResult);
-        }
+            StackTrace currentStackTrace = new StackTrace(true);
+            Exception? exception = ComAsyncException.GetExceptionFromHandle(asyncResult->ExceptionHandle);
 
-        if (asyncResult->IsCancelled)
-        {
-            throw new TaskCanceledException();
+            if (exception != null)
+            {
+                exception.SetExceptionStackTrace() = "\r\n" + currentStackTrace;
+                throw exception;
+            }
+
+            if (asyncResult->IsCancelled)
+            {
+                throw new TaskCanceledException();
+            }
         }
 
         if (asyncResult->IsFaulty)

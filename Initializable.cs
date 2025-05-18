@@ -23,8 +23,7 @@ public partial class Initializable : IInitializable
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return InitAsync(token)
-            .AsHandle(result => isSuccessReturnCallback(result));
+        return InitAsync(token).AsResult(result => isSuccessReturnCallback(result));
     }
 
     /// <summary>

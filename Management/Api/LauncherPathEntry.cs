@@ -8,25 +8,65 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// </summary>
 public unsafe struct LauncherPathEntry
 {
+    public const int FileHashMaxLength = 64;
+    public const int PathMaxLength     = 956;
+
     /// <summary>
     /// The local path of where the asset is stored.
     /// </summary>
-    public fixed char Path[1024];
+    public fixed char Path[PathMaxLength];
+
+    /// <summary>
+    /// The hash of the file. This is used to verify the integrity of the file.
+    /// </summary>
+    public fixed byte FileHash[FileHashMaxLength];
+
+    /// <summary>
+    /// The actual length of the <see cref="FileHash"/> buffer.
+    /// </summary>
+    public int FileHashLength;
 
     /// <summary>
     /// The next entry of the path. This should be non-null if multiple entries are available.
     /// </summary>
-    public LauncherPathEntry* NextEntry;
+    public nint NextEntry;
 
-    /// <summary>
-    /// Gets the path as a <see cref="ReadOnlySpan{Char}"/>.
-    /// </summary>
-    /// <returns>The read-only span of <see cref="char"/></returns>
-    public ReadOnlySpan<char> GetPathSpan()
+    public static string GetStringFromHandle(nint handle)
     {
-        fixed (char* pathPtr = Path)
+        if (handle == nint.Zero)
         {
-            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(pathPtr);
+            return string.Empty;
         }
+
+        LauncherPathEntry* entry = (LauncherPathEntry*)handle;
+        char* path = entry->Path;
+        return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(path).ToString(); 
+    }
+
+    public static nint GetNextHandleAndFreed(nint handle)
+    {
+        nint nextHandle = GetNextHandle(handle);
+        NativeMemory.Free((void*)handle);
+
+        return nextHandle;
+    }
+
+    public static nint GetNextHandle(nint handle)
+    {
+        LauncherPathEntry* entry = (LauncherPathEntry*)handle;
+        return entry->NextEntry;
+    }
+
+    public static int GetCountFromHandle(nint handle)
+    {
+        int count = 0;
+        LauncherPathEntry* entry = (LauncherPathEntry*)handle;
+        while (entry != null)
+        {
+            count++;
+            entry = (LauncherPathEntry*)entry->NextEntry;
+        }
+
+        return count;
     }
 }

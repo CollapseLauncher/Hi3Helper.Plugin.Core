@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -14,6 +15,14 @@ namespace PluginTest
             {
                 PrintHelp();
             }
+
+            if (!args.Contains("NoWait", StringComparer.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Press Enter to start testing...");
+                Console.ReadLine();
+            }
+
+            args = args.Where(x => !x.Equals("NoWait", StringComparison.OrdinalIgnoreCase)).ToArray();
 
             foreach (var arg in args)
             {
@@ -43,12 +52,21 @@ namespace PluginTest
                 }
 
                 bool isSetLoggerCallback = LogInvokeTest<PluginSetLoggerCallback>(libraryHandle, "SetLoggerCallback", out errorCode, Test.TestSetLoggerCallback);
+                bool isSetDnsResolverCallback = LogInvokeTest<PluginSetDnsResolverCallback>(libraryHandle, "SetDnsResolverCallback", out errorCode, Test.TestSetDnsResolverCallback);
+                bool isResetDnsResolverCallback = LogInvokeTest<PluginSetDnsResolverCallback>(libraryHandle, "SetDnsResolverCallback", out errorCode, Test.TestResetSetDnsResolverCallback);
                 bool isGetPluginStandardVersion = LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginStandardVersion", out errorCode, Test.TestGetPluginStandardVersion);
                 bool isGetPluginVersion = errorCode == 0 && LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion);
                 (bool isGetPlugin, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
                 (bool isTestApiMedia, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestApiMedia);
 
-                return (isSetLoggerCallback && isGetPluginStandardVersion && isGetPluginVersion && isGetPlugin && isTestApiMedia, errorCode);
+                return (isSetLoggerCallback &&
+                    isSetDnsResolverCallback &&
+                    isResetDnsResolverCallback &&
+                    isGetPluginStandardVersion &&
+                    isGetPluginVersion &&
+                    isGetPlugin &&
+                    isTestApiMedia,
+                    errorCode);
             }
             finally
             {

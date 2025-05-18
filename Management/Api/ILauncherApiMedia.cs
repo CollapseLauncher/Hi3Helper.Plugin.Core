@@ -23,7 +23,8 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.LauncherApiMedia)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface ILauncherApiMedia : IInitializable
+// ReSharper disable once RedundantUnsafeContext
+public unsafe partial interface ILauncherApiMedia : ILauncherApi
 {
     /// <summary>
     /// Get the background image's local path entries for the launcher.
@@ -31,27 +32,28 @@ public partial interface ILauncherApiMedia : IInitializable
     /// <returns>
     /// The handle pointer or the current entry of the background sprite path.
     /// </returns>
-    unsafe LauncherPathEntry* GetBackgroundEntries();
+    nint GetBackgroundEntries();
 
-    /*
     /// <summary>
-    /// Get the count of the background image entries.
+    /// Gets the logo overlay's local path entries for the launcher.
     /// </summary>
     /// <returns>
-    /// The count of the entry. It should return > 1 if multiple background sprites are available.
+    /// A pointer to the first <see cref="LauncherPathEntry"/> representing the logo overlay sprites path.
     /// </returns>
-    [PreserveSig]
-    int GetBackgroundEntriesCount();
-    */
+    nint GetLogoOverlayEntries();
 
     /// <summary>
-    /// Free the background's local path entries. This function should be called if the entries are no longer needed.
+    /// Frees the memory allocated for the handle of local path entries.
+    /// This method should be called when the entries are no longer needed.
     /// </summary>
+    /// <param name="handle">
+    /// The handle pointer to the logo entries to be freed.
+    /// </param>
     /// <returns>
     /// <c>true</c> if the entries were successfully freed; <c>false</c> if they were already freed or failed to be freed.
     /// </returns>
     [return: MarshalAs(UnmanagedType.Bool)]
-    bool FreeBackgroundEntries();
+    bool FreePathEntriesHandle(nint handle);
 
     /// <summary>
     /// Gets the current background flag, which indicates the type and source of the launcher background.
@@ -61,33 +63,4 @@ public partial interface ILauncherApiMedia : IInitializable
     /// </returns>
     [PreserveSig]
     LauncherBackgroundFlag GetBackgroundFlag();
-
-    /// <summary>
-    /// Gets the logo overlay's local path entries for the launcher.
-    /// </summary>
-    /// <returns>
-    /// A pointer to the first <see cref="LauncherPathEntry"/> representing the logo overlay sprites path.
-    /// </returns>
-    unsafe LauncherPathEntry* GetLogoOverlayEntries();
-
-    /*
-    /// <summary>
-    /// Gets the count of logo overlay entries.
-    /// </summary>
-    /// <returns>
-    /// The number of logo overlay entries available.
-    /// </returns>
-    [PreserveSig]
-    int GetLogoOverlayEntriesCount();
-    */
-
-    /// <summary>
-    /// Frees the memory allocated for the logo overlay's local path entries.
-    /// This method should be called when the entries are no longer needed.
-    /// </summary>
-    /// <returns>
-    /// <c>true</c> if the entries were successfully freed; <c>false</c> if they were already freed or failed to be freed.
-    /// </returns>
-    [return: MarshalAs(UnmanagedType.Bool)]
-    bool FreeLogoOverlayEntries();
 }

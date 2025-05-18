@@ -29,6 +29,7 @@ public static partial class ComAsyncExtension
         private const string ExNameFileLoadException = "FileLoadException";
         private const string ExNameFileNotFoundException = "FileNotFoundException";
         private const string ExNameFormatException = "FormatException";
+        private const string ExNameHttpRequestException = "HttpRequestException";
         private const string ExNameIndexOutOfRangeException = "IndexOutOfRangeException";
         private const string ExNameInsufficientExecutionStackException = "InsufficientExecutionStackException";
         private const string ExNameInsufficientMemoryException = "InsufficientMemoryException";
@@ -52,6 +53,7 @@ public static partial class ComAsyncExtension
         private const string ExNameOverflowException = "OverflowException";
         private const string ExNamePlatformNotSupportedException = "PlatformNotSupportedException";
         private const string ExNameRankException = "RankException";
+        private const string ExNameSocketException = "SocketException";
         private const string ExNameStackOverflowException = "StackOverflowException";
         private const string ExNameSystemException = "SystemException";
         private const string ExNameTimeoutException = "TimeoutException";

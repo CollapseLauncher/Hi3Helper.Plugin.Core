@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
+using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.Core;
 
@@ -35,6 +35,8 @@ public abstract partial class PluginBase : IPlugin
             string.IsNullOrEmpty(username) &&
             string.IsNullOrEmpty(password))
         {
+            SharedStatic.InstanceLogger?.LogTrace("[IPlugin::SetPluginProxySettings] Proxy has been disabled!");
+
             SharedStatic.ProxyHost     = null;
             SharedStatic.ProxyUsername = null;
             SharedStatic.ProxyPassword = null;
@@ -48,6 +50,8 @@ public abstract partial class PluginBase : IPlugin
             SharedStatic.ProxyHost = null;
             return false;
         }
+
+        SharedStatic.InstanceLogger?.LogTrace("[IPlugin::SetPluginProxySettings] Proxy has been enabled! Hostname: {Hostname} as: {Username}", hostUri, username);
 
         // Set the username and password and return true.
         SharedStatic.ProxyUsername = username;
