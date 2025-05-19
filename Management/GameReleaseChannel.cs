@@ -1,4 +1,5 @@
-﻿namespace Hi3Helper.Plugin.Core.Management;
+﻿// ReSharper disable UnusedMember.Global
+namespace Hi3Helper.Plugin.Core.Management;
 
 public enum GameReleaseChannel
 {

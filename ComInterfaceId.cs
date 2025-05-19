@@ -1,4 +1,5 @@
 ﻿// ReSharper disable IdentifierTypo
+// ReSharper disable UnusedMember.Global
 namespace Hi3Helper.Plugin.Core;
 
 internal static class ComInterfaceId

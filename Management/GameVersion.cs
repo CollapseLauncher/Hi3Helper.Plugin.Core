@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management;
 
@@ -188,9 +189,9 @@ public readonly struct GameVersion : IVersion
                thisSpan[3] == otherSpan[3];
     }
 
-    public string VersionString { get => string.Join('.', VersionArray); }
-    public int[] VersionArrayManifest { get => [Major, Minor, Build, Revision]; }
-    public int[] VersionArray { get => [Major, Minor, Build]; }
+    public string VersionString => string.Join('.', VersionArray);
+    public int[] VersionArrayManifest => [Major, Minor, Build, Revision];
+    public int[] VersionArray => [Major, Minor, Build];
     public int get_Major() => Major;
     public int get_Minor() => Major;
     public int get_Build() => Build;

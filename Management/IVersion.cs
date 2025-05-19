@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace Hi3Helper.Plugin.Core.Management;
 

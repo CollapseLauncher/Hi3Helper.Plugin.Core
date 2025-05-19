@@ -13,10 +13,11 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable StringLiteralTypo
 
 // ReSharper disable StaticMemberInGenericType
 

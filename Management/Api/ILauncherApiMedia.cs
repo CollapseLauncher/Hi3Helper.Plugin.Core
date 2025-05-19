@@ -14,7 +14,7 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// </para>
 /// <para>
 /// All methods that return pointers to entries (such as <see cref="GetBackgroundEntries"/> and <see cref="GetLogoOverlayEntries"/>) must be paired with their corresponding free methods
-/// (<see cref="FreeBackgroundEntries"/> and <see cref="FreeLogoOverlayEntries"/>) to avoid memory leaks.
+/// (<see cref="FreePathEntriesHandle(nint)"/> to avoid memory leaks.
 /// </para>
 /// <para>
 /// This interface inherits from <see cref="IInitializable"/>, requiring implementers to provide asynchronous initialization logic.

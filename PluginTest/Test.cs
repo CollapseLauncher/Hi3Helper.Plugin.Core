@@ -5,9 +5,7 @@ using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
@@ -213,7 +211,7 @@ namespace PluginTest
 
                 nint backgroundUrlHandle = apiMedia.GetBackgroundEntries();
                 int  backgroundUrlCount  = LauncherPathEntry.GetCountFromHandle(backgroundUrlHandle);
-                logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{addr:x8}", backgroundUrlCount, backgroundUrlHandle);
+                logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundUrlHandle);
 
                 while (backgroundUrlHandle != nint.Zero)
                 {
@@ -228,13 +226,13 @@ namespace PluginTest
                     Directory.CreateDirectory(thisLocalPath);
 
                     await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                    await apiMedia.DownloadAssetAsync(backgroundUrlHandle, fileStream.SafeFileHandle.DangerousGetHandle(), (read, current, total) =>
+                    await apiMedia.DownloadAssetAsync(backgroundUrlHandle, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
                     {
                         Console.Write($"Downloaded: {current} / {total}...\r");
                     }, in CancelToken).WaitFromHandle();
 
                     nint nextBackgroundUrlHandle = LauncherPathEntry.GetNextHandleAndFreed(backgroundUrlHandle);
-                    logger.LogInformation("  ILauncherApiMedia->GetBackgroundEntries(): Background handles at: 0x{addr:x8} freed! Move next to: 0x{addr2:x8}", backgroundUrlHandle, nextBackgroundUrlHandle);
+                    logger.LogInformation("  ILauncherApiMedia->GetBackgroundEntries(): Background handles at: 0x{address:x8} freed! Move next to: 0x{address2:x8}", backgroundUrlHandle, nextBackgroundUrlHandle);
 
                     backgroundUrlHandle = nextBackgroundUrlHandle;
                 }
