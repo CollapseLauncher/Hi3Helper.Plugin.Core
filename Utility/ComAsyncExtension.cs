@@ -71,7 +71,7 @@ public static partial class ComAsyncExtension
                 SafeWaitHandle = asyncSafeHandle
             };
 
-            await Task.Run(waitHandle.WaitOne);
+            await Task.Factory.StartNew(waitHandle.WaitOne);
             EnsureSuccessResult(handle);
         }
         finally
