@@ -11,7 +11,7 @@ namespace Hi3Helper.Plugin.Core.Utility;
 
 public static class PluginFiles
 {
-    internal const int CopyToBufferSize = 16 << 10;
+    internal const int CopyToBufferSize = 64 << 10;
 
     /// <summary>
     /// Delegate for reporting progress of file read operations.
@@ -74,7 +74,7 @@ public static class PluginFiles
         try
         {
             int read;
-            while ((read = await source.ReadAsync(buffer.AsMemory(0, bufferSize), token).ConfigureAwait(false)) > 0)
+            while ((read = await source.ReadAtLeastAsync(buffer.AsMemory(0, bufferSize), bufferSize, false, token).ConfigureAwait(false)) > 0)
             {
                 await destination.WriteAsync(buffer.AsMemory(0, read), token).ConfigureAwait(false);
                 bytesRead += read;
