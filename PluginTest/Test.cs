@@ -209,7 +209,7 @@ namespace PluginTest
                 long value = 0;
                 logger.LogInformation("IPlugin->GetPresetConfig({0})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", i);
                 await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
-                logger.LogInformation("Return value: " + value);
+                logger.LogInformation("Return value: {ReturnValue}", value);
 
                 nint backgroundUrlHandle = apiMedia.GetBackgroundEntries();
                 int  backgroundUrlCount  = LauncherPathEntry.GetCountFromHandle(backgroundUrlHandle);
