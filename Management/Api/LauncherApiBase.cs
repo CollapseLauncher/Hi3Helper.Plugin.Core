@@ -30,7 +30,7 @@ public abstract partial class LauncherApiBase : Initializable, ILauncherApi
         LauncherPathEntry* entry = (LauncherPathEntry*)pathEntry;
 
         byte[] fileChecksum = new Span<byte>(entry->FileHash, entry->FileHashLength).ToArray();
-        string fileUrl      = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(entry->Path).ToString();
+        string fileUrl      = Mem.CreateSpanFromNullTerminated<char>(entry->Path).ToString();
 
         return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, fileChecksum, downloadProgress, token).AsResult();
     }
@@ -62,7 +62,7 @@ public abstract partial class LauncherApiBase : Initializable, ILauncherApi
         while (entries != null)
         {
             LauncherPathEntry* nextEntry = (LauncherPathEntry*)entries->NextEntry;
-            NativeMemory.Free(entries);
+            Mem.Free(entries);
             entries = nextEntry;
         }
 

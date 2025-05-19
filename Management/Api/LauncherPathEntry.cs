@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using Hi3Helper.Plugin.Core.Utility;
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
@@ -40,13 +39,13 @@ public unsafe struct LauncherPathEntry
 
         LauncherPathEntry* entry = (LauncherPathEntry*)handle;
         char* path = entry->Path;
-        return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(path).ToString(); 
+        return Mem.CreateSpanFromNullTerminated<char>(path).ToString(); 
     }
 
     public static nint GetNextHandleAndFreed(nint handle)
     {
         nint nextHandle = GetNextHandle(handle);
-        NativeMemory.Free((void*)handle);
+        Mem.Free(handle);
 
         return nextHandle;
     }

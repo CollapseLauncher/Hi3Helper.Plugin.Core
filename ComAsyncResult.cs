@@ -61,7 +61,7 @@ public unsafe struct ComAsyncResult
                 return;
             }
 
-            ComAsyncException* exceptionHandleP = (ComAsyncException*)NativeMemory.AllocZeroed((nuint)sizeof(ComAsyncException));
+            ComAsyncException* exceptionHandleP = Mem.AllocZeroed<ComAsyncException>();
             ExceptionHandle = (nint)exceptionHandleP;
 
             WriteExceptionRecursive(exception, exceptionHandleP);
@@ -89,7 +89,7 @@ public unsafe struct ComAsyncResult
         while (exception != null)
         {
             // Write current inner exception
-            ComAsyncException* innerExceptionHandleP = (ComAsyncException*)NativeMemory.AllocZeroed((nuint)sizeof(ComAsyncException));
+            ComAsyncException* innerExceptionHandleP = Mem.AllocZeroed<ComAsyncException>();
             ComAsyncExtension.WriteExceptionInfo(exception, innerExceptionHandleP);
 
             // Write previous handle pointer
@@ -122,7 +122,7 @@ public unsafe struct ComAsyncResult
         {
             // Get the result and allocate the ComAsyncResult handle
             IAsyncResult    asyncResult = task;
-            ComAsyncResult* resultP     = (ComAsyncResult*)NativeMemory.AllocZeroed((nuint)sizeof(ComAsyncResult));
+            ComAsyncResult* resultP     = Mem.Alloc<ComAsyncResult>();
 
             // Set the WaitHandle to the handle of the async result
             resultP->Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle();
@@ -136,7 +136,7 @@ public unsafe struct ComAsyncResult
     public static void Free(nint handle)
     {
         // Get the handle as pointer
-        ComAsyncResult*    handleP          = (ComAsyncResult*)Unsafe.AsPointer(ref Unsafe.AsRef<ComAsyncResult>((void*)handle));
+        ComAsyncResult*    handleP          = (ComAsyncResult*)handle;
         ComAsyncException* exceptionHandleP = (ComAsyncException*)handleP->ExceptionHandle;
 
         // If the exception handle is null, we can just free the main handle
@@ -146,11 +146,11 @@ public unsafe struct ComAsyncResult
             nint innerExceptionHandle = exceptionHandleP->NextExceptionHandle;
 
             // Free the current exception and then move to the inner one
-            NativeMemory.Free(exceptionHandleP);
+            Mem.Free(exceptionHandleP);
             exceptionHandleP = (ComAsyncException*)innerExceptionHandle;
         }
 
         // Once all the exceptions are freed, free the main handle
-        NativeMemory.Free(handleP);
+        Mem.Free(handleP);
     }
 }

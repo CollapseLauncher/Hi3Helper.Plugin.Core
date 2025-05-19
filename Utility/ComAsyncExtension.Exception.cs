@@ -206,10 +206,10 @@ public static partial class ComAsyncExtension
         byte* exMessage    = result->ExceptionMessage;
         byte* exStackTrace = result->ExceptionStackTrace;
 
-        ReadOnlySpan<byte> exTypeNameSpan   = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(exTypeName);
-        ReadOnlySpan<byte> exInfoSpan       = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(exInfo);
-        ReadOnlySpan<byte> exMessageSpan    = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(exMessage);
-        ReadOnlySpan<byte> exStackTraceSpan = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(exStackTrace);
+        ReadOnlySpan<byte> exTypeNameSpan   = Mem.CreateSpanFromNullTerminated<byte>(exTypeName);
+        ReadOnlySpan<byte> exInfoSpan       = Mem.CreateSpanFromNullTerminated<byte>(exInfo);
+        ReadOnlySpan<byte> exMessageSpan    = Mem.CreateSpanFromNullTerminated<byte>(exMessage);
+        ReadOnlySpan<byte> exStackTraceSpan = Mem.CreateSpanFromNullTerminated<byte>(exStackTrace);
 
         if (exTypeNameSpan.IsEmpty)
         {
