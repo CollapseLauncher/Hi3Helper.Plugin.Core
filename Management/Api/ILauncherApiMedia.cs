@@ -27,23 +27,23 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 public unsafe partial interface ILauncherApiMedia : ILauncherApi
 {
     /// <summary>
-    /// Get the background image's local path entries for the launcher.
+    /// Get the background image's URL entries for the launcher.
     /// </summary>
     /// <returns>
-    /// The handle pointer or the current entry of the background sprite path.
+    /// A pointer to the first <see cref="LauncherPathEntry"/> representing the background image URL entries.
     /// </returns>
     nint GetBackgroundEntries();
 
     /// <summary>
-    /// Gets the logo overlay's local path entries for the launcher.
+    /// Gets the logo overlay's URL entries for the launcher.
     /// </summary>
     /// <returns>
-    /// A pointer to the first <see cref="LauncherPathEntry"/> representing the logo overlay sprites path.
+    /// A pointer to the first <see cref="LauncherPathEntry"/> representing the logo overlay sprites URL entries.
     /// </returns>
     nint GetLogoOverlayEntries();
 
     /// <summary>
-    /// Frees the memory allocated for the handle of local path entries.
+    /// Frees the memory allocated for the handle of URL entries.
     /// This method should be called when the entries are no longer needed.
     /// </summary>
     /// <param name="handle">
