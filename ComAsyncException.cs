@@ -27,7 +27,7 @@ namespace Hi3Helper.Plugin.Core
                 return null;
             }
 
-            ComAsyncException* exceptionHandle = (ComAsyncException*)handle;
+            ComAsyncException* exceptionHandle = handle.AsPointer<ComAsyncException>();
             Exception?         parentException = ComAsyncExtension.GetExceptionFromInfo(exceptionHandle);
 
             if (exceptionHandle->NextExceptionHandle == nint.Zero)
@@ -40,7 +40,7 @@ namespace Hi3Helper.Plugin.Core
                 return null;
             }
 
-            ComAsyncException* innerExceptionHandle = (ComAsyncException*)exceptionHandle->NextExceptionHandle;
+            ComAsyncException* innerExceptionHandle = exceptionHandle->NextExceptionHandle.AsPointer<ComAsyncException>();
             Exception?         innerException       = null;
             Exception?         lastInnerException   = null;
 
@@ -59,7 +59,7 @@ namespace Hi3Helper.Plugin.Core
 
                 innerException       ??= innerExceptionCurrent;
                 lastInnerException   =   innerExceptionCurrent;
-                innerExceptionHandle =   (ComAsyncException*)innerExceptionHandle->NextExceptionHandle;
+                innerExceptionHandle =   innerExceptionHandle->NextExceptionHandle.AsPointer<ComAsyncException>();
             }
 
             if (innerException != null)

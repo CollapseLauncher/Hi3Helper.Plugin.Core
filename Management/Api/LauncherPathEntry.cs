@@ -37,7 +37,7 @@ public unsafe struct LauncherPathEntry
             return string.Empty;
         }
 
-        LauncherPathEntry* entry = (LauncherPathEntry*)handle;
+        LauncherPathEntry* entry = handle.AsPointer<LauncherPathEntry>();
         char* path = entry->Path;
         return Mem.CreateSpanFromNullTerminated<char>(path).ToString(); 
     }
@@ -52,18 +52,18 @@ public unsafe struct LauncherPathEntry
 
     public static nint GetNextHandle(nint handle)
     {
-        LauncherPathEntry* entry = (LauncherPathEntry*)handle;
+        LauncherPathEntry* entry = handle.AsPointer<LauncherPathEntry>();
         return entry->NextEntry;
     }
 
     public static int GetCountFromHandle(nint handle)
     {
         int count = 0;
-        LauncherPathEntry* entry = (LauncherPathEntry*)handle;
+        LauncherPathEntry* entry = handle.AsPointer<LauncherPathEntry>();
         while (entry != null)
         {
             count++;
-            entry = (LauncherPathEntry*)entry->NextEntry;
+            entry = entry->NextEntry.AsPointer<LauncherPathEntry>();
         }
 
         return count;

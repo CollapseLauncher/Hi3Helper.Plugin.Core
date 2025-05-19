@@ -135,8 +135,8 @@ public unsafe struct ComAsyncResult
     public static void Free(nint handle)
     {
         // Get the handle as pointer
-        ComAsyncResult*    handleP          = (ComAsyncResult*)handle;
-        ComAsyncException* exceptionHandleP = (ComAsyncException*)handleP->ExceptionHandle;
+        ComAsyncResult*    handleP          = handle.AsPointer<ComAsyncResult>();
+        ComAsyncException* exceptionHandleP = handleP->ExceptionHandle.AsPointer<ComAsyncException>();
 
         // If the exception handle is null, we can just free the main handle
         while (exceptionHandleP != null)
@@ -146,7 +146,7 @@ public unsafe struct ComAsyncResult
 
             // Free the current exception and then move to the inner one
             Mem.Free(exceptionHandleP);
-            exceptionHandleP = (ComAsyncException*)innerExceptionHandle;
+            exceptionHandleP = innerExceptionHandle.AsPointer<ComAsyncException>();
         }
 
         // Once all the exceptions are freed, free the main handle

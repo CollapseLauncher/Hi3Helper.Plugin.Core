@@ -111,4 +111,13 @@ public static class Mem
 
         return (nuint)(sizeOf * count);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe T* AsPointer<T>(this nint ptr)
+        where T : unmanaged
+        => (T*)ptr;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe T* AsPointer<T>(this scoped ref T source)
+        where T : unmanaged => (T*)Unsafe.AsPointer(ref source);
 }

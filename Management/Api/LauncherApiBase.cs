@@ -25,7 +25,7 @@ public abstract partial class LauncherApiBase : Initializable, ILauncherApi
         SafeFileHandle safeFileHandle   = new SafeFileHandle(outputStreamHandle, false);
         FileStream     outputFileStream = new FileStream(safeFileHandle, FileAccess.ReadWrite);
 
-        LauncherPathEntry* entry = (LauncherPathEntry*)pathEntry;
+        LauncherPathEntry* entry = pathEntry.AsPointer<LauncherPathEntry>();
 
         byte[] fileChecksum = new Span<byte>(entry->FileHash, entry->FileHashLength).ToArray();
         string fileUrl      = Mem.CreateSpanFromNullTerminated<char>(entry->Path).ToString();
@@ -56,10 +56,10 @@ public abstract partial class LauncherApiBase : Initializable, ILauncherApi
             return false;
         }
 
-        LauncherPathEntry* entries = (LauncherPathEntry*)handle;
+        LauncherPathEntry* entries = handle.AsPointer<LauncherPathEntry>();
         while (entries != null)
         {
-            LauncherPathEntry* nextEntry = (LauncherPathEntry*)entries->NextEntry;
+            LauncherPathEntry* nextEntry = entries->NextEntry.AsPointer<LauncherPathEntry>();
             Mem.Free(entries);
             entries = nextEntry;
         }

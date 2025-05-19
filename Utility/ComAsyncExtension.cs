@@ -55,7 +55,7 @@ public static partial class ComAsyncExtension
 
     private static unsafe nint GetWaitHandle(nint handle)
     {
-        ComAsyncResult* asyncResult = (ComAsyncResult*)handle;
+        ComAsyncResult* asyncResult = handle.AsPointer<ComAsyncResult>();
         return asyncResult->Handle;
     }
 
@@ -84,7 +84,7 @@ public static partial class ComAsyncExtension
 
     private static unsafe void EnsureSuccessResult(nint handle)
     {
-        ComAsyncResult* asyncResult = (ComAsyncResult*)handle;
+        ComAsyncResult* asyncResult = handle.AsPointer<ComAsyncResult>();
 
         if (asyncResult->IsCancelled || asyncResult->IsFaulty)
         {

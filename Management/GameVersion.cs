@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Hi3Helper.Plugin.Core.Utility;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 // ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct GameVersion : IVersion
+public struct GameVersion : IVersion
 {
     public GameVersion(params ReadOnlySpan<int> ver)
     {
@@ -100,7 +100,7 @@ public readonly struct GameVersion : IVersion
         return new GameVersion(nextMajor, nextMinor, Build, Revision);
     }
 
-    public unsafe ReadOnlySpan<int> AsSpan() => new(Unsafe.AsPointer(ref Unsafe.AsRef(in this)), 4);
+    public unsafe ReadOnlySpan<int> AsSpan() => new(this.AsPointer(), 4);
     public Version ToVersion() => new(Major, Minor, Build, Revision);
     public override string ToString() => $"{Major}.{Minor}.{Build}.{Revision}";
 
