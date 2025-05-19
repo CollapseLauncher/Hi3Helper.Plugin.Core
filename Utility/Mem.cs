@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 // ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -84,14 +85,40 @@ public static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe string CreateStringFromNullTerminated<T>(nint handle)
+        where T : unmanaged
+        => CreateStringFromNullTerminated((T*)handle);
+
+    public static unsafe string CreateStringFromNullTerminated<T>(T* source)
+        where T : unmanaged
+    {
+        ThrowIfNotByteOrChar<T>(out bool isChar);
+
+        int len;
+        if (isChar)
+        {
+            len = SpanHelpers.IndexOfNullCharacter((char*)source);
+            return new string((char*)source, 0, len);
+        }
+
+        len = SpanHelpers.IndexOfNullByte((byte*)source);
+        return Encoding.UTF8.GetString((byte*)source, len);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ThrowIfNotByteOrChar<T>(out bool isChar)
         where T : unmanaged
     {
+        isChar = false;
         Type currentType = typeof(T);
-        if (!(isChar = currentType == typeof(char)) || currentType != typeof(byte))
+
+        if (currentType == typeof(char))
         {
-            throw new InvalidOperationException("Type must be char or byte!");
+            isChar = true;
+            return;
         }
+
+        if (currentType != typeof(byte)) throw new InvalidOperationException("Type must be a char or byte!");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
