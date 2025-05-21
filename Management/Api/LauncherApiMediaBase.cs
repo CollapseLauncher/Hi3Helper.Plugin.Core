@@ -10,7 +10,7 @@ public abstract partial class LauncherApiMediaBase : LauncherApiBase, ILauncherA
 
     public abstract LauncherBackgroundFlag GetLogoFlag();
 
-    public abstract nint GetBackgroundEntries();
+    public abstract bool GetBackgroundEntries(out nint handle, out int count, out bool isDisposable);
 
-    public abstract nint GetLogoOverlayEntries();
+    public abstract bool GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable);
 }

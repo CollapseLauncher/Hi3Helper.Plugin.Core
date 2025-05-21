@@ -1,73 +1,79 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
 
-namespace Hi3Helper.Plugin.Core
+namespace Hi3Helper.Plugin.Core;
+
+public readonly unsafe struct ComAsyncException() : IDisposable
 {
-    public unsafe struct ComAsyncException
+    public const int  ExceptionTypeNameMaxLength   = 64;
+    public const int  ExceptionInfoMaxLength       = 64;
+    public const int  ExceptionMessageMaxLength    = 384;
+    public const int  ExceptionStackTraceMaxLength = 3568;
+    public const char ExceptionInfoSeparator       = '$';
+
+    private readonly byte* _exceptionTypeByName = Mem.Alloc<byte>(ExceptionTypeNameMaxLength);
+    private readonly byte* _exceptionInfo       = Mem.Alloc<byte>(ExceptionInfoMaxLength);
+    private readonly byte* _exceptionMessage    = Mem.Alloc<byte>(ExceptionMessageMaxLength);
+    private readonly byte* _exceptionStackTrace = Mem.Alloc<byte>(ExceptionStackTraceMaxLength);
+
+    public PluginDisposableMemory<byte> ExceptionTypeByName => new(_exceptionTypeByName, ExceptionTypeNameMaxLength);
+    public PluginDisposableMemory<byte> ExceptionInfo       => new(_exceptionInfo, ExceptionInfoMaxLength);
+    public PluginDisposableMemory<byte> ExceptionMessage    => new(_exceptionMessage, ExceptionMessageMaxLength);
+    public PluginDisposableMemory<byte> ExceptionStackTrace => new(_exceptionStackTrace, ExceptionStackTraceMaxLength);
+
+    public void Dispose()
     {
-        public const int  ExceptionTypeNameMaxLength   = 64;
-        public const int  ExceptionInfoMaxLength       = 64;
-        public const int  ExceptionMessageMaxLength    = 384;
-        public const int  ExceptionStackTraceMaxLength = 3568;
-        public const char ExceptionInfoSeparator       = '$';
+        Mem.Free(_exceptionTypeByName);
+        Mem.Free(_exceptionInfo);
+        Mem.Free(_exceptionMessage);
+        Mem.Free(_exceptionStackTrace);
+    }
 
-        public nint PreviousExceptionHandle;
-        public nint NextExceptionHandle;
-
-        // TODO: Marshal exception directly instead of determining it by the name (since it's SUPER SLOW!!!).
-        public fixed byte ExceptionTypeByName [ExceptionTypeNameMaxLength];
-        public fixed byte ExceptionInfo       [ExceptionInfoMaxLength];
-        public fixed byte ExceptionMessage    [ExceptionMessageMaxLength];
-        public fixed byte ExceptionStackTrace [ExceptionStackTraceMaxLength];
-
-        public static Exception? GetExceptionFromHandle(nint handle)
+    public static Exception? GetExceptionFromHandle(PluginDisposableMemory<ComAsyncException> exceptionMemory)
+    {
+        if (exceptionMemory.IsEmpty)
         {
-            if (handle == nint.Zero)
-            {
-                return null;
-            }
+            return null;
+        }
 
-            ComAsyncException* exceptionHandle = handle.AsPointer<ComAsyncException>();
-            Exception?         parentException = ComAsyncExtension.GetExceptionFromInfo(exceptionHandle);
+        Exception? parentException = ComAsyncExtension.GetExceptionFromInfo(ref exceptionMemory[0]);
+        if (exceptionMemory.Length == 1)
+        {
+            return parentException;
+        }
 
-            if (exceptionHandle->NextExceptionHandle == nint.Zero)
+        if (parentException == null)
+        {
+            return null;
+        }
+
+        Exception? innerException = null;
+        Exception? lastInnerException = null;
+
+        for (int i = 1; i < exceptionMemory.Length; i++)
+        {
+            ref ComAsyncException innerExceptionHandle = ref exceptionMemory[i];
+            Exception? innerExceptionCurrent = ComAsyncExtension.GetExceptionFromInfo(ref innerExceptionHandle);
+
+            if (innerExceptionCurrent == null)
             {
                 return parentException;
             }
 
-            if (parentException == null)
+            if (lastInnerException != null)
             {
-                return null;
+                lastInnerException.SetExceptionInnerException() = innerExceptionCurrent;
             }
 
-            ComAsyncException* innerExceptionHandle = exceptionHandle->NextExceptionHandle.AsPointer<ComAsyncException>();
-            Exception?         innerException       = null;
-            Exception?         lastInnerException   = null;
-
-            while (innerExceptionHandle != null)
-            {
-                Exception? innerExceptionCurrent = ComAsyncExtension.GetExceptionFromInfo(innerExceptionHandle);
-                if (innerExceptionCurrent == null)
-                {
-                    return parentException;
-                }
-
-                if (lastInnerException != null)
-                {
-                    lastInnerException.SetExceptionInnerException() = innerExceptionCurrent;
-                }
-
-                innerException       ??= innerExceptionCurrent;
-                lastInnerException   =   innerExceptionCurrent;
-                innerExceptionHandle =   innerExceptionHandle->NextExceptionHandle.AsPointer<ComAsyncException>();
-            }
-
-            if (innerException != null)
-            {
-                parentException.SetExceptionInnerException() = innerException;
-            }
-
-            return parentException;
+            innerException ??= innerExceptionCurrent;
+            lastInnerException = innerExceptionCurrent;
         }
+
+        if (innerException != null)
+        {
+            parentException.SetExceptionInnerException() = innerException;
+        }
+
+        return parentException;
     }
 }

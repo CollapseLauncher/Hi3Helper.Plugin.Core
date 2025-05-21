@@ -53,19 +53,13 @@ public static partial class ComAsyncExtension
 #endif
     }
 
-    private static unsafe nint GetWaitHandle(nint handle)
-    {
-        ComAsyncResult* asyncResult = handle.AsPointer<ComAsyncResult>();
-        return asyncResult->Handle;
-    }
-
     public static async Task WaitFromHandle(this nint handle)
     {
         SafeWaitHandle? asyncSafeHandle = null;
         EventWaitHandle? waitHandle = null;
         try
         {
-            asyncSafeHandle = new SafeWaitHandle(GetWaitHandle(handle), false);
+            asyncSafeHandle = new SafeWaitHandle(ComAsyncResult.GetWaitHandle(handle), false);
             waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset)
             {
                 SafeWaitHandle = asyncSafeHandle
@@ -78,32 +72,33 @@ public static partial class ComAsyncExtension
         {
             asyncSafeHandle?.Dispose();
             waitHandle?.Dispose();
-            ComAsyncResult.Free(handle);
+            ComAsyncResult.DisposeHandle(handle);
         }
     }
 
-    private static unsafe void EnsureSuccessResult(nint handle)
+    private static void EnsureSuccessResult(nint handle)
     {
-        ComAsyncResult* asyncResult = handle.AsPointer<ComAsyncResult>();
+        ref ComAsyncResult asyncResult = ref handle.AsRef<ComAsyncResult>();
 
-        if (asyncResult->IsCancelled || asyncResult->IsFaulty)
+        if (asyncResult.IsCancelled || asyncResult.IsFaulty)
         {
-            StackTrace currentStackTrace = new StackTrace(true);
-            Exception? exception = ComAsyncException.GetExceptionFromHandle(asyncResult->ExceptionHandle);
+            StackTrace currentStackTrace = new(true);
+            Exception? exception = ComAsyncException.GetExceptionFromHandle(asyncResult.ExceptionMemory);
 
             if (exception != null)
             {
-                exception.SetExceptionStackTrace() = "\r\n" + currentStackTrace;
+                exception.SetExceptionRemoteStackTrace() += Environment.NewLine;
+                exception.SetExceptionStackTrace() = currentStackTrace;
                 throw exception;
             }
 
-            if (asyncResult->IsCancelled)
+            if (asyncResult.IsCancelled)
             {
                 throw new TaskCanceledException();
             }
         }
 
-        if (asyncResult->IsFaulty)
+        if (asyncResult.IsFaulty)
         {
             throw new COMException();
         }

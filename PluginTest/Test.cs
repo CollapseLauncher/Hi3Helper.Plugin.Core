@@ -78,22 +78,22 @@ namespace PluginTest
                 case LogLevel.None:
                     break;
                 case LogLevel.Trace:
-                    Program.InvokeLogger.LogTrace(eventId, "[Plugin Log: TRACE] " + message);
+                    Program.InvokeLogger.LogTrace(eventId, "[Plugin Log: TRACE] {message}", message);
                     break;
                 case LogLevel.Information:
-                    Program.InvokeLogger.LogInformation(eventId, "[Plugin Log: INFO] " + message);
+                    Program.InvokeLogger.LogInformation(eventId, "[Plugin Log: INFO] {message}", message);
                     break;
                 case LogLevel.Debug:
-                    Program.InvokeLogger.LogDebug(eventId, "[Plugin Log: DEBUG] " + message);
+                    Program.InvokeLogger.LogDebug(eventId, "[Plugin Log: DEBUG] {message}", message);
                     break;
                 case LogLevel.Warning:
-                    Program.InvokeLogger.LogWarning(eventId, "[Plugin Log: WARNING] " + message);
+                    Program.InvokeLogger.LogWarning(eventId, "[Plugin Log: WARNING] {message}", message);
                     break;
                 case LogLevel.Error:
-                    Program.InvokeLogger.LogError(eventId, "[Plugin Log: ERROR] " + message);
+                    Program.InvokeLogger.LogError(eventId, "[Plugin Log: ERROR] {message}", message);
                     break;
                 case LogLevel.Critical:
-                    Program.InvokeLogger.LogCritical(eventId, "[Plugin Log: CRITICAL] " + message);
+                    Program.InvokeLogger.LogCritical(eventId, "[Plugin Log: CRITICAL] {message}", message);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
@@ -186,7 +186,7 @@ namespace PluginTest
                 logger.LogInformation("    IPlugin->GetPresetConfig({0})->InitAsync(): Invoking Asynchronously...", i);
                 long value = 0;
                 await presetConfig.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
-                logger.LogInformation("Return value: " + value);
+                logger.LogInformation("Return value: {Value}", value);
             }
         }
 
@@ -209,32 +209,31 @@ namespace PluginTest
                 await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
                 logger.LogInformation("Return value: {ReturnValue}", value);
 
-                nint backgroundUrlHandle = apiMedia.GetBackgroundEntries();
-                int  backgroundUrlCount  = LauncherPathEntry.GetCountFromHandle(backgroundUrlHandle);
-                logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundUrlHandle);
+                using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory =  PluginDisposableMemoryExtension.ToDisposableMemory<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
 
-                while (backgroundUrlHandle != nint.Zero)
+                int backgroundUrlCount = backgroundPathMemory.Length;
+                logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundPathMemory.AsSafePointer());
+
+                for (int j = 0; j < backgroundUrlCount; j++)
                 {
-                    string fileUrl = LauncherPathEntry.GetStringFromHandle(backgroundUrlHandle);
+                    using LauncherPathEntry entry = backgroundPathMemory[j];
+
+                    string fileUrl = entry.GetPathString();
                     ArgumentException.ThrowIfNullOrEmpty(fileUrl);
 
                     logger.LogInformation("  LauncherPathEntry.GetStringFromHandle(): Downloading {Url}", fileUrl);
+
                     string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.get_ProfileName());
-                    string thisFileName  = Path.GetFileName(fileUrl);
-                    string thisFilePath  = Path.Combine(thisLocalPath, thisFileName);
+                    string thisFileName = Path.GetFileName(fileUrl);
+                    string thisFilePath = Path.Combine(thisLocalPath, thisFileName);
 
                     Directory.CreateDirectory(thisLocalPath);
 
                     await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                    await apiMedia.DownloadAssetAsync(backgroundUrlHandle, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
+                    await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
                     {
                         Console.Write($"Downloaded: {current} / {total}...\r");
                     }, in CancelToken).WaitFromHandle();
-
-                    nint nextBackgroundUrlHandle = LauncherPathEntry.GetNextHandleAndFreed(backgroundUrlHandle);
-                    logger.LogInformation("  ILauncherApiMedia->GetBackgroundEntries(): Background handles at: 0x{address:x8} freed! Move next to: 0x{address2:x8}", backgroundUrlHandle, nextBackgroundUrlHandle);
-
-                    backgroundUrlHandle = nextBackgroundUrlHandle;
                 }
             }
         }

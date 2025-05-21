@@ -13,7 +13,7 @@ namespace Hi3Helper.Plugin.Core.Utility;
 /// <br/><br/>
 /// - Mem
 /// </summary>
-public static class Mem
+public static partial class Mem
 {
     public static T[] CreateArrayFromSelector<T>(Func<int> countCallback, Func<int, T> selectorCallback)
     {
@@ -33,23 +33,15 @@ public static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe T* AllocZeroed<T>(int count = 1)
+    public static unsafe T* Alloc<T>(int count = 1, bool zeroed = true)
         where T : unmanaged
     {
         nuint sizeOf = EnsureGetSizeOf<T>(count);
-        return (T*)NativeMemory.AllocZeroed(sizeOf);
+        return zeroed ? (T*)NativeMemory.AllocZeroed(sizeOf) : (T*)NativeMemory.Alloc(sizeOf);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe T* Alloc<T>(int count = 1)
-        where T : unmanaged
-    {
-        nuint sizeOf = EnsureGetSizeOf<T>(count);
-        return (T*)NativeMemory.Alloc(sizeOf);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void Free(nint ptr)
+    public static unsafe void Free(this nint ptr)
         => Free((void*)ptr);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -63,10 +55,9 @@ public static class Mem
         NativeMemory.Free(ptr);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe Span<T> CreateSpanFromNullTerminated<T>(nint handle)
+    public static unsafe Span<T> CreateSpanFromNullTerminated<T>(this PluginDisposableMemory<T> memory)
         where T : unmanaged
-        => CreateSpanFromNullTerminated<T>((void*)handle);
+        => CreateSpanFromNullTerminated<T>(memory.AsPointer());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe Span<T> CreateSpanFromNullTerminated<T>(void* ptr)
@@ -76,7 +67,7 @@ public static class Mem
 
         if (ptr == null)
         {
-            return Span<T>.Empty;
+            return [];
         }
 
         return isChar ?
@@ -85,10 +76,11 @@ public static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe string CreateStringFromNullTerminated<T>(nint handle)
+    public static unsafe string CreateStringFromNullTerminated<T>(this PluginDisposableMemory<T> memory)
         where T : unmanaged
-        => CreateStringFromNullTerminated((T*)handle);
+        => CreateStringFromNullTerminated(memory.AsPointer());
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe string CreateStringFromNullTerminated<T>(T* source)
         where T : unmanaged
     {
@@ -143,8 +135,18 @@ public static class Mem
     public static unsafe T* AsPointer<T>(this nint ptr)
         where T : unmanaged
         => (T*)ptr;
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe T* AsPointer<T>(this scoped ref T source)
         where T : unmanaged => (T*)Unsafe.AsPointer(ref source);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe ref T AsRef<T>(this nint ptr)
+        where T : unmanaged
+        => ref AsRef<T>((void*)ptr);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe ref T AsRef<T>(void* ptr)
+        where T : unmanaged
+        => ref Unsafe.AsRef<T>(ptr);
 }

@@ -1,5 +1,8 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
+using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+// ReSharper disable ConvertToAutoProperty
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
@@ -7,87 +10,41 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// Entry of the path used by the launcher assets.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-public unsafe struct LauncherPathEntry
+public unsafe struct LauncherPathEntry() : IDisposable
 {
+    public const int PathMaxLength     = 1024;
     public const int FileHashMaxLength = 64;
-    public const int PathMaxLength     = 956;
+
+    private readonly char* _path           = Mem.Alloc<char>(PathMaxLength);
+    private readonly byte* _fileHash       = Mem.Alloc<byte>(FileHashMaxLength);
+    private int   _fileHashLength;
 
     /// <summary>
     /// The local path of where the asset is stored.
     /// </summary>
-    public fixed char Path[PathMaxLength];
+    public readonly PluginDisposableMemory<char> Path => new(_path, PathMaxLength);
 
     /// <summary>
     /// The hash of the file. This is used to verify the integrity of the file.
     /// </summary>
-    public fixed byte FileHash[FileHashMaxLength];
+    public readonly PluginDisposableMemory<byte> FileHash => new(_fileHash, FileHashMaxLength);
 
     /// <summary>
     /// The actual length of the <see cref="FileHash"/> buffer.
     /// </summary>
-    public int FileHashLength;
+    public int FileHashLength { readonly get => _fileHashLength; set => _fileHashLength = value; }
 
-    /// <summary>
-    /// The next entry of the path. This should be non-null if multiple entries are available.
-    /// </summary>
-    public nint NextEntry;
-
-    /// <summary>
-    /// Get the string of the Path from the handle.
-    /// </summary>
-    /// <param name="handle">The pointer to the handle</param>
-    /// <returns>A string represents the value of Path field.</returns>
-    public static string GetStringFromHandle(nint handle)
+    public readonly void Dispose()
     {
-        if (handle == nint.Zero)
-        {
-            return string.Empty;
-        }
-
-        LauncherPathEntry* entry = handle.AsPointer<LauncherPathEntry>();
-        char* path = entry->Path;
-        return Mem.CreateSpanFromNullTerminated<char>(path).ToString(); 
+        Mem.Free(_path);
+        Mem.Free(_fileHash);
     }
 
     /// <summary>
-    /// Get the handle of the next entry and freed the current handle passed into the <paramref name="handle"/> argument.
+    /// Get the string of <see cref="Path"/> field.
     /// </summary>
-    /// <param name="handle">The handle of the current entry.</param>
-    /// <returns>The handle to the next entry. It will return <see cref="nint.Zero"/> if no entries left.</returns>
-    public static nint GetNextHandleAndFreed(nint handle)
-    {
-        nint nextHandle = GetNextHandle(handle);
-        Mem.Free(handle);
-
-        return nextHandle;
-    }
-
-    /// <summary>
-    ///  Get the handle of the next entry from the current handle passed into the <paramref name="handle"/> argument.
-    /// </summary>
-    /// <param name="handle">The handle of the current entry.</param>
-    /// <returns>The handle to the next entry. It will return <see cref="nint.Zero"/> if no entries left.</returns>
-    public static nint GetNextHandle(nint handle)
-    {
-        LauncherPathEntry* entry = handle.AsPointer<LauncherPathEntry>();
-        return entry->NextEntry;
-    }
-
-    /// <summary>
-    /// Get the count of the entries from the handle.
-    /// </summary>
-    /// <param name="handle">The handle of the current entry.</param>
-    /// <returns>Count of entries available from the current handle.</returns>
-    public static int GetCountFromHandle(nint handle)
-    {
-        int count = 0;
-        LauncherPathEntry* entry = handle.AsPointer<LauncherPathEntry>();
-        while (entry != null)
-        {
-            count++;
-            entry = entry->NextEntry.AsPointer<LauncherPathEntry>();
-        }
-
-        return count;
-    }
+    /// <returns>The string of <see cref="Path"/> field.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly string GetPathString()
+        => Path.CreateStringFromNullTerminated();
 }

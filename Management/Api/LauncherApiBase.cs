@@ -14,21 +14,19 @@ public abstract partial class LauncherApiBase : Initializable, ILauncherApi
 {
     protected abstract HttpClient? ApiResponseHttpClient { get; }
 
-    public virtual unsafe nint DownloadAssetAsync(nint pathEntry,
-                                                  nint outputStreamHandle,
-                                                  PluginFiles.FileReadProgressDelegate? downloadProgress,
-                                                  in Guid cancelToken)
+    public virtual nint DownloadAssetAsync(LauncherPathEntry entry,
+                                           nint outputStreamHandle,
+                                           PluginFiles.FileReadProgressDelegate? downloadProgress,
+                                           in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken       token       = tokenSource.Token;
 
-        SafeFileHandle safeFileHandle   = new SafeFileHandle(outputStreamHandle, false);
-        FileStream     outputFileStream = new FileStream(safeFileHandle, FileAccess.ReadWrite);
+        SafeFileHandle safeFileHandle   = new(outputStreamHandle, false);
+        FileStream     outputFileStream = new(safeFileHandle, FileAccess.ReadWrite);
 
-        LauncherPathEntry* entry = pathEntry.AsPointer<LauncherPathEntry>();
-
-        byte[] fileChecksum = new Span<byte>(entry->FileHash, entry->FileHashLength).ToArray();
-        string fileUrl      = Mem.CreateSpanFromNullTerminated<char>(entry->Path).ToString();
+        byte[] fileChecksum = entry.FileHash.AsSpan(0, entry.FileHashLength).ToArray();
+        string fileUrl      = entry.Path.CreateStringFromNullTerminated();
 
         return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, fileChecksum, downloadProgress, token).AsResult();
     }
@@ -47,23 +45,5 @@ public abstract partial class LauncherApiBase : Initializable, ILauncherApi
         }
 
         await PluginFiles.DownloadFilesAsync(client, fileUrl, outputStream, downloadProgress, token).ConfigureAwait(false);
-    }
-
-    public virtual unsafe bool FreePathEntriesHandle(nint handle)
-    {
-        if (handle == nint.Zero)
-        {
-            return false;
-        }
-
-        LauncherPathEntry* entries = handle.AsPointer<LauncherPathEntry>();
-        while (entries != null)
-        {
-            LauncherPathEntry* nextEntry = entries->NextEntry.AsPointer<LauncherPathEntry>();
-            Mem.Free(entries);
-            entries = nextEntry;
-        }
-
-        return true;
     }
 }

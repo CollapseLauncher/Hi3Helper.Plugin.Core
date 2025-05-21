@@ -132,7 +132,7 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
 
     public PluginHttpClientBuilder<THandler> SetBaseUrl(string baseUrl)
     {
-        Uri baseUri = new Uri(baseUrl);
+        Uri baseUri = new(baseUrl);
         return SetBaseUrl(baseUri);
     }
 

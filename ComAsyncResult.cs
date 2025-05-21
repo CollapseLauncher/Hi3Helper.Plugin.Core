@@ -1,23 +1,34 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace Hi3Helper.Plugin.Core;
 
 [StructLayout(LayoutKind.Sequential)]
-public unsafe struct ComAsyncResult
+public struct ComAsyncResult : IDisposable
 {
-    public nint Handle;
-    public nint ExceptionHandle;
-
+    public  nint Handle;
+    private nint _exception;
+    private int  _exceptionCount;
     private byte _statusFlags;
+
+    public unsafe PluginDisposableMemory<ComAsyncException> ExceptionMemory
+    {
+        readonly get => new((ComAsyncException*)_exception, _exceptionCount);
+        set
+        {
+            _exceptionCount = value.Length;
+            _exception = (nint)Unsafe.AsPointer(ref value[0]);
+        }
+    }
 
     public bool IsCancelled
     {
-        get => (_statusFlags & 0b001) != 0;
+        readonly get => (_statusFlags & 0b001) != 0;
         set => _statusFlags = value
             ? (byte)(_statusFlags | 0b001)
             : (byte)(_statusFlags & ~0b001);
@@ -25,7 +36,7 @@ public unsafe struct ComAsyncResult
 
     public bool IsSuccessful
     {
-        get => (_statusFlags & 0b010) != 0;
+        readonly get => (_statusFlags & 0b010) != 0;
         set => _statusFlags = value
             ? (byte)(_statusFlags | 0b010)
             : (byte)(_statusFlags & ~0b010);
@@ -33,7 +44,7 @@ public unsafe struct ComAsyncResult
 
     public bool IsFaulty
     {
-        get => (_statusFlags & 0b100) != 0;
+        readonly get => (_statusFlags & 0b100) != 0;
         set => _statusFlags = value
             ? (byte)(_statusFlags | 0b100)
             : (byte)(_statusFlags & ~0b100);
@@ -55,19 +66,34 @@ public unsafe struct ComAsyncResult
             Exception? exception = task.Exception?.Flatten();
             exception = exception is AggregateException ? exception.InnerException : exception;
 
-            if (exception == null)
+            int exceptionCount = GetExceptionCount(exception);
+            if (exceptionCount == 0)
             {
                 return;
             }
 
-            ComAsyncException* exceptionHandleP = Mem.AllocZeroed<ComAsyncException>();
-            ExceptionHandle = (nint)exceptionHandleP;
-
-            WriteExceptionRecursive(exception, exceptionHandleP);
+            ExceptionMemory = PluginDisposableMemory<ComAsyncException>.Alloc(exceptionCount);
+            WriteExceptionRecursive(exception, ExceptionMemory);
         }
     }
 
-    private static void WriteExceptionRecursive(Exception? exception, ComAsyncException* exceptionHandle)
+    private static int GetExceptionCount(Exception? exception)
+    {
+        if (exception == null)
+        {
+            return 0;
+        }
+
+        int count = 1;
+        while ((exception = exception.InnerException) != null)
+        {
+            count++;
+        }
+
+        return count;
+    }
+
+    private static void WriteExceptionRecursive(Exception? exception, PluginDisposableMemory<ComAsyncException> exceptionMemory)
     {
         if (exception == null)
         {
@@ -80,32 +106,28 @@ public unsafe struct ComAsyncResult
 #endif
 
         // Write parent exception
-        ComAsyncExtension.WriteExceptionInfo(exception, exceptionHandle);
+        ComAsyncExtension.WriteExceptionInfo(exception, ref exceptionMemory[0]);
 
-        // Write inner exception recursively
-        ComAsyncException* lastException = exceptionHandle;
+        // If inner exception is null, return.
         exception = exception.InnerException;
-        while (exception != null)
+        if (exception == null)
         {
-            // Write current inner exception
-            ComAsyncException* innerExceptionHandleP = Mem.AllocZeroed<ComAsyncException>();
-            ComAsyncExtension.WriteExceptionInfo(exception, innerExceptionHandleP);
+            return;
+        }
 
-            // Write previous handle pointer
-            innerExceptionHandleP->PreviousExceptionHandle = (nint)lastException;
-
-            // Set this exception as the next one
-            lastException->NextExceptionHandle = (nint)innerExceptionHandleP;
-
+        // Write inner exception
+        for (int i = 1; i < exceptionMemory.Length && exception != null; i++)
+        {
 #if DEBUG
             // Log the exception info
             SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing inner exception: {ExceptionName}", exception.GetType().Name);
 #endif
-            // Move to the next inner exception
-            exception = exception.InnerException;
 
-            // Set the last inner exception pointer to the current one
-            lastException = innerExceptionHandleP;
+            // Write current inner exception
+            ComAsyncExtension.WriteExceptionInfo(exception, ref exceptionMemory[i]);
+
+            // Go to the next exception
+            exception = exception.InnerException;
         }
 
 #if DEBUG
@@ -114,14 +136,14 @@ public unsafe struct ComAsyncResult
 #endif
     }
 
-    public static nint Alloc(Lock threadLock, Task task, ComAsyncResultAttachAfterCallStateDelegate attachCallback)
+    public static unsafe nint Alloc(Lock threadLock, Task task, ComAsyncResultAttachAfterCallStateDelegate attachCallback)
     {
         // Enter and lock the current thread
         using (threadLock.EnterScope())
         {
             // Get the result and allocate the ComAsyncResult handle
-            IAsyncResult    asyncResult = task;
-            ComAsyncResult* resultP     = Mem.Alloc<ComAsyncResult>();
+            IAsyncResult asyncResult = task;
+            ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
 
             // Set the WaitHandle to the handle of the async result
             resultP->Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle();
@@ -132,24 +154,23 @@ public unsafe struct ComAsyncResult
         }
     }
 
-    public static void Free(nint handle)
+    public static unsafe nint GetWaitHandle(nint handle)
     {
-        // Get the handle as pointer
-        ComAsyncResult*    handleP          = handle.AsPointer<ComAsyncResult>();
-        ComAsyncException* exceptionHandleP = handleP->ExceptionHandle.AsPointer<ComAsyncException>();
+        ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
+        return asyncResult.Handle;
+    }
 
-        // If the exception handle is null, we can just free the main handle
-        while (exceptionHandleP != null)
-        {
-            // Store the inner exception first before freeing the current one
-            nint innerExceptionHandle = exceptionHandleP->NextExceptionHandle;
+    public static unsafe void DisposeHandle(nint handle)
+    {
+        ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
+        asyncResult.Dispose();
+    }
 
-            // Free the current exception and then move to the inner one
-            Mem.Free(exceptionHandleP);
-            exceptionHandleP = innerExceptionHandle.AsPointer<ComAsyncException>();
-        }
+    public unsafe void Dispose()
+    {
+        ExceptionMemory.Dispose();
 
-        // Once all the exceptions are freed, free the main handle
-        Mem.Free(handleP);
+        void* ptr = Unsafe.AsPointer(ref this);
+        Mem.Free(ptr);
     }
 }

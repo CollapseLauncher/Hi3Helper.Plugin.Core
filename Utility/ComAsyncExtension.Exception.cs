@@ -19,8 +19,8 @@ public static partial class ComAsyncExtension
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_message")]
     private static extern ref string SetExceptionMessage(this Exception exception);
 
-    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_stackTraceString")]
-    private static extern ref string? SetExceptionStackTrace(this Exception exception);
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_stackTrace")]
+    private static extern ref object SetExceptionStackTrace(this Exception exception);
 
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_remoteStackTraceString")]
     private static extern ref string? SetExceptionRemoteStackTrace(this Exception exception);
@@ -126,7 +126,7 @@ public static partial class ComAsyncExtension
             }
 
             string exceptionMessage = message.ToString();
-            IOException exception = new IOException(exceptionMessage, hResultInt);
+            IOException exception = new(exceptionMessage, hResultInt);
             return exception;
         }
 
@@ -135,7 +135,7 @@ public static partial class ComAsyncExtension
             string exceptionMessage = message.ToString();
             string infoObjectName   = GetExceptionInfo(typeExceptionInfo, out _).ToString();
 
-            ObjectDisposedException exception = new ObjectDisposedException(infoObjectName, exceptionMessage);
+            ObjectDisposedException exception = new(infoObjectName, exceptionMessage);
             return exception;
         }
 
@@ -153,7 +153,7 @@ public static partial class ComAsyncExtension
                 return new SocketException(Marshal.GetLastPInvokeError(), exceptionMessage);
             }
 
-            SocketException exception = new SocketException(nativeErrorCodeInt, exceptionMessage)
+            SocketException exception = new(nativeErrorCodeInt, exceptionMessage)
             {
                 HResult = hResultInt
             };
@@ -164,7 +164,7 @@ public static partial class ComAsyncExtension
         private static TypeInitializationException CreateTypeInitializationException(ReadOnlySpan<char> typeExceptionInfo, ReadOnlySpan<char> _)
         {
             string                      infoTypeName = GetExceptionInfo(typeExceptionInfo, out int _).ToString();
-            TypeInitializationException exception    = new TypeInitializationException(infoTypeName, null);
+            TypeInitializationException exception    = new(infoTypeName, null);
 
             return exception;
         }
@@ -183,7 +183,7 @@ public static partial class ComAsyncExtension
             if (typeExceptionInfoBuffer[0] != ComAsyncException.ExceptionInfoSeparator)
             {
                 readOffset = 0;
-                return ReadOnlySpan<char>.Empty;
+                return [];
             }
 
             Span<Range> ranges = stackalloc Range[2];
@@ -191,7 +191,7 @@ public static partial class ComAsyncExtension
             if (splitRangeLen == 0)
             {
                 readOffset = 0;
-                return ReadOnlySpan<char>.Empty;
+                return [];
             }
 
             readOffset = ranges[0].End.Value;
@@ -199,17 +199,12 @@ public static partial class ComAsyncExtension
         }
     }
 
-    internal static unsafe Exception? GetExceptionFromInfo(ComAsyncException* result)
+    internal static Exception? GetExceptionFromInfo(ref ComAsyncException result)
     {
-        byte* exTypeName   = result->ExceptionTypeByName;
-        byte* exInfo       = result->ExceptionInfo;
-        byte* exMessage    = result->ExceptionMessage;
-        byte* exStackTrace = result->ExceptionStackTrace;
-
-        ReadOnlySpan<byte> exTypeNameSpan   = Mem.CreateSpanFromNullTerminated<byte>(exTypeName);
-        ReadOnlySpan<byte> exInfoSpan       = Mem.CreateSpanFromNullTerminated<byte>(exInfo);
-        ReadOnlySpan<byte> exMessageSpan    = Mem.CreateSpanFromNullTerminated<byte>(exMessage);
-        ReadOnlySpan<byte> exStackTraceSpan = Mem.CreateSpanFromNullTerminated<byte>(exStackTrace);
+        ReadOnlySpan<byte> exTypeNameSpan = result.ExceptionTypeByName.CreateSpanFromNullTerminated();
+        ReadOnlySpan<byte> exInfoSpan = result.ExceptionInfo.CreateSpanFromNullTerminated();
+        ReadOnlySpan<byte> exMessageSpan = result.ExceptionMessage.CreateSpanFromNullTerminated();
+        ReadOnlySpan<byte> exStackTraceSpan = result.ExceptionStackTrace.CreateSpanFromNullTerminated();
 
         if (exTypeNameSpan.IsEmpty)
         {
@@ -235,27 +230,26 @@ public static partial class ComAsyncExtension
             Span<char> exStackTraceManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExceptionStackTraceMaxLength);
 
             // TODO: Split the exception name from typeName as it might contain additional info for some exception types.
-            Encoding.UTF8.TryGetChars(exTypeNameSpan,   exTypeNameManaged,   out int exTypeNameManagedWritten);
-            Encoding.UTF8.TryGetChars(exInfoSpan,       exInfoManaged,       out int exInfoManagedWritten);
-            Encoding.UTF8.TryGetChars(exMessageSpan,    exMessageManaged,    out int exMessageManagedWritten);
+            Encoding.UTF8.TryGetChars(exTypeNameSpan, exTypeNameManaged, out int exTypeNameManagedWritten);
+            Encoding.UTF8.TryGetChars(exInfoSpan, exInfoManaged, out int exInfoManagedWritten);
+            Encoding.UTF8.TryGetChars(exMessageSpan, exMessageManaged, out int exMessageManagedWritten);
             Encoding.UTF8.TryGetChars(exStackTraceSpan, exStackTraceManaged, out int exStackTraceWritten);
 
-            exTypeNameManaged   = exTypeNameManaged[..exTypeNameManagedWritten];
-            exInfoManaged       = exInfoManaged[..exInfoManagedWritten];
-            exMessageManaged    = exMessageManaged[..exMessageManagedWritten];
+            exTypeNameManaged = exTypeNameManaged[..exTypeNameManagedWritten];
+            exInfoManaged = exInfoManaged[..exInfoManagedWritten];
+            exMessageManaged = exMessageManaged[..exMessageManagedWritten];
             exStackTraceManaged = exStackTraceManaged[..exStackTraceWritten];
 
             if (!ExceptionNames.ExceptionCreateDelegateLookup
                     .TryGetValue(exTypeNameManaged, out ExceptionNames.CreateExceptionCallback<Exception>? createExceptionCallback))
             {
-                Exception anyException = new Exception();
-                anyException.SetExceptionMessage()          = exMessageManaged.ToString();
+                Exception anyException = new(exMessageManaged.ToString());
                 anyException.SetExceptionRemoteStackTrace() = exStackTraceManaged.ToString();
-                throw new Exception(exMessageManaged.ToString());
+                return anyException;
             }
 
             Exception createdException = createExceptionCallback(exInfoManaged, exMessageManaged);
-            string?   stackTrace       = exStackTraceWritten == 0 ? null : exStackTraceManaged.ToString();
+            string? stackTrace = exStackTraceWritten == 0 ? null : exStackTraceManaged.ToString();
 
             createdException.SetExceptionRemoteStackTrace() = stackTrace;
             return createdException;
@@ -263,6 +257,7 @@ public static partial class ComAsyncExtension
         finally
         {
             ArrayPool<char>.Shared.Return(exInfoBuffer);
+            result.Dispose();
         }
     }
 }

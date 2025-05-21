@@ -104,31 +104,27 @@ public static partial class ComAsyncExtension
         }
     }
 
-    internal static unsafe void WriteExceptionInfo(Exception exception, ComAsyncException* result)
+    internal static void WriteExceptionInfo(Exception exception, ref ComAsyncException result)
     {
+        // Allocate struct and its buffer
+        result = new ComAsyncException();
+
         string exceptionName        = exception.GetType().Name;
         string exceptionMessage     = exception.Message;
         string? exceptionStackTrace = exception.StackTrace;
 
-        byte* exceptionNameAddress       = result->ExceptionTypeByName;
-        byte* exceptionInfoAddress       = result->ExceptionInfo;
-        byte* exceptionMessageAddress    = result->ExceptionMessage;
-        byte* exceptionStackTraceAddress = result->ExceptionStackTrace;
+        Span<byte> exceptionNameSpan       = result.ExceptionTypeByName.AsSpan()[..^1];
+        Span<byte> exceptionInfo           = result.ExceptionInfo.AsSpan()[..^1];
+        Span<byte> exceptionMessageSpan    = result.ExceptionMessage.AsSpan()[..^1];
+        Span<byte> exceptionStackTraceSpan = result.ExceptionStackTrace.AsSpan()[..^1];
+
+        _ = Encoding.UTF8.TryGetBytes(exceptionName, exceptionNameSpan, out _);
+        _ = Encoding.UTF8.TryGetBytes(exceptionMessage, exceptionMessageSpan, out _);
+        _ = Encoding.UTF8.TryGetBytes(exceptionStackTrace, exceptionStackTraceSpan, out _);
+
+        if (ExceptionNames.ExceptionWriteInfoDelegateLookup.TryGetValue(exceptionName,
+            out ExceptionNames.WriteExceptionCallback? writeExceptionInfoCallback))
         {
-            Span<byte> exceptionNameSpan       = new(exceptionNameAddress, ComAsyncException.ExceptionTypeNameMaxLength - 1);
-            Span<byte> exceptionInfo           = new(exceptionInfoAddress, ComAsyncException.ExceptionInfoMaxLength - 1);
-            Span<byte> exceptionMessageSpan    = new(exceptionMessageAddress, ComAsyncException.ExceptionMessageMaxLength - 1);
-            Span<byte> exceptionStackTraceSpan = new(exceptionStackTraceAddress, ComAsyncException.ExceptionStackTraceMaxLength - 1);
-
-            _ = Encoding.UTF8.TryGetBytes(exceptionName, exceptionNameSpan, out _);
-            _ = Encoding.UTF8.TryGetBytes(exceptionMessage, exceptionMessageSpan, out _);
-            _ = Encoding.UTF8.TryGetBytes(exceptionStackTrace, exceptionStackTraceSpan, out _);
-
-            if (ExceptionNames.ExceptionWriteInfoDelegateLookup
-                .TryGetValue(exceptionName, out ExceptionNames.WriteExceptionCallback? writeExceptionInfoCallback))
-            {
-                writeExceptionInfoCallback(exception, exceptionInfo);
-            }
-        }
-    }
+            writeExceptionInfoCallback(exception, exceptionInfo);
+        }}
 }
