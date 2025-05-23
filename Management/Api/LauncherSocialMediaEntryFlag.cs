@@ -46,5 +46,5 @@ public enum LauncherSocialMediaEntryFlag : byte
     /// <summary>
     /// Whether the social media entry has a HREF/Click URL.
     /// </summary>
-    HasClickUrl = 0b_00010000,
+    HasClickUrl = 0b_00010000
 }

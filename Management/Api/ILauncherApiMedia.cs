@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
@@ -9,10 +8,6 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// This interface is intended for use in plugin scenarios where the launcher UI requires dynamic or customizable media content.
 /// </summary>
 /// <remarks>
-/// <para>
-/// The <see cref="ILauncherApiMedia"/> interface provides methods to retrieve, count, and free resources related to launcher backgrounds and logo overlays.
-/// It also exposes a method to determine the type and source of the current background media.
-/// </para>
 /// <para>
 /// This interface inherits from <see cref="IInitializableTask"/>, requiring implementers to provide asynchronous initialization logic.
 /// </para>

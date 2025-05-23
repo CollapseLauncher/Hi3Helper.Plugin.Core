@@ -27,6 +27,7 @@ public unsafe struct ComAsyncException()
     private byte* _exceptionInfo       = null;
     private byte* _exceptionMessage    = null;
     private byte* _exceptionStackTrace = null;
+    private int   _isFreed             = 0;
 
     /// <summary>
     /// Exception Type Name (without namespace). For example: "InvalidOperationException"
@@ -48,12 +49,16 @@ public unsafe struct ComAsyncException()
     /// </summary>
     public readonly PluginDisposableMemory<byte> ExceptionStackTrace => new(_exceptionStackTrace, ExExceptionStackTraceMaxLength);
 
-    public readonly void Dispose()
+    public void Dispose()
     {
+        if (_isFreed == 1) return;
+
         Mem.Free(_exceptionTypeByName);
         Mem.Free(_exceptionInfo);
         Mem.Free(_exceptionMessage);
         Mem.Free(_exceptionStackTrace);
+
+        _isFreed = 1;
     }
 
     /// <summary>

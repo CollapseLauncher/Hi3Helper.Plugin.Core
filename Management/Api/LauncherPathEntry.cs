@@ -19,6 +19,7 @@ public unsafe struct LauncherPathEntry()
     private char* _path           = null;
     private byte* _fileHash       = null;
     private int   _fileHashLength;
+    private int   _isFreed = 0;
 
     public void InitInner()
     {
@@ -41,10 +42,14 @@ public unsafe struct LauncherPathEntry()
     /// </summary>
     public int FileHashLength { readonly get => _fileHashLength; set => _fileHashLength = value; }
 
-    public readonly void Dispose()
+    public void Dispose()
     {
+        if (_isFreed == 1) return;
+
         Mem.Free(_path);
         Mem.Free(_fileHash);
+
+        _isFreed = 1;
     }
 
     /// <summary>

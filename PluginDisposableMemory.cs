@@ -1,5 +1,4 @@
-﻿using Hi3Helper.Plugin.Core.Management.Api;
-using Hi3Helper.Plugin.Core.Utility;
+﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -12,7 +11,8 @@ public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisp
     public int  Length       = count;
     public bool IsDisposable = isDisposable;
 
-    public readonly bool IsEmpty => Length == 0;
+    public  readonly bool IsEmpty => Length == 0;
+    private          int  _isFreed = 0;
 
     public static PluginDisposableMemory<T> Empty => new(null, 0, false);
 
@@ -49,7 +49,7 @@ public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisp
     /// <summary>
     /// Dispose the handle inside the span
     /// </summary>
-    public readonly void Dispose()
+    public void Dispose()
     {
         if (IsDisposable)
         {
@@ -60,9 +60,12 @@ public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisp
     /// <summary>
     /// Forcefully freed the span, even though the object is not disposable.
     /// </summary>
-    public readonly void ForceDispose()
+    public void ForceDispose()
     {
+        if (_isFreed == 1) return;
+
         Mem.Free(handle);
+        _isFreed = 1;
     }
 
     /// <summary>

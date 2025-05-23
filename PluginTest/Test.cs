@@ -201,68 +201,176 @@ namespace PluginTest
             for (int i = 0; i < pluginPresetConfigCount; i++)
             {
                 IPluginPresetConfig presetConfig = GetPresetConfig(pluginInterface, i, out _);
-                ILauncherApiMedia? apiMedia = presetConfig.get_LauncherApiMedia();
 
-                if (apiMedia == null)
-                    continue;
+                await InnerStartBackgroundImageEntryTest(logger, presetConfig, i);
+                await InnerStartMediaSocMedEntryTest(logger, presetConfig, i);
+            }
+        }
 
-                long value = 0;
-                logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", i);
-                await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
-                logger.LogInformation("Return value: {ReturnValue}", value);
+        private static async Task InnerStartBackgroundImageEntryTest(ILogger logger, IPluginPresetConfig presetConfig, int presetConfigIndex)
+        {
+            ILauncherApiMedia? apiMedia = presetConfig.get_LauncherApiMedia();
 
-                using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
-                int backgroundUrlCount = backgroundPathMemory.Length;
+            if (apiMedia == null)
+                return;
 
-                logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundPathMemory.AsSafePointer());
+            long value = 0;
+            logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
+            await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
+            logger.LogInformation("Return value: {ReturnValue}", value);
 
-                string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.get_ProfileName());
+            using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
+            int backgroundUrlCount = backgroundPathMemory.Length;
 
-                for (int j = 0; j < backgroundUrlCount; j++)
+            logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundPathMemory.AsSafePointer());
+
+            string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.get_ProfileName());
+
+            for (int j = 0; j < backgroundUrlCount; j++)
+            {
+                using LauncherPathEntry entry = backgroundPathMemory[j];
+
+                string fileUrl = entry.GetPathString();
+                ArgumentException.ThrowIfNullOrEmpty(fileUrl);
+
+                logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Background: {Url}", fileUrl);
+
+                string thisFileName = Path.GetFileName(fileUrl);
+                string thisFilePath = Path.Combine(thisLocalPath, thisFileName);
+
+                Directory.CreateDirectory(thisLocalPath);
+
+                await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
                 {
-                    using LauncherPathEntry entry = backgroundPathMemory[j];
+                    Console.Write($"Downloaded: {current} / {total}...\r");
+                }, in CancelToken).WaitFromHandle();
+            }
 
-                    string fileUrl = entry.GetPathString();
-                    ArgumentException.ThrowIfNullOrEmpty(fileUrl);
+            using PluginDisposableMemory<LauncherPathEntry> logoPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetLogoOverlayEntries);
+            int logoUrlCount = logoPathMemory.Length;
 
-                    logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Background: {Url}", fileUrl);
+            logger.LogInformation("ILauncherApiMedia->GetLogoOverlayEntries(): Found {count} icon handles at: 0x{address:x8}", logoUrlCount, logoPathMemory.AsSafePointer());
 
-                    string thisFileName = Path.GetFileName(fileUrl);
-                    string thisFilePath = Path.Combine(thisLocalPath, thisFileName);
+            for (int j = 0; j < logoUrlCount; j++)
+            {
+                using LauncherPathEntry entry = logoPathMemory[j];
 
-                    Directory.CreateDirectory(thisLocalPath);
+                string fileUrl = entry.GetPathString();
+                ArgumentException.ThrowIfNullOrEmpty(fileUrl);
 
-                    await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                    await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
+                logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Icon: {Url}", fileUrl);
+
+                string thisFileName = Path.GetFileName(fileUrl);
+                string thisFilePath = Path.Combine(thisLocalPath, thisFileName);
+
+                Directory.CreateDirectory(thisLocalPath);
+
+                await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
+                {
+                    Console.Write($"Downloaded: {current} / {total}...\r");
+                }, in CancelToken).WaitFromHandle();
+            }
+        }
+
+        private static async Task InnerStartMediaSocMedEntryTest(ILogger logger, IPluginPresetConfig presetConfig, int presetConfigIndex)
+        {
+            ILauncherApiNews? apiNews = presetConfig.get_LauncherApiNews();
+
+            if (apiNews == null)
+                return;
+
+            int value = 0;
+            logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiNews()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
+            await apiNews.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
+            logger.LogInformation("Return value: {ReturnValue}", value);
+
+            using PluginDisposableMemory<LauncherSocialMediaEntry> socialMediaSpan = PluginDisposableMemoryExtension.ToManagedSpan<LauncherSocialMediaEntry>(apiNews.GetSocialMediaEntries);
+
+            int socialMediaCount = socialMediaSpan.Length;
+            for (int j = 0; j < socialMediaCount; j++)
+            {
+                using LauncherSocialMediaEntry entry = socialMediaSpan[j];
+                string socialMediaName = entry.SocialMediaDescription.CreateStringFromNullTerminated();
+                string socialMediaClickUrl = entry.SocialMediaClickUrl.CreateStringFromNullTerminated();
+                LauncherSocialMediaEntryFlag socialMediaFlag = entry.Flags;
+
+                logger.LogInformation("  LauncherSocialMediaEntry->SocialMediaDescription: {Str}", socialMediaName);
+                logger.LogInformation("  LauncherSocialMediaEntry->SocialMediaClickUrl: {Str}", socialMediaClickUrl);
+                logger.LogInformation("  LauncherSocialMediaEntry->Flags: {Str}", socialMediaFlag);
+
+                if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.IconIsDataBuffer))
+                {
+                    using PluginDisposableMemory<byte> iconDataBuffer = entry.GetIconAsDataBuffer();
+                    using PluginDisposableMemory<byte> iconHoverDataBuffer = entry.GetIconHoverAsDataBuffer();
+
+                    Span<byte> iconDataSpan = iconDataBuffer.AsSpan();
+                    Span<byte> iconHoverDataSpan = iconHoverDataBuffer.AsSpan();
+
+                    if (iconDataSpan.Length == 0)
                     {
-                        Console.Write($"Downloaded: {current} / {total}...\r");
-                    }, in CancelToken).WaitFromHandle();
+                        throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have icon data!");
+                    }
+
+                    logger.LogInformation("  LauncherSocialMediaEntry->GetIconAsDataBuffer(): Length: {Length}", iconDataSpan.Length);
+
+                    if (iconHoverDataSpan.Length != 0)
+                    {
+                        logger.LogInformation("  LauncherSocialMediaEntry->GetIconHoverAsDataBuffer(): Length: {Length}", iconHoverDataSpan.Length);
+                    }
                 }
 
-                using PluginDisposableMemory<LauncherPathEntry> logoPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetLogoOverlayEntries);
-                int logoUrlCount = logoPathMemory.Length;
-
-                logger.LogInformation("ILauncherApiMedia->GetLogoOverlayEntries(): Found {count} icon handles at: 0x{address:x8}", logoUrlCount, logoPathMemory.AsSafePointer());
-
-                for (int j = 0; j < logoUrlCount; j++)
+                if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.IconIsPath))
                 {
-                    using LauncherPathEntry entry = logoPathMemory[j];
+                    using LauncherPathEntry iconPathEntry = entry.GetIconAsPath();
+                    using LauncherPathEntry iconHoverPathEntry = entry.GetIconHoverAsPath();
 
-                    string fileUrl = entry.GetPathString();
-                    ArgumentException.ThrowIfNullOrEmpty(fileUrl);
+                    using PluginDisposableMemory<char> iconPathSpan = iconPathEntry.Path;
+                    using PluginDisposableMemory<char> iconHoverPathSpan = iconHoverPathEntry.Path;
 
-                    logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Icon: {Url}", fileUrl);
-
-                    string thisFileName = Path.GetFileName(fileUrl);
-                    string thisFilePath = Path.Combine(thisLocalPath, thisFileName);
-
-                    Directory.CreateDirectory(thisLocalPath);
-
-                    await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                    await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
+                    if (iconPathSpan.Length == 0)
                     {
-                        Console.Write($"Downloaded: {current} / {total}...\r");
-                    }, in CancelToken).WaitFromHandle();
+                        throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have icon path/URL!");
+                    }
+
+                    string iconPathString = iconPathSpan.CreateStringFromNullTerminated();
+                    logger.LogInformation("  LauncherSocialMediaEntry->GetIconAsPath(): URL: {Path}", iconPathString);
+
+                    if (iconHoverPathSpan.Length != 0)
+                    {
+                        string iconHoverPathString = iconHoverPathSpan.CreateStringFromNullTerminated();
+                        logger.LogInformation("  LauncherSocialMediaEntry->GetIconHoverAsPath(): URL: {Path}", iconHoverPathString);
+                    }
+                }
+
+                if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) &&
+                    socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsDataBuffer))
+                {
+                    using PluginDisposableMemory<byte> qrDataBuffer = entry.GetQrImageAsDataBuffer();
+                    Span<byte> qrDataSpan = qrDataBuffer.AsSpan();
+
+                    if (qrDataSpan.Length == 0)
+                    {
+                        throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have QR image data while it has HasQrImage and QrImageIsDataBuffer flags defined!");
+                    }
+
+                    logger.LogInformation("  LauncherSocialMediaEntry->GetQrImageAsDataBuffer(): Length: {Length}", qrDataSpan.Length);
+                }
+
+                if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) &&
+                    socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsPath))
+                {
+                    using LauncherPathEntry qrPathEntry = entry.GetQrImageAsPath();
+                    using PluginDisposableMemory<char> qrPathSpan = qrPathEntry.Path;
+
+                    if (qrPathSpan.Length == 0)
+                    {
+                        throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have QR image path/URL while it has HasQrImage and QrImageIsPath flags defined!");
+                    }
+
+                    string qrPathString = qrPathSpan.CreateStringFromNullTerminated();
+                    logger.LogInformation("  LauncherSocialMediaEntry->GetQrImageAsPath(): URL: {Path}", qrPathString);
                 }
             }
         }

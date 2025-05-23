@@ -1,8 +1,21 @@
 ﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
-public interface ILauncherApiNews : ILauncherApi
+/// <summary>
+/// Defines the contract for managing launcher news feed, such as social media details, carousel images, and news entries.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This interface inherits from <see cref="IInitializableTask"/>, requiring implementers to provide asynchronous initialization logic.
+/// </para>
+/// </remarks>
+[GeneratedComInterface]
+[Guid(ComInterfaceId.ExLauncherApiNewsFeed)]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+// ReSharper disable once RedundantUnsafeContext
+public unsafe partial interface ILauncherApiNews : ILauncherApi
 {
     /// <summary>
     /// Get the news entries fot the launcher.

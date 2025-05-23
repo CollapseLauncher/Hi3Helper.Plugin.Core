@@ -25,6 +25,9 @@ public unsafe struct LauncherSocialMediaEntry
     /// <param name="iconDataLengthInBytes">
     /// The length of data in bytes of the <paramref name="iconDataHandle"/>.
     /// </param>
+    /// <param name="isIconDataDisposable">
+    /// Whether to determine if handle is disposable or not.
+    /// </param>
     /// <param name="iconHoverDataHandle">
     /// The handle of the icon data handle.
     /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
@@ -34,6 +37,9 @@ public unsafe struct LauncherSocialMediaEntry
     /// <param name="iconHoverDataLengthInBytes">
     /// The length of data in bytes of the <paramref name="iconDataHandle"/>.<br/>
     /// The size can be emptied-ed.
+    /// </param>
+    /// <param name="isIconHoverDataDisposable">
+    /// Whether to determine if handle is disposable or not.
     /// </param>
     /// <param name="qrImageDataHandle">
     /// The handle of the qr image data handle.
@@ -45,6 +51,9 @@ public unsafe struct LauncherSocialMediaEntry
     /// The length of data in bytes of the <paramref name="qrImageDataHandle"/>.<br/>
     /// The size can be emptied-ed.
     /// </param>
+    /// <param name="isQrImageDataDisposable">
+    /// Whether to determine if handle is disposable or not.
+    /// </param>
     /// <param name="childEntryHandle">
     /// The handle of the child entry.<br/>
     /// This handle can be null-ed.
@@ -54,18 +63,24 @@ public unsafe struct LauncherSocialMediaEntry
     /// </param>
     public LauncherSocialMediaEntry(void* iconDataHandle,
                                     int iconDataLengthInBytes,
+                                    bool isIconDataDisposable,
                                     void* iconHoverDataHandle,
                                     int iconHoverDataLengthInBytes,
+                                    bool isIconHoverDataDisposable,
                                     void* qrImageDataHandle,
                                     int qrImageDataLengthInBytes,
+                                    bool isQrImageDataDisposable,
                                     LauncherSocialMediaEntry* childEntryHandle,
                                     LauncherSocialMediaEntryFlag flags) =>
         InitInner(iconDataHandle,
                   iconDataLengthInBytes,
+                  isIconDataDisposable,
                   iconHoverDataHandle,
                   iconHoverDataLengthInBytes,
+                  isIconHoverDataDisposable,
                   qrImageDataHandle,
                   qrImageDataLengthInBytes,
+                  isQrImageDataDisposable,
                   childEntryHandle,
                   flags);
 
@@ -80,6 +95,9 @@ public unsafe struct LauncherSocialMediaEntry
     /// <param name="iconDataLengthInBytes">
     /// The length of data in bytes of the <paramref name="iconDataHandle"/>.
     /// </param>
+    /// <param name="isIconDataDisposable">
+    /// Whether to determine if handle is disposable or not.
+    /// </param>
     /// <param name="iconHoverDataHandle">
     /// The handle of the icon data handle.
     /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
@@ -89,6 +107,9 @@ public unsafe struct LauncherSocialMediaEntry
     /// <param name="iconHoverDataLengthInBytes">
     /// The length of data in bytes of the <paramref name="iconDataHandle"/>.<br/>
     /// The size can be emptied-ed.
+    /// </param>
+    /// <param name="isIconHoverDataDisposable">
+    /// Whether to determine if handle is disposable or not.
     /// </param>
     /// <param name="qrImageDataHandle">
     /// The handle of the qr image data handle.
@@ -100,6 +121,9 @@ public unsafe struct LauncherSocialMediaEntry
     /// The length of data in bytes of the <paramref name="qrImageDataHandle"/>.<br/>
     /// The size can be emptied-ed.
     /// </param>
+    /// <param name="isQrImageDataDisposable">
+    /// Whether to determine if handle is disposable or not.
+    /// </param>
     /// <param name="childEntryHandle">
     /// The handle of the child entry.<br/>
     /// This handle can be null-ed.
@@ -109,10 +133,13 @@ public unsafe struct LauncherSocialMediaEntry
     /// </param>
     public void InitInner(void* iconDataHandle,
                           int iconDataLengthInBytes,
+                          bool isIconDataDisposable,
                           void* iconHoverDataHandle,
                           int iconHoverDataLengthInBytes,
+                          bool isIconHoverDataDisposable,
                           void* qrImageDataHandle,
                           int qrImageDataLengthInBytes,
+                          bool isQrImageDataDisposable,
                           LauncherSocialMediaEntry* childEntryHandle,
                           LauncherSocialMediaEntryFlag flags)
     {
@@ -124,6 +151,10 @@ public unsafe struct LauncherSocialMediaEntry
         _qrPathLengthInBytes = qrImageDataLengthInBytes;
         _childEntryHandle = childEntryHandle;
         Flags = flags;
+
+        _isIconHandleDisposable = (byte)(isIconDataDisposable ? 1 : 0);
+        _isIconHoverHandleDisposable = (byte)(isIconHoverDataDisposable ? 1 : 0);
+        _isQrImageHandleDisposable = (byte)(isQrImageDataDisposable ? 1 : 0);
 
 #pragma warning disable CS0618
         InitInner();
@@ -164,12 +195,17 @@ public unsafe struct LauncherSocialMediaEntry
     private char* _socialMediaClickUrl;
     private char* _qrImageDescription;
 
+    private int _isFreed = 0;
+
     private LauncherSocialMediaEntry* _childEntryHandle;
 
     /// <summary>
     /// Defines the kind of properties or flags that a social media entry can have.
     /// </summary>
     public LauncherSocialMediaEntryFlag Flags;
+    private byte _isIconHandleDisposable = 0;
+    private byte _isIconHoverHandleDisposable = 0;
+    private byte _isQrImageHandleDisposable = 0;
 
     /// <summary>
     /// Gets the icon handle as path.
@@ -192,7 +228,7 @@ public unsafe struct LauncherSocialMediaEntry
     public readonly PluginDisposableMemory<byte> GetIconAsDataBuffer() =>
         !Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsDataBuffer) ?
                 PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>((byte*)_iconPathHandle, _iconPathLengthInBytes);
+            new PluginDisposableMemory<byte>((byte*)_iconPathHandle, _iconPathLengthInBytes, _isIconHandleDisposable == 1);
 
     /// <summary>
     /// Gets the hovered icon handle as path.
@@ -215,7 +251,7 @@ public unsafe struct LauncherSocialMediaEntry
     public readonly PluginDisposableMemory<byte> GetIconHoverAsDataBuffer() =>
         !Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsDataBuffer) || _iconHoverPathHandle == null ?
             PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>((byte*)_iconHoverPathHandle, _iconHoverPathLengthInBytes);
+            new PluginDisposableMemory<byte>((byte*)_iconHoverPathHandle, _iconHoverPathLengthInBytes, _isIconHoverHandleDisposable == 1);
 
     /// <summary>
     /// Gets the QR Image handle as path.
@@ -239,7 +275,7 @@ public unsafe struct LauncherSocialMediaEntry
         !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) ||
         !Flags.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsDataBuffer) ?
             PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>((byte*)_qrPathHandle, _qrPathLengthInBytes);
+            new PluginDisposableMemory<byte>((byte*)_qrPathHandle, _qrPathLengthInBytes, _isQrImageHandleDisposable == 1);
 
     /// <summary>
     /// A span of social media description as string. If the flag doesn't have flag for the description, it will return an empty span.
@@ -279,26 +315,28 @@ public unsafe struct LauncherSocialMediaEntry
     /// </summary>
     public void Dispose()
     {
+        if (_isFreed == 1) return;
+
         if (Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsPath))
         {
-            GetIconAsPath().Dispose();
-            GetIconHoverAsPath().Dispose();
+            if (_isIconHandleDisposable == 1) GetIconAsPath().Dispose();
+            if (_isIconHoverHandleDisposable == 1) GetIconHoverAsPath().Dispose();
         }
         else
         {
-            Mem.Free(_iconPathHandle);
-            Mem.Free(_iconHoverPathHandle);
+            if (_isIconHandleDisposable == 1) Mem.Free(_iconPathHandle);
+            if (_isIconHoverHandleDisposable == 1) Mem.Free(_iconHoverPathHandle);
         }
 
         if (Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage))
         {
             if (Flags.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsPath))
             {
-                GetQrImageAsPath().Dispose();
+                if (_isQrImageHandleDisposable == 1) GetQrImageAsPath().Dispose();
             }
             else
             {
-                Mem.Free(_qrPathHandle);
+                if (_isQrImageHandleDisposable == 1) Mem.Free(_qrPathHandle);
             }
         }
 
@@ -310,5 +348,7 @@ public unsafe struct LauncherSocialMediaEntry
         {
             _childEntryHandle->Dispose();
         }
+
+        _isFreed = 1;
     }
 }
