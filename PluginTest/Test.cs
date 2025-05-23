@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
 
-#pragma warning disable CA2253
 namespace PluginTest
 {
     internal static class Test
@@ -118,72 +117,72 @@ namespace PluginTest
             {
                 throw new InvalidOperationException($"Cannot marshal pointer at: 0x{pluginInterfaceAddress:x8} into IPlugin interface");
             }
-            logger.LogInformation("IPlugin marshalled at: 0x{0:x8}", pluginInterfaceAddress);
+            logger.LogInformation("IPlugin marshalled at: 0x{PluginInterfaceAddress:x8}", pluginInterfaceAddress);
 
             DateTime pluginCreationDate = GetDateTime(pluginInterface);
-            logger.LogInformation("IPlugin->GetPluginCreationDate(): {0} UTC", pluginCreationDate.ToString("F"));
+            logger.LogInformation("IPlugin->GetPluginCreationDate(): {PluginCreationDate} UTC", pluginCreationDate.ToString("F"));
 
             string pluginName = pluginInterface.GetPluginName();
-            logger.LogInformation("IPlugin->GetPluginName(): {0}", pluginName);
+            logger.LogInformation("IPlugin->GetPluginName(): {PluginName}", pluginName);
 
             string pluginAuthor = pluginInterface.GetPluginAuthor();
-            logger.LogInformation("IPlugin->GetPluginAuthor(): {0}", pluginAuthor);
+            logger.LogInformation("IPlugin->GetPluginAuthor(): {PluginAuthor}", pluginAuthor);
 
             string pluginDescription = pluginInterface.GetPluginDescription();
-            logger.LogInformation("IPlugin->GetPluginDescription(): {0}", pluginDescription);
+            logger.LogInformation("IPlugin->GetPluginDescription(): {PluginDescription}", pluginDescription);
 
             int pluginPresetConfigCount = pluginInterface.GetPresetConfigCount();
-            logger.LogInformation("IPlugin->GetPresetConfigCount(): Found {0} preset config!", pluginPresetConfigCount);
+            logger.LogInformation("IPlugin->GetPresetConfigCount(): Found {PluginPresetConfigCount} preset config!", pluginPresetConfigCount);
             for (int i = 0; i < pluginPresetConfigCount; i++)
             {
                 IPluginPresetConfig presetConfig = GetPresetConfig(pluginInterface, i, out nint presetConfigAddress);
-                logger.LogInformation("  IPlugin->GetPresetConfig({0}): Preset config found at: 0x{1:x8}", i, presetConfigAddress);
+                logger.LogInformation("  IPlugin->GetPresetConfig({PresetConfigIndex}): Preset config found at: 0x{PresetConfigAddress:x8}", i, presetConfigAddress);
 
                 string presetConfigGameName = presetConfig.get_GameName();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_GameName(): {1}", i, presetConfigGameName);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_GameName(): {GameName}", i, presetConfigGameName);
 
                 string presetConfigProfileName = presetConfig.get_ProfileName();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ProfileName(): {1}", i, presetConfigProfileName);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ProfileName(): {ProfileName}", i, presetConfigProfileName);
 
                 string presetConfigZoneDescription = presetConfig.get_ZoneDescription();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ZoneDescription(): {1}", i, presetConfigZoneDescription);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ZoneDescription(): {ZoneDescription}", i, presetConfigZoneDescription);
 
                 string presetConfigZoneName = presetConfig.get_ZoneName();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ZoneName(): {1}", i, presetConfigZoneName);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ZoneName(): {ZoneName}", i, presetConfigZoneName);
 
                 string presetConfigZoneFullName = presetConfig.get_ZoneFullName();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ZoneFullName(): {1}", i, presetConfigZoneFullName);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ZoneFullName(): {ZoneFullName}", i, presetConfigZoneFullName);
 
                 string presetConfigZoneLogoUrl = presetConfig.get_ZoneLogoUrl();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ZoneLogoUrl(): {1}", i, presetConfigZoneLogoUrl);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ZoneLogoUrl(): {ZoneLogoUrl}", i, presetConfigZoneLogoUrl);
 
                 string presetConfigZonePosterUrl = presetConfig.get_ZonePosterUrl();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ZonePosterUrl(): {1}", i, presetConfigZonePosterUrl);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ZonePosterUrl(): {ZonePosterUrl}", i, presetConfigZonePosterUrl);
 
                 string presetConfigZoneHomePageUrl = presetConfig.get_ZoneHomePageUrl();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ZoneHomePageUrl(): {1}", i, presetConfigZoneHomePageUrl);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ZoneHomePageUrl(): {ZoneHomePageUrl}", i, presetConfigZoneHomePageUrl);
 
                 GameReleaseChannel presetConfigGameReleaseChannel = presetConfig.get_ReleaseChannel();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_ReleaseChannel(): {1}", i, presetConfigGameReleaseChannel);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_ReleaseChannel(): {GameReleaseChannel}", i, presetConfigGameReleaseChannel);
 
                 string presetConfigGameMainLanguage = presetConfig.get_GameMainLanguage();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_GameMainLanguage(): {1}", i, presetConfigGameMainLanguage);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_GameMainLanguage(): {GameMainLanguage}", i, presetConfigGameMainLanguage);
 
                 int langSupported = presetConfig.get_GameSupportedLanguagesCount();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_GameSupportedLanguagesCount(): {1}", i, langSupported);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_GameSupportedLanguagesCount(): {GameLanguageCount}", i, langSupported);
                 for (int j = 0; j < langSupported; j++)
                 {
                     string supportedLanguage = presetConfig.get_GameSupportedLanguages(j);
-                    logger.LogInformation("      IPlugin->GetPresetConfig({0})->get_GameSupportedLanguages({1}): {2}", i, j, supportedLanguage);
+                    logger.LogInformation("      IPlugin->GetPresetConfig({PresetConfigIndex})->get_GameSupportedLanguages({LanguageIndex}): {GameLanguage}", i, j, supportedLanguage);
                 }
 
                 string presetConfigGameExecutableName = presetConfig.get_GameExecutableName();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_GameExecutableName(): {1}", i, presetConfigGameExecutableName);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_GameExecutableName(): {GameExecutableName}", i, presetConfigGameExecutableName);
 
                 string presetConfigLauncherGameDirectoryName = presetConfig.get_LauncherGameDirectoryName();
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->get_LauncherGameDirectoryName(): {1}", i, presetConfigLauncherGameDirectoryName);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherGameDirectoryName(): {LauncherGameDirName}", i, presetConfigLauncherGameDirectoryName);
 
-                logger.LogInformation("    IPlugin->GetPresetConfig({0})->InitAsync(): Invoking Asynchronously...", i);
+                logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->InitAsync(): Invoking Asynchronously...", i);
                 long value = 0;
                 await presetConfig.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
                 logger.LogInformation("Return value: {Value}", value);
@@ -202,17 +201,22 @@ namespace PluginTest
             for (int i = 0; i < pluginPresetConfigCount; i++)
             {
                 IPluginPresetConfig presetConfig = GetPresetConfig(pluginInterface, i, out _);
-                ILauncherApiMedia apiMedia = presetConfig.get_LauncherApiMedia();
+                ILauncherApiMedia? apiMedia = presetConfig.get_LauncherApiMedia();
+
+                if (apiMedia == null)
+                    continue;
 
                 long value = 0;
-                logger.LogInformation("IPlugin->GetPresetConfig({0})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", i);
+                logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", i);
                 await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
                 logger.LogInformation("Return value: {ReturnValue}", value);
 
-                using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory =  PluginDisposableMemoryExtension.ToDisposableMemory<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
-
+                using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
                 int backgroundUrlCount = backgroundPathMemory.Length;
+
                 logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundPathMemory.AsSafePointer());
+
+                string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.get_ProfileName());
 
                 for (int j = 0; j < backgroundUrlCount; j++)
                 {
@@ -221,9 +225,34 @@ namespace PluginTest
                     string fileUrl = entry.GetPathString();
                     ArgumentException.ThrowIfNullOrEmpty(fileUrl);
 
-                    logger.LogInformation("  LauncherPathEntry.GetStringFromHandle(): Downloading {Url}", fileUrl);
+                    logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Background: {Url}", fileUrl);
 
-                    string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.get_ProfileName());
+                    string thisFileName = Path.GetFileName(fileUrl);
+                    string thisFilePath = Path.Combine(thisLocalPath, thisFileName);
+
+                    Directory.CreateDirectory(thisLocalPath);
+
+                    await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                    await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
+                    {
+                        Console.Write($"Downloaded: {current} / {total}...\r");
+                    }, in CancelToken).WaitFromHandle();
+                }
+
+                using PluginDisposableMemory<LauncherPathEntry> logoPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetLogoOverlayEntries);
+                int logoUrlCount = logoPathMemory.Length;
+
+                logger.LogInformation("ILauncherApiMedia->GetLogoOverlayEntries(): Found {count} icon handles at: 0x{address:x8}", logoUrlCount, logoPathMemory.AsSafePointer());
+
+                for (int j = 0; j < logoUrlCount; j++)
+                {
+                    using LauncherPathEntry entry = logoPathMemory[j];
+
+                    string fileUrl = entry.GetPathString();
+                    ArgumentException.ThrowIfNullOrEmpty(fileUrl);
+
+                    logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Icon: {Url}", fileUrl);
+
                     string thisFileName = Path.GetFileName(fileUrl);
                     string thisFilePath = Path.Combine(thisLocalPath, thisFileName);
 

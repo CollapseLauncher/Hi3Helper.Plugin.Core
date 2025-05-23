@@ -13,7 +13,7 @@ namespace Hi3Helper.Plugin.Core;
 /// This <see cref="IPlugin"/> interface provides information about the plugin and the <see cref="IPluginPresetConfig"/> interface to access the preset configuration.
 /// </remarks>
 [GeneratedComInterface]
-[Guid(ComInterfaceId.Plugin)]
+[Guid(ComInterfaceId.ExPlugin)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IPlugin
 {

@@ -2,19 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Hi3Helper.Plugin.Core;
-using Hi3Helper.Plugin.Core.Management.Api;
 using Microsoft.Extensions.Logging;
 
-#pragma warning disable CA2253
 namespace PluginTest
 {
     internal class Program
     {
         private static async Task<int> Main(string[] args)
         {
-            PluginDisposableMemory<LauncherPathEntry> memory = PluginDisposableMemory<LauncherPathEntry>.Alloc(2);
-
             if (args.Length == 0)
             {
                 PrintHelp();

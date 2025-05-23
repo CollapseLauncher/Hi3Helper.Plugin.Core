@@ -41,6 +41,11 @@ public static partial class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe ref T AllocAsRef<T>(int count = 1, bool zeroed = true)
+        where T : unmanaged
+        => ref Unsafe.AsRef<T>(Alloc<T>(count, zeroed));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void Free(this nint ptr)
         => Free((void*)ptr);
 

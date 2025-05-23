@@ -8,14 +8,23 @@ using System.Runtime.CompilerServices;
 
 namespace Hi3Helper.Plugin.Core;
 
+/// <summary>
+/// Represents the result of a COM asynchronous operation.
+/// </summary>
 [StructLayout(LayoutKind.Sequential)]
 public struct ComAsyncResult : IDisposable
 {
-    public  nint Handle;
+    /// <summary>
+    /// The handle to the <see cref="Microsoft.Win32.SafeHandles.SafeWaitHandle"/>.
+    /// </summary>
+    public nint Handle;
     private nint _exception;
     private int  _exceptionCount;
     private byte _statusFlags;
 
+    /// <summary>
+    /// The span handle in which stores the information of the exceptions on <see cref="ComAsyncException"/> struct.
+    /// </summary>
     public unsafe PluginDisposableMemory<ComAsyncException> ExceptionMemory
     {
         readonly get => new((ComAsyncException*)_exception, _exceptionCount);
@@ -26,6 +35,9 @@ public struct ComAsyncResult : IDisposable
         }
     }
 
+    /// <summary>
+    /// Whether the task is cancelled or not.
+    /// </summary>
     public bool IsCancelled
     {
         readonly get => (_statusFlags & 0b001) != 0;
@@ -34,6 +46,9 @@ public struct ComAsyncResult : IDisposable
             : (byte)(_statusFlags & ~0b001);
     }
 
+    /// <summary>
+    /// Whether the task is successfully executed or not.
+    /// </summary>
     public bool IsSuccessful
     {
         readonly get => (_statusFlags & 0b010) != 0;
@@ -42,6 +57,9 @@ public struct ComAsyncResult : IDisposable
             : (byte)(_statusFlags & ~0b010);
     }
 
+    /// <summary>
+    /// Whether the task is faulted or not.
+    /// </summary>
     public bool IsFaulty
     {
         readonly get => (_statusFlags & 0b100) != 0;
@@ -50,6 +68,11 @@ public struct ComAsyncResult : IDisposable
             : (byte)(_statusFlags & ~0b100);
     }
 
+    /// <summary>
+    /// Set the result of the task. This method is also used to write the information about the <see cref="Task"/> execution status/result to then being passed to managed code which loads the plugin.
+    /// </summary>
+    /// <param name="threadLock">Thread lock to be used to set the result.</param>
+    /// <param name="task">The <see cref="Task"/> in which the status/result is being written from.</param>
     public void SetResult(Lock threadLock, Task task)
     {
         using (threadLock.EnterScope())
@@ -136,6 +159,13 @@ public struct ComAsyncResult : IDisposable
 #endif
     }
 
+    /// <summary>
+    /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
+    /// </summary>
+    /// <param name="threadLock">Thread lock to be used to create the <see cref="ComAsyncResult"/> struct.</param>
+    /// <param name="task">The <see cref="Task"/> instance in which the callback from <paramref name="attachCallback"/> is being passed to <see cref="TaskAwaiter.GetResult"/></param>
+    /// <param name="attachCallback">A Callback to set the status/result of the <paramref name="task"/>.</param>
+    /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
     public static unsafe nint Alloc(Lock threadLock, Task task, ComAsyncResultAttachAfterCallStateDelegate attachCallback)
     {
         // Enter and lock the current thread
@@ -154,18 +184,30 @@ public struct ComAsyncResult : IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets the <see cref="Microsoft.Win32.SafeHandles.SafeWaitHandle"/> handle from <see cref="ComAsyncResult"/>'s handle.
+    /// </summary>
+    /// <param name="handle">A handle of the <see cref="ComAsyncResult"/> struct.</param>
+    /// <returns>A <see cref="Microsoft.Win32.SafeHandles.SafeWaitHandle"/> handle.</returns>
     public static unsafe nint GetWaitHandle(nint handle)
     {
         ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
         return asyncResult.Handle;
     }
 
+    /// <summary>
+    /// Dispose/Free the handle of the <see cref="ComAsyncResult"/> struct.
+    /// </summary>
+    /// <param name="handle">A handle of the <see cref="ComAsyncResult"/> struct.</param>
     public static unsafe void DisposeHandle(nint handle)
     {
         ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
         asyncResult.Dispose();
     }
 
+    /// <summary>
+    /// Dispose this instance of <see cref="ComAsyncResult"/> struct.
+    /// </summary>
     public unsafe void Dispose()
     {
         ExceptionMemory.Dispose();

@@ -1,20 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
 public interface ILauncherApiNews : ILauncherApi
 {
     /// <summary>
-    /// Get the entries of the news data.
+    /// Get the news entries fot the launcher.
     /// </summary>
-    /// <returns>
-    /// A pointer to the first <see cref="LauncherNewsEntry"/> representing the news data entries.
-    /// </returns>
-    nint GetNewsEntries();
-    nint GetCarouselEntries();
-    nint GetSocialMediaEntries();
+    /// <param name="handle">The handle to the pointer of the <see cref="LauncherNewsEntry"/> data</param>
+    /// <param name="count">How much data of <see cref="LauncherNewsEntry"/> inside of the handle</param>
+    /// <param name="isDisposable">Whether the handle is disposable</param>
+    /// <returns>Returns <c>true</c> if the <paramref name="handle"/> is not empty. Otherwise, returns <c>false</c>.</returns>
+    [return: MarshalAs(UnmanagedType.Bool)]
+    bool GetNewsEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
+
+    /// <summary>
+    /// Get the carousel image entries for the launcher.
+    /// </summary>
+    /// <param name="handle">The handle to the pointer of the <see cref="LauncherPathEntry"/> data</param>
+    /// <param name="count">How much data of <see cref="LauncherPathEntry"/> inside of the handle</param>
+    /// <param name="isDisposable">Whether the handle is disposable</param>
+    /// <returns>Returns <c>true</c> if the <paramref name="handle"/> is not empty. Otherwise, returns <c>false</c>.</returns>
+    [return: MarshalAs(UnmanagedType.Bool)]
+    bool GetCarouselEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
+
+    /// <summary>
+    /// Get the social media info entries for the launcher.
+    /// </summary>
+    /// <param name="handle">The handle to the pointer of the <see cref="LauncherSocialMediaEntry"/> data</param>
+    /// <param name="count">How much data of <see cref="LauncherSocialMediaEntry"/> inside of the handle</param>
+    /// <param name="isDisposable">Whether the handle is disposable</param>
+    /// <returns>Returns <c>true</c> if the <paramref name="handle"/> is not empty. Otherwise, returns <c>false</c>.</returns>
+    [return: MarshalAs(UnmanagedType.Bool)]
+    bool GetSocialMediaEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
 }

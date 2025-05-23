@@ -9,13 +9,13 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// Defines the contract for a launcher API that supports asynchronous asset downloading.
 /// </summary>
 /// <remarks>
-/// This interface extends <see cref="IInitializable"/> and provides methods for downloading assets asynchronously.
+/// This interface extends <see cref="IInitializableTask"/> and provides methods for downloading assets asynchronously.
 /// The download operation supports progress reporting and cancellation.
 /// </remarks>
 [GeneratedComInterface]
-[Guid(ComInterfaceId.LauncherApi)]
+[Guid(ComInterfaceId.ExLauncherApi)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface ILauncherApi : IInitializable
+public partial interface ILauncherApi : IInitializableTask
 {
     /// <summary>
     /// Asynchronously downloads an asset to the specified output stream.

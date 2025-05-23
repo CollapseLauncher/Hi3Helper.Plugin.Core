@@ -10,7 +10,7 @@ namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 /// class as a base class and override the properties to provide the preset config.
 /// </summary>
 [GeneratedComClass]
-public abstract partial class PluginPresetConfigBase : Initializable, IPluginPresetConfig
+public abstract partial class PluginPresetConfigBase : InitializableTask, IPluginPresetConfig
 {
     public abstract string GameName { get; }
     public abstract string GameExecutableName { get; }
@@ -25,7 +25,8 @@ public abstract partial class PluginPresetConfigBase : Initializable, IPluginPre
     public abstract string GameMainLanguage { get; }
     public abstract string LauncherGameDirectoryName { get; }
     public abstract List<string> SupportedLanguages { get; }
-    public abstract ILauncherApiMedia LauncherApiMedia { get; }
+    public abstract ILauncherApiMedia? LauncherApiMedia { get; }
+    public abstract ILauncherApiNews? LauncherApiNews { get; }
 
     #region Generic Read-only Properties Callbacks
     string IPluginPresetConfig.get_GameSupportedLanguages(int index)
@@ -51,6 +52,7 @@ public abstract partial class PluginPresetConfigBase : Initializable, IPluginPre
     string IPluginPresetConfig.get_ZoneHomePageUrl() => ZoneHomePageUrl;
     GameReleaseChannel IPluginPresetConfig.get_ReleaseChannel() => ReleaseChannel;
     string IPluginPresetConfig.get_GameMainLanguage() => GameMainLanguage;
-    ILauncherApiMedia IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
+    ILauncherApiMedia? IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
+    ILauncherApiNews? IPluginPresetConfig.get_LauncherApiNews() => LauncherApiNews;
     #endregion
 }

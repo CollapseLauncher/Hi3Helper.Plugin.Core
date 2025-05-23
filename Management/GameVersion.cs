@@ -83,7 +83,7 @@ public struct GameVersion : IVersion
         return true;
     }
 
-    public GameVersion GetIncrementedVersion()
+    public readonly GameVersion GetIncrementedVersion()
     {
         int nextMajor = Major;
         int nextMinor = Minor;
@@ -101,8 +101,8 @@ public struct GameVersion : IVersion
     }
 
     public unsafe ReadOnlySpan<int> AsSpan() => new(this.AsPointer(), 4);
-    public Version ToVersion() => new(Major, Minor, Build, Revision);
-    public override string ToString() => $"{Major}.{Minor}.{Build}.{Revision}";
+    public readonly Version ToVersion() => new(Major, Minor, Build, Revision);
+    public readonly override string ToString() => $"{Major}.{Minor}.{Build}.{Revision}";
 
     public static bool operator <(GameVersion? left, GameVersion? right) =>
         left.HasValue && right.HasValue &&
@@ -143,13 +143,13 @@ public struct GameVersion : IVersion
     public static bool operator !=(string? left, GameVersion? right) =>
         !(right == left);
 
-    public bool Equals(IVersion? other) =>
+    public readonly bool Equals(IVersion? other) =>
         EqualsInner(this, other);
 
-    public override bool Equals([NotNullWhen(true)] object? obj) =>
+    public readonly override bool Equals([NotNullWhen(true)] object? obj) =>
         EqualsInner(this, obj);
 
-    public override int GetHashCode() =>
+    public readonly override int GetHashCode() =>
         HashCode.Combine(Major, Minor, Build, Revision);
 
     private static bool EqualsInner(object? fromVersion, object? toVersion)
@@ -189,13 +189,13 @@ public struct GameVersion : IVersion
                thisSpan[3] == otherSpan[3];
     }
 
-    public string VersionString => string.Join('.', VersionArray);
-    public int[] VersionArrayManifest => [Major, Minor, Build, Revision];
-    public int[] VersionArray => [Major, Minor, Build];
-    public int get_Major() => Major;
-    public int get_Minor() => Major;
-    public int get_Build() => Build;
-    public int get_Revision() => Revision;
+    public readonly string VersionString => string.Join('.', VersionArray);
+    public readonly int[] VersionArrayManifest => [Major, Minor, Build, Revision];
+    public readonly int[] VersionArray => [Major, Minor, Build];
+    public readonly int get_Major() => Major;
+    public readonly int get_Minor() => Major;
+    public readonly int get_Build() => Build;
+    public readonly int get_Revision() => Revision;
 
     public readonly int Major;
     public readonly int Minor;

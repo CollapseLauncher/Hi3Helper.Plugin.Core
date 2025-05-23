@@ -180,14 +180,14 @@ public static partial class ComAsyncExtension
 
         private static ReadOnlySpan<char> GetExceptionInfo(ReadOnlySpan<char> typeExceptionInfoBuffer, out int readOffset)
         {
-            if (typeExceptionInfoBuffer[0] != ComAsyncException.ExceptionInfoSeparator)
+            if (typeExceptionInfoBuffer[0] != ComAsyncException.ExExceptionInfoSeparator)
             {
                 readOffset = 0;
                 return [];
             }
 
             Span<Range> ranges = stackalloc Range[2];
-            int splitRangeLen = typeExceptionInfoBuffer.Split(ranges, ComAsyncException.ExceptionInfoSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            int splitRangeLen = typeExceptionInfoBuffer.Split(ranges, ComAsyncException.ExExceptionInfoSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (splitRangeLen == 0)
             {
                 readOffset = 0;
@@ -211,23 +211,23 @@ public static partial class ComAsyncExtension
             return null;
         }
 
-        char[] exInfoBuffer = ArrayPool<char>.Shared.Rent(ComAsyncException.ExceptionTypeNameMaxLength +
-                                                          ComAsyncException.ExceptionInfoMaxLength +
-                                                          ComAsyncException.ExceptionMessageMaxLength +
-                                                          ComAsyncException.ExceptionStackTraceMaxLength);
+        char[] exInfoBuffer = ArrayPool<char>.Shared.Rent(ComAsyncException.ExExceptionTypeNameMaxLength +
+                                                          ComAsyncException.ExExceptionInfoMaxLength +
+                                                          ComAsyncException.ExExceptionMessageMaxLength +
+                                                          ComAsyncException.ExExceptionStackTraceMaxLength);
         try
         {
             int offset = 0;
-            Span<char> exTypeNameManaged = exInfoBuffer.AsSpan(0, ComAsyncException.ExceptionTypeNameMaxLength);
+            Span<char> exTypeNameManaged = exInfoBuffer.AsSpan(0, ComAsyncException.ExExceptionTypeNameMaxLength);
 
             offset += exTypeNameManaged.Length;
-            Span<char> exInfoManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExceptionInfoMaxLength);
+            Span<char> exInfoManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExExceptionInfoMaxLength);
 
             offset += exInfoManaged.Length;
-            Span<char> exMessageManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExceptionMessageMaxLength);
+            Span<char> exMessageManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExExceptionMessageMaxLength);
 
             offset += exMessageManaged.Length;
-            Span<char> exStackTraceManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExceptionStackTraceMaxLength);
+            Span<char> exStackTraceManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExExceptionStackTraceMaxLength);
 
             // TODO: Split the exception name from typeName as it might contain additional info for some exception types.
             Encoding.UTF8.TryGetChars(exTypeNameSpan, exTypeNameManaged, out int exTypeNameManagedWritten);

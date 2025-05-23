@@ -11,7 +11,7 @@ namespace Hi3Helper.Plugin.Core.Management;
 /// update status, preload status, and setting the path of the game installation location.
 /// </remarks>
 [GeneratedComInterface]
-[Guid(ComInterfaceId.GameManager)]
+[Guid(ComInterfaceId.ExGameManager)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IGameManager
 {

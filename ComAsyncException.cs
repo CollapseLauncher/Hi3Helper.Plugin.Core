@@ -3,25 +3,52 @@ using System;
 
 namespace Hi3Helper.Plugin.Core;
 
-public readonly unsafe struct ComAsyncException() : IDisposable
+/// <summary>
+/// This struct is used to store the exception information invoked from the plugin's asynchronous methods.
+/// </summary>
+public unsafe struct ComAsyncException()
+    : IDisposable, IInitializableStruct
 {
-    public const int  ExceptionTypeNameMaxLength   = 64;
-    public const int  ExceptionInfoMaxLength       = 64;
-    public const int  ExceptionMessageMaxLength    = 384;
-    public const int  ExceptionStackTraceMaxLength = 3568;
-    public const char ExceptionInfoSeparator       = '$';
+    public const int  ExExceptionTypeNameMaxLength   = 64;
+    public const int  ExExceptionInfoMaxLength       = 64;
+    public const int  ExExceptionMessageMaxLength    = 384;
+    public const int  ExExceptionStackTraceMaxLength = 3568;
+    public const char ExExceptionInfoSeparator       = '$';
 
-    private readonly byte* _exceptionTypeByName = Mem.Alloc<byte>(ExceptionTypeNameMaxLength);
-    private readonly byte* _exceptionInfo       = Mem.Alloc<byte>(ExceptionInfoMaxLength);
-    private readonly byte* _exceptionMessage    = Mem.Alloc<byte>(ExceptionMessageMaxLength);
-    private readonly byte* _exceptionStackTrace = Mem.Alloc<byte>(ExceptionStackTraceMaxLength);
+    public void InitInner()
+    {
+        _exceptionTypeByName = Mem.Alloc<byte>(ExExceptionTypeNameMaxLength);
+        _exceptionInfo       = Mem.Alloc<byte>(ExExceptionInfoMaxLength);
+        _exceptionMessage    = Mem.Alloc<byte>(ExExceptionMessageMaxLength);
+        _exceptionStackTrace = Mem.Alloc<byte>(ExExceptionStackTraceMaxLength);
+    }
 
-    public PluginDisposableMemory<byte> ExceptionTypeByName => new(_exceptionTypeByName, ExceptionTypeNameMaxLength);
-    public PluginDisposableMemory<byte> ExceptionInfo       => new(_exceptionInfo, ExceptionInfoMaxLength);
-    public PluginDisposableMemory<byte> ExceptionMessage    => new(_exceptionMessage, ExceptionMessageMaxLength);
-    public PluginDisposableMemory<byte> ExceptionStackTrace => new(_exceptionStackTrace, ExceptionStackTraceMaxLength);
+    private byte* _exceptionTypeByName = null;
+    private byte* _exceptionInfo       = null;
+    private byte* _exceptionMessage    = null;
+    private byte* _exceptionStackTrace = null;
 
-    public void Dispose()
+    /// <summary>
+    /// Exception Type Name (without namespace). For example: "InvalidOperationException"
+    /// </summary>
+    public readonly PluginDisposableMemory<byte> ExceptionTypeByName => new(_exceptionTypeByName, ExExceptionTypeNameMaxLength);
+
+    /// <summary>
+    /// Exception Type Info. This stores some information which is required to parse the exception.
+    /// </summary>
+    public readonly PluginDisposableMemory<byte> ExceptionInfo => new(_exceptionInfo, ExExceptionInfoMaxLength);
+
+    /// <summary>
+    /// Exception Message.
+    /// </summary>
+    public readonly PluginDisposableMemory<byte> ExceptionMessage => new(_exceptionMessage, ExExceptionMessageMaxLength);
+
+    /// <summary>
+    /// Exception Stack Trace (Remote Stack Trace from the Plugin).
+    /// </summary>
+    public readonly PluginDisposableMemory<byte> ExceptionStackTrace => new(_exceptionStackTrace, ExExceptionStackTraceMaxLength);
+
+    public readonly void Dispose()
     {
         Mem.Free(_exceptionTypeByName);
         Mem.Free(_exceptionInfo);
@@ -29,6 +56,11 @@ public readonly unsafe struct ComAsyncException() : IDisposable
         Mem.Free(_exceptionStackTrace);
     }
 
+    /// <summary>
+    /// Gets the exception from the span handle.
+    /// </summary>
+    /// <param name="exceptionMemory">The span handle in which stores the <see cref="ComAsyncException"/> struct.</param>
+    /// <returns>Nullable <see cref="Exception"/> instance. Returns <c>null</c> if no exception is being found.</returns>
     public static Exception? GetExceptionFromHandle(PluginDisposableMemory<ComAsyncException> exceptionMemory)
     {
         if (exceptionMemory.IsEmpty)

@@ -1,10 +1,10 @@
 ﻿using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 using static Hi3Helper.Plugin.Core.SharedStatic;
 
@@ -17,7 +17,7 @@ namespace Hi3Helper.Plugin.Core;
 /// The base class where its derived class must require asynchronous initialization before use.
 /// </summary>
 [GeneratedComClass]
-public partial class Initializable : IInitializable
+public partial class InitializableTask : IInitializableTask
 {
     public virtual nint InitAsync(in Guid cancelToken, IPluginPresetConfig.InitAsyncIsSuccessCallback isSuccessReturnCallback)
     {

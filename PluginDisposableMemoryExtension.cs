@@ -8,7 +8,7 @@ public static class PluginDisposableMemoryExtension
     public delegate bool MarshalToMemorySelectorDelegate(out nint handle, out int count, out bool isDisposable);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe PluginDisposableMemory<T> ToDisposableMemory<T>(this ref PluginDisposableMemoryMarshal memory)
+    public static unsafe PluginDisposableMemory<T> ToManagedSpan<T>(this ref PluginDisposableMemoryMarshal memory)
         where T : unmanaged
     {
         PluginDisposableMemory<T> span = new((T*)memory.Handle, memory.Length, memory.IsDisposable);
@@ -16,10 +16,10 @@ public static class PluginDisposableMemoryExtension
         return span;
     }
 
-    public static unsafe PluginDisposableMemory<T> ToDisposableMemory<T>(this MarshalToMemorySelectorDelegate selector)
+    public static unsafe PluginDisposableMemory<T> ToManagedSpan<T>(this MarshalToMemorySelectorDelegate selector)
         where T : unmanaged
     {
-        if (!selector(out nint handle, out int length, out bool isDisposable))
+        if (!selector(out nint handle, out int length, out bool isDisposable) || length <= 0)
         {
             return PluginDisposableMemory<T>.Empty;
         }
@@ -29,7 +29,7 @@ public static class PluginDisposableMemoryExtension
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe ref PluginDisposableMemoryMarshal ToMarshal<T>(this PluginDisposableMemory<T> memory)
+    public static unsafe ref PluginDisposableMemoryMarshal ToUnmanagedMarshal<T>(this PluginDisposableMemory<T> memory)
         where T : unmanaged
     {
         nint handle       = (nint)memory.AsPointer();
@@ -44,9 +44,7 @@ public static class PluginDisposableMemoryExtension
         return ref Mem.AsRef<PluginDisposableMemoryMarshal>(ptr);
     }
 
-    public static unsafe void FreeMarshal(this ref PluginDisposableMemoryMarshal memory)
-    {
-        void* pointer = memory.AsPointer();
-        Mem.Free(pointer);
-    }
+    public static unsafe void FreeMarshal(this ref PluginDisposableMemoryMarshal marshal) => FreeMarshal(marshal.AsPointer());
+
+    public static unsafe void FreeMarshal(PluginDisposableMemoryMarshal* marshal) => Mem.Free(marshal);
 }

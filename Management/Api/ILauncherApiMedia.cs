@@ -14,17 +14,19 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// It also exposes a method to determine the type and source of the current background media.
 /// </para>
 /// <para>
-/// This interface inherits from <see cref="IInitializable"/>, requiring implementers to provide asynchronous initialization logic.
+/// This interface inherits from <see cref="IInitializableTask"/>, requiring implementers to provide asynchronous initialization logic.
 /// </para>
 /// </remarks>
 [GeneratedComInterface]
-[Guid(ComInterfaceId.LauncherApiMedia)]
+[Guid(ComInterfaceId.ExLauncherApiMedia)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 // ReSharper disable once RedundantUnsafeContext
 public unsafe partial interface ILauncherApiMedia : ILauncherApi
 {
     /// <summary>
-    /// Get the background image's URL entries for the launcher.
+    /// Get the background image's URL entries for the launcher.<br/>
+    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherPathEntry"/>.<br/>
+    /// Pass this method to <see cref="PluginDisposableMemoryExtension.ToManagedSpan{T}(PluginDisposableMemoryExtension.MarshalToMemorySelectorDelegate)"/> to get the span.
     /// </summary>
     /// <param name="handle">The handle to the <see cref="LauncherPathEntry"/> struct</param>
     /// <param name="count">How much data is available from the <paramref name="handle"/></param>
@@ -36,7 +38,9 @@ public unsafe partial interface ILauncherApiMedia : ILauncherApi
     bool GetBackgroundEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
 
     /// <summary>
-    /// Gets the logo overlay's URL entries for the launcher.
+    /// Gets the logo overlay's URL entries for the launcher.<br/>
+    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherPathEntry"/>.<br/>
+    /// Pass this method to <see cref="PluginDisposableMemoryExtension.ToManagedSpan{T}(PluginDisposableMemoryExtension.MarshalToMemorySelectorDelegate)"/> to get the span.
     /// </summary>
     /// <param name="handle">The handle to the <see cref="LauncherPathEntry"/> struct</param>
     /// <param name="count">How much data is available from the <paramref name="handle"/></param>

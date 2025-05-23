@@ -96,7 +96,7 @@ public static partial class ComAsyncExtension
                 return 0;
             }
 
-            buffer[0] = (byte)ComAsyncException.ExceptionInfoSeparator;
+            buffer[0] = (byte)ComAsyncException.ExExceptionInfoSeparator;
             buffer = buffer[1..];
 
             Encoding.UTF8.TryGetBytes(info, buffer, out int bytesWritten);
@@ -106,8 +106,8 @@ public static partial class ComAsyncExtension
 
     internal static void WriteExceptionInfo(Exception exception, ref ComAsyncException result)
     {
-        // Allocate struct and its buffer
-        result = new ComAsyncException();
+        // Initialize struct and its buffer
+        result.InitInner();
 
         string exceptionName        = exception.GetType().Name;
         string exceptionMessage     = exception.Message;

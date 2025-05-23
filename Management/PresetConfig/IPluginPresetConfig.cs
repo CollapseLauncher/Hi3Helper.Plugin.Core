@@ -10,12 +10,12 @@ namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 /// <remarks>
 /// This interface provides methods to retrieve various properties related to a game's preset configuration,
 /// such as game and zone information, supported languages, and executable details.
-/// It extends <see cref="IInitializable"/> to support asynchronous initialization.
+/// It extends <see cref="IInitializableTask"/> to support asynchronous initialization.
 /// </remarks>
 [GeneratedComInterface]
-[Guid(ComInterfaceId.PluginPresetConfig)]
+[Guid(ComInterfaceId.ExPluginPresetConfig)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IPluginPresetConfig : IInitializable
+public partial interface IPluginPresetConfig : IInitializableTask
 {
     #region Generic Read-only Properties
     /// <summary>
@@ -122,6 +122,13 @@ public partial interface IPluginPresetConfig : IInitializable
     /// </summary>
     /// <returns>The launcher Media API instance.</returns>
     [return: MarshalAs(UnmanagedType.Interface)]
-    ILauncherApiMedia get_LauncherApiMedia();
+    ILauncherApiMedia? get_LauncherApiMedia();
+
+    /// <summary>
+    /// Gets an instance to the <see cref="ILauncherApiNews"/>.
+    /// </summary>
+    /// <returns>The launcher News API instance.</returns>
+    [return: MarshalAs(UnmanagedType.Interface)]
+    ILauncherApiNews? get_LauncherApiNews();
     #endregion
 }

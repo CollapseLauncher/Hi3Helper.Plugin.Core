@@ -10,7 +10,7 @@ using Microsoft.Win32.SafeHandles;
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
 [GeneratedComClass]
-public abstract partial class LauncherApiBase : Initializable, ILauncherApi
+public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 {
     protected abstract HttpClient? ApiResponseHttpClient { get; }
 

@@ -10,9 +10,9 @@ namespace Hi3Helper.Plugin.Core;
 /// An interface that defines the asynchronous initialization of the class member.
 /// </summary>
 [GeneratedComInterface]
-[Guid(ComInterfaceId.Initializable)]
+[Guid(ComInterfaceId.ExInitializable)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IInitializable
+public partial interface IInitializableTask
 {
     #region Return Callbacks
     public delegate void InitAsyncIsSuccessCallback(int result);
