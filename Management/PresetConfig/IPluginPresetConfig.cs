@@ -1,4 +1,5 @@
-﻿using Hi3Helper.Plugin.Core.Management.Api;
+﻿using System;
+using Hi3Helper.Plugin.Core.Management.Api;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -15,7 +16,7 @@ namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExPluginPresetConfig)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IPluginPresetConfig : IInitializableTask
+public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
 {
     #region Generic Read-only Properties
     /// <summary>

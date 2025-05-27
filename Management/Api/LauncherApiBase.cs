@@ -12,6 +12,7 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 [GeneratedComClass]
 public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 {
+    protected readonly Lock ThisInstanceLock = new();
     protected abstract HttpClient? ApiResponseHttpClient { get; }
 
     public virtual nint DownloadAssetAsync(LauncherPathEntry entry,
@@ -45,5 +46,14 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
         }
 
         await PluginFiles.DownloadFilesAsync(client, fileUrl, outputStream, downloadProgress, token).ConfigureAwait(false);
+    }
+
+    public virtual void Dispose()
+    {
+        using (ThisInstanceLock.EnterScope())
+        {
+            ApiResponseHttpClient?.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }

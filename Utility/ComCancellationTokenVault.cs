@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
@@ -95,6 +96,24 @@ internal static class ComCancellationTokenVault
                 _ = UnregisterToken(in tokenHandle, out _);
             }
             return true;
+        }
+    }
+
+    internal static void DangerousCancelAndUnregisterAllToken()
+    {
+        using (ThreadLock.EnterScope())
+        {
+            // Cancel all the token sources in the vault and clear the vault.
+            foreach (KeyValuePair<Guid, CancellationTokenSource> tokenSource in TokenVault)
+            {
+                SharedStatic.InstanceLogger?.LogTrace("[ComCancellationTokenVault::DangerousCancelAndUnregisterAllToken()] Disposing all async operations from cancel token: {Guid}", tokenSource.Key);
+
+                tokenSource.Value.Cancel();
+                tokenSource.Value.Dispose();
+            }
+
+            // Clear the vault
+            TokenVault.Clear();
         }
     }
 }

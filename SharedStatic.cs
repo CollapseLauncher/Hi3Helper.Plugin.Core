@@ -34,4 +34,9 @@ public class SharedStatic
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
     }
+
+    public static void DisposePlugin()
+    {
+        ThisPluginInstance?.Dispose();
+    }
 }

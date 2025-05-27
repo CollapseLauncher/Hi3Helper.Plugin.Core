@@ -1,7 +1,7 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
-using System.Runtime.InteropServices.Marshalling;
-using System.Runtime.InteropServices;
 using System;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 // ReSharper disable IdentifierTypo
 
 namespace Hi3Helper.Plugin.Core;

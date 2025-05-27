@@ -15,7 +15,7 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExLauncherApi)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface ILauncherApi : IInitializableTask
+public partial interface ILauncherApi : IInitializableTask, IDisposable
 {
     /// <summary>
     /// Asynchronously downloads an asset to the specified output stream.

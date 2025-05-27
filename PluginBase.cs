@@ -58,4 +58,24 @@ public abstract partial class PluginBase : IPlugin
         SharedStatic.ProxyPassword = password;
         return true;
     }
+
+    public virtual void Dispose()
+    {
+        // Cancel all the cancellable async operations first before disposing all plugin instance
+        ComCancellationTokenVault.DangerousCancelAndUnregisterAllToken();
+
+        // Then continue disposing all the plugin.
+        int presetConfigCount = GetPresetConfigCount();
+        for (int i = 0; i < presetConfigCount; i++)
+        {
+            IPluginPresetConfig presetConfig = GetPresetConfig(i);
+            if (presetConfig is IDisposable disposablePresetConfig)
+            {
+                disposablePresetConfig.Dispose();
+            }
+        }
+
+        GC.SuppressFinalize(this);
+        SharedStatic.InstanceLogger?.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", GetPluginName());
+    }
 }

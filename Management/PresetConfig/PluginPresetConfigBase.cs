@@ -1,4 +1,5 @@
 ﻿using Hi3Helper.Plugin.Core.Management.Api;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -58,4 +59,12 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     ILauncherApiMedia? IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
     ILauncherApiNews? IPluginPresetConfig.get_LauncherApiNews() => LauncherApiNews;
     #endregion
+
+    public virtual void Dispose()
+    {
+        LauncherApiMedia?.Dispose();
+        LauncherApiNews?.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
 }
