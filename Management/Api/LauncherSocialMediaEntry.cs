@@ -1,6 +1,7 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 // ReSharper disable ReplaceWithPrimaryConstructorParameter
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
@@ -8,6 +9,7 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// <summary>
 /// Entry of the launcher's social media data.
 /// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
 public unsafe struct LauncherSocialMediaEntry
     : IDisposable, IInitializableStruct
 {
@@ -182,6 +184,8 @@ public unsafe struct LauncherSocialMediaEntry
         }
     }
 
+    private byte _isFreed = 0;
+
     private void* _iconPathHandle;
     private int _iconPathLengthInBytes;
 
@@ -194,8 +198,6 @@ public unsafe struct LauncherSocialMediaEntry
     private byte* _socialMediaDescription;
     private byte* _socialMediaClickUrl;
     private byte* _qrImageDescription;
-
-    private int _isFreed = 0;
 
     private LauncherSocialMediaEntry* _childEntryHandle;
 

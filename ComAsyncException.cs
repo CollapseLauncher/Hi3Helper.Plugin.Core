@@ -1,11 +1,13 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Hi3Helper.Plugin.Core;
 
 /// <summary>
 /// This struct is used to store the exception information invoked from the plugin's asynchronous methods.
 /// </summary>
+[StructLayout(LayoutKind.Explicit)] // Fits to 48 bytes
 public unsafe struct ComAsyncException()
     : IDisposable, IInitializableStruct
 {
@@ -22,12 +24,21 @@ public unsafe struct ComAsyncException()
         _exceptionMessage    = Mem.Alloc<byte>(ExExceptionMessageMaxLength);
         _exceptionStackTrace = Mem.Alloc<byte>(ExExceptionStackTraceMaxLength);
     }
+    
+    [FieldOffset(0)]
+    private byte _isFreed = 0;
 
+    [FieldOffset(16)]
     private byte* _exceptionTypeByName = null;
-    private byte* _exceptionInfo       = null;
-    private byte* _exceptionMessage    = null;
+
+    [FieldOffset(24)]
+    private byte* _exceptionInfo = null;
+
+    [FieldOffset(32)]
+    private byte* _exceptionMessage = null;
+
+    [FieldOffset(40)]
     private byte* _exceptionStackTrace = null;
-    private int   _isFreed             = 0;
 
     /// <summary>
     /// Exception Type Name (without namespace). For example: "InvalidOperationException"

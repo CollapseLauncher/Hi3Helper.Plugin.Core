@@ -11,17 +11,23 @@ namespace Hi3Helper.Plugin.Core;
 /// <summary>
 /// Represents the result of a COM asynchronous operation.
 /// </summary>
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Explicit)] // Fits to 32 bytes
 public struct ComAsyncResult() : IDisposable
 {
+    [FieldOffset(0)]
+    private byte _isFreed = 0;
+    [FieldOffset(1)]
+    private byte _statusFlags;
+    [FieldOffset(8)]
+    private int  _exceptionCount;
+
     /// <summary>
     /// The handle to the <see cref="Microsoft.Win32.SafeHandles.SafeWaitHandle"/>.
     /// </summary>
-    public nint Handle;
+    [FieldOffset(16)]
+    public  nint Handle;
+    [FieldOffset(24)]
     private nint _exception;
-    private int  _exceptionCount;
-    private byte _statusFlags;
-    private byte _isFreed = 0;
 
     /// <summary>
     /// The span handle in which stores the information of the exceptions on <see cref="ComAsyncException"/> struct.

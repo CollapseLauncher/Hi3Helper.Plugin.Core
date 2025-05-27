@@ -8,7 +8,7 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// <summary>
 /// Entry of the launcher's news data.
 /// </summary>
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
 public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     : IDisposable, IInitializableStruct
 {
@@ -22,16 +22,17 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
         _description = Mem.Alloc<byte>(ExDescriptionMaxLength);
         _url         = Mem.Alloc<byte>(ExUrlMaxLength);
     }
-
-    private byte* _title       = null;
-    private byte* _description = null;
-    private byte* _url         = null;
-    private int   _isFreed     = 0;
+    
+    private byte _isFreed = 0;
 
     /// <summary>
     /// The type of the news entry. See <see cref="LauncherNewsEntryType"/> for the types.
     /// </summary>
     public readonly LauncherNewsEntryType Type = newsType;
+
+    private byte* _title       = null;
+    private byte* _description = null;
+    private byte* _url         = null;
 
     /// <summary>
     /// The title of the news entry.

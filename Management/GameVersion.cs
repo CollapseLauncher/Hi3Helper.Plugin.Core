@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Hi3Helper.Plugin.Core.Management;
 
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
 public struct GameVersion : IVersion
 {
     public GameVersion(params ReadOnlySpan<int> ver)

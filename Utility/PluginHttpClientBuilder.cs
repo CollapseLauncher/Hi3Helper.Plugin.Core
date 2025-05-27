@@ -27,8 +27,8 @@ public class PluginHttpClientBuilder : PluginHttpClientBuilder<SocketsHttpHandle
 
 public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandler, new()
 {
-    private const int MaxConnectionsDefault = 32;
-    private const double HttpTimeoutDefault = 90; // in Seconds
+    private const int ExMaxConnectionsDefault = 32;
+    private const double ExHttpTimeoutDefault = 90; // in Seconds
 
     private static bool IsUseProxy => SharedStatic.ProxyHost != null;
     private static bool IsUseSystemProxy => true;
@@ -42,13 +42,13 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
     private bool IsAllowHttpCookies { get; set; }
     private bool IsAllowUntrustedCert { get; set; }
 
-    private int MaxConnections { get; set; } = MaxConnectionsDefault;
+    private int MaxConnections { get; set; } = ExMaxConnectionsDefault;
     private DecompressionMethods DecompressionMethod { get; set; } = DecompressionMethods.All;
     private Version HttpProtocolVersion { get; set; } = HttpVersion.Version30;
     private string? HttpUserAgent { get; set; } = GetDefaultUserAgent();
     private string? HttpAuthHeader { get; set; }
     private HttpVersionPolicy HttpProtocolVersionPolicy { get; set; } = HttpVersionPolicy.RequestVersionOrLower;
-    private TimeSpan HttpTimeout { get; set; } = TimeSpan.FromSeconds(HttpTimeoutDefault);
+    private TimeSpan HttpTimeout { get; set; } = TimeSpan.FromSeconds(ExHttpTimeoutDefault);
     private Uri? HttpBaseUri { get; set; }
     private Dictionary<string, string?> HttpHeaders { get; } = new();
 
@@ -61,7 +61,7 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
             + $"CollapsePlugin/{SharedStatic.LibraryStandardVersion}-{(SharedStatic.IsDebug ? "Debug" : "Release")}";
     }
 
-    public PluginHttpClientBuilder<THandler> SetMaxConnection(int maxConnections = MaxConnectionsDefault)
+    public PluginHttpClientBuilder<THandler> SetMaxConnection(int maxConnections = ExMaxConnectionsDefault)
     {
         if (maxConnections < 2)
             maxConnections = 2;
@@ -109,17 +109,17 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> SetTimeout(double fromSeconds = HttpTimeoutDefault)
+    public PluginHttpClientBuilder<THandler> SetTimeout(double fromSeconds = ExHttpTimeoutDefault)
     {
         if (double.IsNaN(fromSeconds) || double.IsInfinity(fromSeconds))
-            fromSeconds = HttpTimeoutDefault;
+            fromSeconds = ExHttpTimeoutDefault;
 
         return SetTimeout(TimeSpan.FromSeconds(fromSeconds));
     }
 
     public PluginHttpClientBuilder<THandler> SetTimeout(TimeSpan? timeout = null)
     {
-        timeout ??= TimeSpan.FromSeconds(HttpTimeoutDefault);
+        timeout ??= TimeSpan.FromSeconds(ExHttpTimeoutDefault);
         HttpTimeout = timeout.Value;
         return this;
     }

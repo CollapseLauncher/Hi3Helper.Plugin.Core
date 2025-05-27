@@ -30,8 +30,8 @@ public unsafe partial interface ILauncherApiNews : ILauncherApi
     /// <summary>
     /// Get the carousel image entries for the launcher.
     /// </summary>
-    /// <param name="handle">The handle to the pointer of the <see cref="LauncherPathEntry"/> data</param>
-    /// <param name="count">How much data of <see cref="LauncherPathEntry"/> inside of the handle</param>
+    /// <param name="handle">The handle to the pointer of the <see cref="LauncherCarouselEntry"/> data</param>
+    /// <param name="count">How much data of <see cref="LauncherCarouselEntry"/> inside of the handle</param>
     /// <param name="isDisposable">Whether the handle is disposable</param>
     /// <returns>Returns <c>true</c> if the <paramref name="handle"/> is not empty. Otherwise, returns <c>false</c>.</returns>
     [return: MarshalAs(UnmanagedType.Bool)]

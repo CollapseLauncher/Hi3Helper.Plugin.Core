@@ -9,17 +9,17 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// <summary>
 /// Entry of the path used by the launcher assets.
 /// </summary>
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
 public unsafe struct LauncherPathEntry()
     : IDisposable, IInitializableStruct
 {
     public const int ExPathMaxLength     = 1024;
     public const int ExFileHashMaxLength = 64;
 
+    private byte  _isFreed        = 0;
+    private int   _fileHashLength;
     private byte* _path           = null;
     private byte* _fileHash       = null;
-    private int   _fileHashLength;
-    private int   _isFreed = 0;
 
     public void InitInner()
     {

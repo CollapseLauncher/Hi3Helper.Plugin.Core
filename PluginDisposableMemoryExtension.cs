@@ -34,7 +34,7 @@ public static class PluginDisposableMemoryExtension
     {
         nint handle       = (nint)memory.AsPointer();
         int  length       = memory.Length;
-        bool isDisposable = memory.IsDisposable;
+        bool isDisposable = memory.IsDisposable == 1;
 
         PluginDisposableMemoryMarshal* ptr = Mem.Alloc<PluginDisposableMemoryMarshal>();
         ptr->Handle = handle;

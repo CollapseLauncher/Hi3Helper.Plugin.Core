@@ -2,7 +2,7 @@
 
 namespace Hi3Helper.Plugin.Core;
 
-[StructLayout(LayoutKind.Sequential, Size = 16)]
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
 public struct PluginDisposableMemoryMarshal(nint handle, int length, bool isDisposable)
 {
     public nint Handle       = handle;
