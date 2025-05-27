@@ -20,13 +20,17 @@ public partial interface IGameManager
     /// </summary>
     /// <returns>The file system path to the game installation directory.</returns>
     [return: MarshalAs(UnmanagedType.LPWStr)]
-    string GetGamePath();
+    string? GetGamePath();
 
     /// <summary>
-    /// Saves or updates the path to the game installation.
+    /// Set-only or Set-Save the path of the game installation.
     /// </summary>
     /// <param name="gamePath">The new file system path to the game installation directory.</param>
-    void SaveGamePath([MarshalAs(UnmanagedType.LPWStr)] string gamePath);
+    /// <param name="isSave">
+    /// Whether to perform config update or just set the game path.
+    /// Set <c>true</c> to perform config update inside the plugin or <c>false</c> to just set the config.
+    /// </param>
+    void SetGamePath([MarshalAs(UnmanagedType.LPWStr)] string gamePath, [MarshalAs(UnmanagedType.Bool)] bool isSave = false);
 
     /// <summary>
     /// Gets the current version of the installed game.
