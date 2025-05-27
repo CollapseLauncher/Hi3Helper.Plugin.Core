@@ -52,6 +52,9 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     string IPluginPresetConfig.get_ZoneHomePageUrl() => ZoneHomePageUrl;
     GameReleaseChannel IPluginPresetConfig.get_ReleaseChannel() => ReleaseChannel;
     string IPluginPresetConfig.get_GameMainLanguage() => GameMainLanguage;
+    #endregion
+
+    # region Generic Read-only API Instance Callbacks
     ILauncherApiMedia? IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
     ILauncherApiNews? IPluginPresetConfig.get_LauncherApiNews() => LauncherApiNews;
     #endregion
