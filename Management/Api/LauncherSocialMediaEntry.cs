@@ -11,15 +11,15 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 public unsafe struct LauncherSocialMediaEntry
     : IDisposable, IInitializableStruct
 {
-    public const int ExDescriptionMaxLength = 128; // 256 bytes
-    public const int ExUrlMaxLength         = 512; // 1024 bytes
+    public const int ExDescriptionMaxLength = 128;
+    public const int ExUrlMaxLength         = 512;
 
     /// <summary>
     /// Entry of the launcher's social media data.
     /// </summary>
     /// <param name="iconDataHandle">
     /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
+    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
     /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.
     /// </param>
     /// <param name="iconDataLengthInBytes">
@@ -30,7 +30,7 @@ public unsafe struct LauncherSocialMediaEntry
     /// </param>
     /// <param name="iconHoverDataHandle">
     /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
+    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
     /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
     /// This handle can be null-ed.
     /// </param>
@@ -43,7 +43,7 @@ public unsafe struct LauncherSocialMediaEntry
     /// </param>
     /// <param name="qrImageDataHandle">
     /// The handle of the qr image data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
+    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
     /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
     /// This handle can be null-ed.
     /// </param>
@@ -89,7 +89,7 @@ public unsafe struct LauncherSocialMediaEntry
     /// </summary>
     /// <param name="iconDataHandle">
     /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
+    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
     /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.
     /// </param>
     /// <param name="iconDataLengthInBytes">
@@ -100,7 +100,7 @@ public unsafe struct LauncherSocialMediaEntry
     /// </param>
     /// <param name="iconHoverDataHandle">
     /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
+    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
     /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
     /// This handle can be null-ed.
     /// </param>
@@ -113,7 +113,7 @@ public unsafe struct LauncherSocialMediaEntry
     /// </param>
     /// <param name="qrImageDataHandle">
     /// The handle of the qr image data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of <see cref="byte"/> or <see cref="char"/>
+    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
     /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
     /// This handle can be null-ed.
     /// </param>
@@ -166,19 +166,19 @@ public unsafe struct LauncherSocialMediaEntry
     {
         if (Flags.HasFlag(LauncherSocialMediaEntryFlag.HasDescription))
         {
-            _socialMediaDescription = Mem.Alloc<char>(ExDescriptionMaxLength);
+            _socialMediaDescription = Mem.Alloc<byte>(ExDescriptionMaxLength);
         }
 
         if (Flags.HasFlag(LauncherSocialMediaEntryFlag.HasClickUrl))
         {
-            _socialMediaClickUrl = Mem.Alloc<char>(ExUrlMaxLength);
+            _socialMediaClickUrl = Mem.Alloc<byte>(ExUrlMaxLength);
         }
 
         if (!Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage)) return;
 
         if (Flags.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsPath))
         {
-            _qrImageDescription = Mem.Alloc<char>(ExDescriptionMaxLength);
+            _qrImageDescription = Mem.Alloc<byte>(ExDescriptionMaxLength);
         }
     }
 
@@ -191,9 +191,9 @@ public unsafe struct LauncherSocialMediaEntry
     private void* _qrPathHandle;
     private int _qrPathLengthInBytes;
 
-    private char* _socialMediaDescription;
-    private char* _socialMediaClickUrl;
-    private char* _qrImageDescription;
+    private byte* _socialMediaDescription;
+    private byte* _socialMediaClickUrl;
+    private byte* _qrImageDescription;
 
     private int _isFreed = 0;
 
@@ -206,6 +206,11 @@ public unsafe struct LauncherSocialMediaEntry
     private byte _isIconHandleDisposable = 0;
     private byte _isIconHoverHandleDisposable = 0;
     private byte _isQrImageHandleDisposable = 0;
+
+    /// <summary>
+    /// The handle of the child entry. The type is <see cref="LauncherSocialMediaEntry"/>
+    /// </summary>
+    public nint ChildEntryHandle => (nint)_childEntryHandle;
 
     /// <summary>
     /// Gets the icon handle as path.
@@ -280,34 +285,34 @@ public unsafe struct LauncherSocialMediaEntry
     /// <summary>
     /// A span of social media description as string. If the flag doesn't have flag for the description, it will return an empty span.
     /// </summary>
-    public readonly PluginDisposableMemory<char> SocialMediaDescription
+    public readonly PluginDisposableMemory<byte> SocialMediaDescription
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasDescription) ?
-                PluginDisposableMemory<char>.Empty :
-            new PluginDisposableMemory<char>(_socialMediaDescription, ExDescriptionMaxLength);
+                PluginDisposableMemory<byte>.Empty :
+            new PluginDisposableMemory<byte>(_socialMediaDescription, ExDescriptionMaxLength);
     }
 
     /// <summary>
     /// A span of QR Image description as string. If the flag doesn't have flag for the description, it will return an empty span.
     /// </summary>
-    public readonly PluginDisposableMemory<char> QrImageDescription
+    public readonly PluginDisposableMemory<byte> QrImageDescription
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) ?
-                PluginDisposableMemory<char>.Empty :
-            new PluginDisposableMemory<char>(_qrImageDescription, ExDescriptionMaxLength);
+                PluginDisposableMemory<byte>.Empty :
+            new PluginDisposableMemory<byte>(_qrImageDescription, ExDescriptionMaxLength);
     }
 
     /// <summary>
     /// A span of social media Click URL as string. If the flag doesn't have flag for the click URL, it will return an empty span.
     /// </summary>
-    public readonly PluginDisposableMemory<char> SocialMediaClickUrl
+    public readonly PluginDisposableMemory<byte> SocialMediaClickUrl
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasClickUrl) ?
-                PluginDisposableMemory<char>.Empty :
-            new PluginDisposableMemory<char>(_socialMediaClickUrl, ExUrlMaxLength);
+                PluginDisposableMemory<byte>.Empty :
+            new PluginDisposableMemory<byte>(_socialMediaClickUrl, ExUrlMaxLength);
     }
 
     /// <summary>

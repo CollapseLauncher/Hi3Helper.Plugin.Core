@@ -3,7 +3,7 @@
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
 /// <summary>
-/// Defines the kind of properties or flags that a social media entry can have.
+/// Defines kind of properties or flags that a social media entry can have.
 /// </summary>
 [Flags]
 public enum LauncherSocialMediaEntryFlag : byte

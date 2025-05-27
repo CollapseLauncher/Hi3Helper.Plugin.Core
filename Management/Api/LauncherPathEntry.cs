@@ -16,21 +16,21 @@ public unsafe struct LauncherPathEntry()
     public const int ExPathMaxLength     = 1024;
     public const int ExFileHashMaxLength = 64;
 
-    private char* _path           = null;
+    private byte* _path           = null;
     private byte* _fileHash       = null;
     private int   _fileHashLength;
     private int   _isFreed = 0;
 
     public void InitInner()
     {
-        _path     = Mem.Alloc<char>(ExPathMaxLength);
+        _path     = Mem.Alloc<byte>(ExPathMaxLength);
         _fileHash = Mem.Alloc<byte>(ExFileHashMaxLength);
     }
 
     /// <summary>
     /// The local path of where the asset is stored.
     /// </summary>
-    public readonly PluginDisposableMemory<char> Path => new(_path, ExPathMaxLength);
+    public readonly PluginDisposableMemory<byte> Path => new(_path, ExPathMaxLength);
 
     /// <summary>
     /// The hash of the file. This is used to verify the integrity of the file.

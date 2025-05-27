@@ -12,20 +12,20 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     : IDisposable, IInitializableStruct
 {
-    public const int ExTitleMaxLength       = 128; // 256 bytes
-    public const int ExDescriptionMaxLength = 256; // 512 bytes
-    public const int ExUrlMaxLength         = 512; // 1024 bytes
+    public const int ExTitleMaxLength       = 128;
+    public const int ExDescriptionMaxLength = 256;
+    public const int ExUrlMaxLength         = 512;
 
     public void InitInner()
     {
-        _title       = Mem.Alloc<char>(ExTitleMaxLength);
-        _description = Mem.Alloc<char>(ExDescriptionMaxLength);
-        _url         = Mem.Alloc<char>(ExUrlMaxLength);
+        _title       = Mem.Alloc<byte>(ExTitleMaxLength);
+        _description = Mem.Alloc<byte>(ExDescriptionMaxLength);
+        _url         = Mem.Alloc<byte>(ExUrlMaxLength);
     }
 
-    private char* _title       = null;
-    private char* _description = null;
-    private char* _url         = null;
+    private byte* _title       = null;
+    private byte* _description = null;
+    private byte* _url         = null;
     private int   _isFreed     = 0;
 
     /// <summary>
@@ -36,17 +36,17 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     /// <summary>
     /// The title of the news entry.
     /// </summary>
-    public PluginDisposableMemory<char> Title => new(_title, ExTitleMaxLength);
+    public PluginDisposableMemory<byte> Title => new(_title, ExTitleMaxLength);
 
     /// <summary>
     /// The description of the news entry.
     /// </summary>
-    public PluginDisposableMemory<char> Description => new(_title, ExTitleMaxLength);
+    public PluginDisposableMemory<byte> Description => new(_title, ExTitleMaxLength);
 
     /// <summary>
     /// The HREF/click URL of the news entry.
     /// </summary>
-    public PluginDisposableMemory<char> Url => new(_title, ExTitleMaxLength);
+    public PluginDisposableMemory<byte> Url => new(_title, ExTitleMaxLength);
 
     /// <summary>
     /// Get the string of <see cref="Title"/> field.
