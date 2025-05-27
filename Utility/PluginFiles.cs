@@ -11,7 +11,7 @@ namespace Hi3Helper.Plugin.Core.Utility;
 
 public static class PluginFiles
 {
-    internal const int CopyToBufferSize = 64 << 10;
+    internal const int ExCopyToBufferSize = 65536;
 
     /// <summary>
     /// Delegate for reporting progress of file read operations.
@@ -64,7 +64,7 @@ public static class PluginFiles
     public static async Task CopyToAsyncProgress(this Stream source,
                                                  Stream destination,
                                                  FileReadProgressDelegate? progress,
-                                                 int bufferSize = CopyToBufferSize,
+                                                 int bufferSize = ExCopyToBufferSize,
                                                  CancellationToken token = default)
     {
         byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
