@@ -131,5 +131,12 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     /// <returns>The launcher News API instance.</returns>
     [return: MarshalAs(UnmanagedType.Interface)]
     ILauncherApiNews? get_LauncherApiNews();
+
+    /// <summary>
+    /// Gets an instance to the <see cref="IGameManager"/>
+    /// </summary>
+    /// <returns></returns>
+    [return: MarshalAs(UnmanagedType.Interface)]
+    IGameManager? get_GameManager();
     #endregion
 }
