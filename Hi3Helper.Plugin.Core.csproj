@@ -9,6 +9,8 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <Platforms>x64</Platforms>
     <LangVersion>preview</LangVersion>
+    <DebugType>embedded</DebugType>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
