@@ -112,6 +112,20 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     string get_GameExecutableName();
 
     /// <summary>
+    /// Gets the file name of the game's log file.
+    /// </summary>
+    /// <returns>The filename or path of the log file.</returns>
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string? get_GameLogFileName();
+
+    /// <summary>
+    /// Gets the path where the game's cache data is stored (usually, it's used as well as to store the Game's Log File for Unity games),
+    /// </summary>
+    /// <returns>The path of the game's cache directory.</returns>
+    [return : MarshalAs(UnmanagedType.LPWStr)]
+    string? get_GameAppDataPath();
+
+    /// <summary>
     /// Gets the directory name used by the launcher for the game.
     /// </summary>
     /// <returns>The launcher game directory name as a string.</returns>
@@ -135,7 +149,7 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     /// <summary>
     /// Gets an instance to the <see cref="IGameManager"/>
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The game manager instance.</returns>
     [return: MarshalAs(UnmanagedType.Interface)]
     IGameManager? get_GameManager();
     #endregion
