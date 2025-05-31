@@ -15,6 +15,8 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
 {
     public abstract string GameName { get; }
     public abstract string GameExecutableName { get; }
+    public abstract string GameAppDataPath { get; }
+    public abstract string GameLogFileName { get; }
     public abstract string ProfileName { get; }
     public abstract string ZoneDescription { get; }
     public abstract string ZoneName { get; }
@@ -28,6 +30,7 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     public abstract List<string> SupportedLanguages { get; }
     public abstract ILauncherApiMedia? LauncherApiMedia { get; }
     public abstract ILauncherApiNews? LauncherApiNews { get; }
+    public abstract IGameManager GameManager { get; }
 
     #region Generic Read-only Properties Callbacks
     string IPluginPresetConfig.get_GameSupportedLanguages(int index)
@@ -42,6 +45,8 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
 
     int IPluginPresetConfig.get_GameSupportedLanguagesCount() => SupportedLanguages.Count;
     string IPluginPresetConfig.get_GameExecutableName() => GameExecutableName;
+    string IPluginPresetConfig.get_GameAppDataPath() => GameAppDataPath;
+    string IPluginPresetConfig.get_GameLogFileName() => GameLogFileName;
     string IPluginPresetConfig.get_LauncherGameDirectoryName() => LauncherGameDirectoryName;
     string IPluginPresetConfig.get_GameName() => GameName;
     string IPluginPresetConfig.get_ProfileName() => ProfileName;
@@ -58,6 +63,7 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     # region Generic Read-only API Instance Callbacks
     ILauncherApiMedia? IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
     ILauncherApiNews? IPluginPresetConfig.get_LauncherApiNews() => LauncherApiNews;
+    IGameManager IPluginPresetConfig.get_GameManager() => GameManager;
     #endregion
 
     public virtual void Dispose()
