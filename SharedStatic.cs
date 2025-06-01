@@ -18,6 +18,7 @@ public class SharedStatic
     public static Uri?                       ProxyHost;
     public static string?                    ProxyUsername;
     public static string?                    ProxyPassword;
+    public static string                     PluginLocaleCode = "en-us";
     public static bool                       IsDebug =
 #if DEBUG
         true;
@@ -38,5 +39,27 @@ public class SharedStatic
     public static void DisposePlugin()
     {
         ThisPluginInstance?.Dispose();
+    }
+
+    public static void SetPluginCurrentLocale(ReadOnlySpan<char> currentLocale)
+    {
+        if (currentLocale.IsEmpty)
+        {
+            return;
+        }
+
+        Span<Range> range = stackalloc Range[2];
+        int len = currentLocale.SplitAny(range, "-_", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        if (len is < 1 or > 2 ||
+            currentLocale[range[0]].Length is < 2 or > 3 ||
+            currentLocale[range[1]].Length is < 2 or > 3)
+        {
+            InstanceLogger?.LogWarning("Locale string: {Locale} is not a valid Locale ID format!", currentLocale.ToString());
+            return;
+        }
+
+        PluginLocaleCode = currentLocale.ToString();
+        InstanceLogger?.LogTrace("Locale ID has been set to: {Locale}", PluginLocaleCode);
     }
 }
