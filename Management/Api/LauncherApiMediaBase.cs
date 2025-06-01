@@ -14,5 +14,5 @@ public abstract partial class LauncherApiMediaBase : LauncherApiBase, ILauncherA
 
     public abstract bool GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable);
 
-    public abstract float GetBackgroundSpriteFps();
+    public virtual float GetBackgroundSpriteFps() => 0f;
 }
