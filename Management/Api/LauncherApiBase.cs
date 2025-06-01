@@ -14,6 +14,7 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 {
     protected readonly Lock ThisInstanceLock = new();
     protected abstract HttpClient? ApiResponseHttpClient { get; }
+    protected bool IsDisposed;
 
     public virtual nint DownloadAssetAsync(LauncherPathEntry entry,
                                            nint outputStreamHandle,
@@ -50,8 +51,14 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 
     public virtual void Dispose()
     {
+        if (IsDisposed)
+        {
+            return;
+        }
+
         using (ThisInstanceLock.EnterScope())
         {
+            IsDisposed = true;
             ApiResponseHttpClient?.Dispose();
             GC.SuppressFinalize(this);
         }

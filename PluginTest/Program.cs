@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -58,6 +59,8 @@ namespace PluginTest
                 (bool isGetPlugin, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
                 (bool isTestApiMedia, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestApiMedia);
 
+                FreeLibrary(libraryHandle);
+
                 return (isSetLoggerCallback &&
                     isSetDnsResolverCallback &&
                     isResetDnsResolverCallback &&
@@ -74,6 +77,14 @@ namespace PluginTest
                     PInvoke.FreeLibrary(libraryHandle);
                 }
             }
+        }
+
+        private delegate void FreeLibraryDelegate();
+
+        private static void FreeLibrary(nint handle)
+        {
+            nint exportFreePlugin = NativeLibrary.GetExport(handle, "FreePlugin");
+            Marshal.GetDelegateForFunctionPointer<FreeLibraryDelegate>(exportFreePlugin)();
         }
 
         internal static readonly InvokeLogger InvokeLogger = new();
