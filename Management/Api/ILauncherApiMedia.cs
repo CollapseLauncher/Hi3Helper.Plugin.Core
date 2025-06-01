@@ -54,4 +54,20 @@ public unsafe partial interface ILauncherApiMedia : ILauncherApi
     /// </returns>
     [PreserveSig]
     LauncherBackgroundFlag GetBackgroundFlag();
+
+    /// <summary>
+    /// Gets the current logo flag, which indicates the type and source of the launcher background.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="LauncherBackgroundFlag"/> value representing the type (image, image sequence, video) and source (file, zip) of the background.
+    /// </returns>
+    [PreserveSig]
+    LauncherBackgroundFlag GetLogoFlag();
+
+    /// <summary>
+    /// Gets the background sprite FPS (frames per second) for the launcher background image sequence.
+    /// </summary>
+    /// <returns>Frames per second for the sprites to cycle. Returns 0 if the background image is static.</returns>
+    [PreserveSig]
+    float GetBackgroundSpriteFps();
 }
