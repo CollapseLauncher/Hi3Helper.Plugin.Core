@@ -59,6 +59,8 @@ public abstract partial class PluginBase : IPlugin
         return true;
     }
 
+    void IPlugin.SetPluginLocaleId(string? localeId) => SharedStatic.SetPluginCurrentLocale(localeId);
+
     public virtual void Dispose()
     {
         // Cancel all the cancellable async operations first before disposing all plugin instance

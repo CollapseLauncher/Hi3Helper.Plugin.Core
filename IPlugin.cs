@@ -79,4 +79,10 @@ public partial interface IPlugin : IDisposable
     bool SetPluginProxySettings([MarshalAs(UnmanagedType.LPWStr)] string? hostUri = null,
                                 [MarshalAs(UnmanagedType.LPWStr)] string? username = null,
                                 [MarshalAs(UnmanagedType.LPWStr)] string? password = null);
+
+    /// <summary>
+    /// Set the locale ID for the plugin.
+    /// </summary>
+    /// <param name="localeId">The locale ID to be set (for example: en-US)</param>
+    void SetPluginLocaleId([MarshalAs(UnmanagedType.LPWStr)] string? localeId);
 }
