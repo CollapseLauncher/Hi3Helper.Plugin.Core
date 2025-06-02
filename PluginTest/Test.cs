@@ -230,7 +230,7 @@ namespace PluginTest
             {
                 using LauncherPathEntry entry = backgroundPathMemory[j];
 
-                string fileUrl = entry.GetPathString();
+                string? fileUrl = entry.GetPathString();
                 ArgumentException.ThrowIfNullOrEmpty(fileUrl);
 
                 logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Background: {Url}", fileUrl);
@@ -256,7 +256,7 @@ namespace PluginTest
             {
                 using LauncherPathEntry entry = logoPathMemory[j];
 
-                string fileUrl = entry.GetPathString();
+                string? fileUrl = entry.GetPathString();
                 ArgumentException.ThrowIfNullOrEmpty(fileUrl);
 
                 logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Icon: {Url}", fileUrl);
@@ -298,8 +298,8 @@ namespace PluginTest
 
         private static void InnerStartMediaSocMedChildEntryTest(ILogger logger, bool isChild, LauncherSocialMediaEntry entry)
         {
-            string socialMediaName = entry.SocialMediaDescription.CreateStringFromNullTerminated();
-            string socialMediaClickUrl = entry.SocialMediaClickUrl.CreateStringFromNullTerminated();
+            string? socialMediaName = entry.SocialMediaDescription.CreateStringFromNullTerminated();
+            string? socialMediaClickUrl = entry.SocialMediaClickUrl.CreateStringFromNullTerminated();
             LauncherSocialMediaEntryFlag socialMediaFlag = entry.Flags;
 
             logger.LogInformation("  LauncherSocialMediaEntry->SocialMediaDescription: {Str}", socialMediaName);
@@ -340,12 +340,12 @@ namespace PluginTest
                     throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have icon path/URL!");
                 }
 
-                string iconPathString = iconPathSpan.CreateStringFromNullTerminated();
+                string? iconPathString = iconPathSpan.CreateStringFromNullTerminated();
                 logger.LogInformation("  LauncherSocialMediaEntry->GetIconAsPath(): URL: {Path}", iconPathString);
 
                 if (iconHoverPathSpan.Length != 0)
                 {
-                    string iconHoverPathString = iconHoverPathSpan.CreateStringFromNullTerminated();
+                    string? iconHoverPathString = iconHoverPathSpan.CreateStringFromNullTerminated();
                     logger.LogInformation("  LauncherSocialMediaEntry->GetIconHoverAsPath(): URL: {Path}", iconHoverPathString);
                 }
             }
@@ -375,7 +375,7 @@ namespace PluginTest
                     throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have QR image path/URL while it has HasQrImage and QrImageIsPath flags defined!");
                 }
 
-                string qrPathString = qrPathSpan.CreateStringFromNullTerminated();
+                string? qrPathString = qrPathSpan.CreateStringFromNullTerminated();
                 logger.LogInformation("  LauncherSocialMediaEntry->GetQrImageAsPath(): URL: {Path}", qrPathString);
             }
 
