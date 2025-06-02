@@ -1,5 +1,6 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -46,6 +47,9 @@ public unsafe struct PluginDisposableMemory<T> : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly nint AsSafePointer() => (nint)AsPointer();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly UnmanagedMemoryStream AsStream() => new((byte*)AsPointer(), Length * sizeof(T));
 
     public void* AsSpanPointer() => Unsafe.AsPointer(ref this);
 
