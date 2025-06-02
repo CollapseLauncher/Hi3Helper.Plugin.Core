@@ -62,22 +62,21 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     /// </summary>
     /// <returns>The string of <see cref="Title"/> field.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string GetTitleString() => Title.CreateStringFromNullTerminated();
+    public string? GetTitleString() => Title.CreateStringFromNullTerminated();
 
     /// <summary>
     /// Get the string of <see cref="Description"/> field.
     /// </summary>
     /// <returns>The string of <see cref="Description"/> field.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string GetDescriptionString() => Description.CreateStringFromNullTerminated();
+    public string? GetDescriptionString() => Description.CreateStringFromNullTerminated();
 
     /// <summary>
     /// Get the string of <see cref="Url"/> field.
     /// </summary>
-    /// <param name="handle">The handle to <see cref="LauncherNewsEntry"/> struct.</param>
     /// <returns>The string of <see cref="Url"/> field.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string GetUrlString(nint handle) => Url.CreateStringFromNullTerminated();
+    public string? GetUrlString() => Url.CreateStringFromNullTerminated();
 
     /// <summary>
     /// Get the string of <see cref="PostDate"/> field.
