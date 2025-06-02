@@ -15,12 +15,14 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     public const int ExTitleMaxLength       = 128;
     public const int ExDescriptionMaxLength = 256;
     public const int ExUrlMaxLength         = 512;
+    public const int ExPostDateLength       = 32;
 
     public void InitInner()
     {
         _title       = Mem.Alloc<byte>(ExTitleMaxLength);
         _description = Mem.Alloc<byte>(ExDescriptionMaxLength);
         _url         = Mem.Alloc<byte>(ExUrlMaxLength);
+        _postDate    = Mem.Alloc<byte>(ExPostDateLength);
     }
     
     private byte _isFreed = 0;
@@ -33,6 +35,7 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     private byte* _title       = null;
     private byte* _description = null;
     private byte* _url         = null;
+    private byte* _postDate    = null;
 
     /// <summary>
     /// The title of the news entry.
@@ -48,6 +51,11 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     /// The HREF/click URL of the news entry.
     /// </summary>
     public PluginDisposableMemory<byte> Url => new(_title, ExTitleMaxLength);
+
+    /// <summary>
+    /// The short format (DD/MM) of the date for the news entry.
+    /// </summary>
+    public PluginDisposableMemory<byte> PostDate => new(_title, ExTitleMaxLength);
 
     /// <summary>
     /// Get the string of <see cref="Title"/> field.
@@ -71,6 +79,13 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetUrlString(nint handle) => Url.CreateStringFromNullTerminated();
 
+    /// <summary>
+    /// Get the string of <see cref="PostDate"/> field.
+    /// </summary>
+    /// <returns>The string of <see cref="PostDate"/> field.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string? GetPostDateString() => PostDate.CreateStringFromNullTerminated();
+
     public void Dispose()
     {
         if (_isFreed == 1) return;
@@ -78,6 +93,7 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
         Mem.Free(_title);
         Mem.Free(_description);
         Mem.Free(_url);
+        Mem.Free(_postDate);
 
         _isFreed = 1;
     }

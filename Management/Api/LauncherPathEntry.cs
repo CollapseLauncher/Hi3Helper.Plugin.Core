@@ -57,6 +57,6 @@ public unsafe struct LauncherPathEntry()
     /// </summary>
     /// <returns>The string of <see cref="Path"/> field.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly string GetPathString()
+    public readonly string? GetPathString()
         => Path.CreateStringFromNullTerminated();
 }
