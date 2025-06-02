@@ -63,6 +63,7 @@ public partial interface IGameManager : IInitializableTask
     /// Determines whether the game is currently installed.
     /// </summary>
     /// <returns><c>true</c> if the game is installed; otherwise, <c>false</c>.</returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool IsGameInstalled();
 
@@ -70,6 +71,7 @@ public partial interface IGameManager : IInitializableTask
     /// Determines whether an update is available for the game.
     /// </summary>
     /// <returns><c>true</c> if an update is available; otherwise, <c>false</c>.</returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool IsGameHasUpdate();
 
@@ -77,6 +79,7 @@ public partial interface IGameManager : IInitializableTask
     /// Determines whether a preload version is available for the game.
     /// </summary>
     /// <returns><c>true</c> if a preload version is available; otherwise, <c>false</c>.</returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool IsGameHasPreload();
 }

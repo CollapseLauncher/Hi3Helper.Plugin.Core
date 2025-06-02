@@ -29,6 +29,7 @@ public unsafe partial interface ILauncherApiMedia : ILauncherApi
     /// <returns>
     /// Returns <c>true</c> if it's not empty. Otherwise, <c>false</c>.
     /// </returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool GetBackgroundEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
 
@@ -43,6 +44,7 @@ public unsafe partial interface ILauncherApiMedia : ILauncherApi
     /// <returns>
     /// Returns <c>true</c> if it's not empty. Otherwise, <c>false</c>.
     /// </returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool GetLogoOverlayEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
 

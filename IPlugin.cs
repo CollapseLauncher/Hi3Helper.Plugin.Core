@@ -75,6 +75,7 @@ public partial interface IPlugin : IDisposable
     /// <param name="username">The username for proxy authentication. Leave it as <c>null</c> if none is needed.</param>
     /// <param name="password">The password for proxy authentication. Leave it as <c>null</c> if none is needed.</param>
     /// <returns>Returns <c>true</c> if the settings are valid. Otherwise, returns <c>false</c></returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool SetPluginProxySettings([MarshalAs(UnmanagedType.LPWStr)] string? hostUri = null,
                                 [MarshalAs(UnmanagedType.LPWStr)] string? username = null,

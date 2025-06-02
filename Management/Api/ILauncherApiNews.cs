@@ -24,6 +24,7 @@ public unsafe partial interface ILauncherApiNews : ILauncherApi
     /// <param name="count">How much data of <see cref="LauncherNewsEntry"/> inside of the handle</param>
     /// <param name="isDisposable">Whether the handle is disposable</param>
     /// <returns>Returns <c>true</c> if the <paramref name="handle"/> is not empty. Otherwise, returns <c>false</c>.</returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool GetNewsEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
 
@@ -34,6 +35,7 @@ public unsafe partial interface ILauncherApiNews : ILauncherApi
     /// <param name="count">How much data of <see cref="LauncherCarouselEntry"/> inside of the handle</param>
     /// <param name="isDisposable">Whether the handle is disposable</param>
     /// <returns>Returns <c>true</c> if the <paramref name="handle"/> is not empty. Otherwise, returns <c>false</c>.</returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool GetCarouselEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
 
@@ -44,6 +46,7 @@ public unsafe partial interface ILauncherApiNews : ILauncherApi
     /// <param name="count">How much data of <see cref="LauncherSocialMediaEntry"/> inside of the handle</param>
     /// <param name="isDisposable">Whether the handle is disposable</param>
     /// <returns>Returns <c>true</c> if the <paramref name="handle"/> is not empty. Otherwise, returns <c>false</c>.</returns>
+    [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool GetSocialMediaEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
 }
