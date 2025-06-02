@@ -20,15 +20,31 @@ public partial interface ILauncherApi : IInitializableTask, IDisposable
     /// <summary>
     /// Asynchronously downloads an asset to the specified output stream.
     /// </summary>
-    /// <param name="entry"><see cref="LauncherPathEntry"/> struct for the asset URL to download.</param>
+    /// <param name="entry"><see cref="LauncherPathEntry"/> struct for the asset's URL to download.</param>
     /// <param name="outputStreamHandle">A handle to the output stream where the asset will be written.</param>
     /// <param name="downloadProgress">An optional callback delegate for reporting download progress.</param>
     /// <param name="cancelToken">A <see cref="Guid"/> used as a cancellation token for the operation.</param>
     /// <returns>
     /// A native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> representing the asynchronous operation.
     /// </returns>
-    nint DownloadAssetAsync(LauncherPathEntry entry,
-                            nint outputStreamHandle,
+    nint DownloadAssetAsync(LauncherPathEntry                     entry,
+                            nint                                  outputStreamHandle,
                             PluginFiles.FileReadProgressDelegate? downloadProgress,
-                            in Guid cancelToken);
+                            in Guid                               cancelToken);
+
+
+    /// <summary>
+    /// Asynchronously downloads an asset to the specified output stream.
+    /// </summary>
+    /// <param name="fileUrl">The asset's URL to download.</param>
+    /// <param name="outputStreamHandle">A handle to the output stream where the asset will be written.</param>
+    /// <param name="downloadProgress">An optional callback delegate for reporting download progress.</param>
+    /// <param name="cancelToken">A <see cref="Guid"/> used as a cancellation token for the operation.</param>
+    /// <returns>
+    /// A native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> representing the asynchronous operation.
+    /// </returns>
+    nint DownloadAssetAsync([MarshalAs(UnmanagedType.LPWStr)] string fileUrl,
+                            nint                                     outputStreamHandle,
+                            PluginFiles.FileReadProgressDelegate?    downloadProgress,
+                            in Guid                                  cancelToken);
 }
