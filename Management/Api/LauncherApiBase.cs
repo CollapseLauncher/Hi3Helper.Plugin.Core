@@ -12,8 +12,10 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 [GeneratedComClass]
 public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 {
-    protected readonly Lock ThisInstanceLock = new();
-    protected abstract HttpClient? ApiResponseHttpClient { get; }
+    protected readonly Lock       ThisInstanceLock      = new();
+    protected abstract HttpClient ApiResponseHttpClient { get; }
+    protected abstract string     ApiResponseBaseUrl    { get; }
+
     protected bool IsDisposed;
 
     public virtual nint DownloadAssetAsync(LauncherPathEntry                     entry,

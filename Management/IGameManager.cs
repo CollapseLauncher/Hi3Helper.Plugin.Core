@@ -35,29 +35,30 @@ public partial interface IGameManager : IInitializableTask
     /// <summary>
     /// Gets the current version of the installed game.
     /// </summary>
-    /// <returns>An <see cref="IVersion"/> representing the installed game version.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    IVersion GetCurrentGameVersion();
+    /// <param name="gameVersion">An <see cref="GameVersion"/> representing the installed game version.</param>
+    void GetCurrentGameVersion(out GameVersion gameVersion);
 
     /// <summary>
     /// Gets the latest game version available from the API.
     /// </summary>
-    /// <returns>An <see cref="IVersion"/> representing the latest available game version.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    IVersion GetApiGameVersion();
+    /// <param name="gameVersion">An <see cref="GameVersion"/> representing the latest available game version.</param>
+    void GetApiGameVersion(out GameVersion gameVersion);
 
     /// <summary>
     /// Gets the preload version of the game available from the API, if any.
     /// </summary>
-    /// <returns>An <see cref="IVersion"/> representing the preload version, or <c>null</c> if not available.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    IVersion? GetApiPreloadGameVersion();
+    /// <param name="gameVersion">An <see cref="GameVersion"/> representing the preload version, or <see cref="GameVersion.Empty"/> if not available.</param>
+    void GetApiPreloadGameVersion(out GameVersion gameVersion);
 
     /// <summary>
     /// Sets the current version of the installed game.
     /// </summary>
     /// <param name="version">The <see cref="IVersion"/> to set as the current game version.</param>
-    void SetCurrentGameVersion([MarshalAs(UnmanagedType.Interface)] IVersion version);
+    /// <param name="isSave">
+    /// Whether to perform config update or just set the current game version.
+    /// Set <c>true</c> to perform config update inside the plugin or <c>false</c> to just set the config.
+    /// </param>
+    void SetCurrentGameVersion(in GameVersion version, [MarshalAs(UnmanagedType.Bool)] bool isSave = false);
 
     /// <summary>
     /// Determines whether the game is currently installed.

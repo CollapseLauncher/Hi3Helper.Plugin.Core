@@ -9,6 +9,8 @@ namespace Hi3Helper.Plugin.Core.Management;
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 public struct GameVersion : IVersion
 {
+    public static readonly GameVersion Empty = new(0, 0, 0, 0);
+
     public GameVersion(params ReadOnlySpan<int> ver)
     {
         if (ver.Length == 0)
@@ -102,7 +104,7 @@ public struct GameVersion : IVersion
 
     public unsafe ReadOnlySpan<int> AsSpan() => new(this.AsPointer(), 4);
     public readonly Version ToVersion() => new(Major, Minor, Build, Revision);
-    public readonly override string ToString() => $"{Major}.{Minor}.{Build}.{Revision}";
+    public readonly override string ToString() => $"{Major}.{Minor}.{Build}";
 
     public static bool operator <(GameVersion? left, GameVersion? right) =>
         left.HasValue && right.HasValue &&
