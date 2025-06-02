@@ -28,9 +28,9 @@ public static partial class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe string CreateStringFromNullTerminated<T>(this PluginDisposableMemory<T> memory)
+    public static unsafe string? CreateStringFromNullTerminated<T>(this PluginDisposableMemory<T> memory)
         where T : unmanaged
-        => CreateStringFromNullTerminated(memory.AsPointer());
+        => memory.IsEmpty ? null : CreateStringFromNullTerminated(memory.AsPointer());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe string CreateStringFromNullTerminated<T>(T* source)
