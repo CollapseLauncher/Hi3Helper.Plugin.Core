@@ -83,4 +83,14 @@ public partial interface IGameManager : IInitializableTask
     [PreserveSig]
     [return: MarshalAs(UnmanagedType.Bool)]
     bool IsGameHasPreload();
+
+    /// <summary>
+    /// Perform config loading mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string, bool)"/>.
+    /// </summary>
+    void LoadConfig();
+
+    /// <summary>
+    /// Perform config saving mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string, bool)"/>.
+    /// </summary>
+    void SaveConfig();
 }
