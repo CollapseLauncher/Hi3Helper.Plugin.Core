@@ -265,6 +265,11 @@ public struct ComAsyncResult() : IDisposable
         if (_isFreed == 1) return;
 
         ExceptionMemory.Dispose();
+        if (_resultP != nint.Zero)
+        {
+            _resultP.Free();
+            _resultP = nint.Zero;
+        }
 
         void* ptr = Unsafe.AsPointer(ref this);
         Mem.Free(ptr);
