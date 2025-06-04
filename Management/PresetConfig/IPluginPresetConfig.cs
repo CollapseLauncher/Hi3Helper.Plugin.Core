@@ -152,5 +152,19 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     /// <returns>The game manager instance.</returns>
     [return: MarshalAs(UnmanagedType.Interface)]
     IGameManager? get_GameManager();
+
+    /// <summary>
+    /// Retrieves the name of the game vendor.
+    /// </summary>
+    /// <returns>The game vendor name.</returns>
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameVendorName();
+
+    /// <summary>
+    /// Retrieves the registry key name for the game.
+    /// </summary>
+    /// <returns>The registry key name for the game.</returns>
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameRegistryKeyName();
     #endregion
 }

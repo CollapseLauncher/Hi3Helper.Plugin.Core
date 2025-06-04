@@ -17,6 +17,8 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     public abstract string GameExecutableName { get; }
     public abstract string GameAppDataPath { get; }
     public abstract string GameLogFileName { get; }
+    public abstract string GameVendorName { get; }
+    public abstract string GameRegistryKeyName { get; }
     public abstract string ProfileName { get; }
     public abstract string ZoneDescription { get; }
     public abstract string ZoneName { get; }
@@ -58,6 +60,8 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     string IPluginPresetConfig.get_ZoneHomePageUrl() => ZoneHomePageUrl;
     GameReleaseChannel IPluginPresetConfig.get_ReleaseChannel() => ReleaseChannel;
     string IPluginPresetConfig.get_GameMainLanguage() => GameMainLanguage;
+    string IPluginPresetConfig.get_GameVendorName() => GameVendorName;
+    string IPluginPresetConfig.get_GameRegistryKeyName() => GameRegistryKeyName;
     #endregion
 
     # region Generic Read-only API Instance Callbacks
