@@ -22,30 +22,19 @@ public static partial class ComAsyncExtension
     public static unsafe nint AsResult(this Task task)
         => ComAsyncResult.Alloc(CurrentThreadLock, task, AttachAfterCallState);
 
-    [OverloadResolutionPriority(1)]
-    public static unsafe nint AsResult<T>(this Task<T> task, ComAsyncGetResultDelegate<T>? getResultDelegate)
-    {
-        task.ContinueWith(t =>
-        {
-            using (CurrentThreadLock.EnterScope())
-            {
-                if (t.IsCompletedSuccessfully)
-                {
-                    getResultDelegate?.Invoke(t.Result);
-                }
-
-
-#if DEBUG
-                InstanceLogger?.LogDebug("[ComAsyncExtension::AsResult::ContinueWith] Executed!");
-#endif
-            }
-        });
-
-        return ComAsyncResult.Alloc(CurrentThreadLock, task, AttachAfterCallState);
-    }
+    public static unsafe nint AsResult<T>(this Task<T> task)
+        where T : unmanaged
+        => ComAsyncResult.Alloc(CurrentThreadLock, task, AttachAfterCallState);
 
     private static unsafe void AttachAfterCallState(Task task, Lock threadLock, ComAsyncResult* result)
     {
+        if (result == null)
+        {
+#if DEBUG
+            InstanceLogger?.LogError("[ComAsyncExtension::AttachAfterCallState] ComAsyncResult* has unexpectedly set to null!");
+#endif
+            return;
+        }
         result->SetResult(threadLock, task);
 
 #if DEBUG

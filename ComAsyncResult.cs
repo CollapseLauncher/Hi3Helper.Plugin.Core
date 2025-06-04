@@ -11,7 +11,7 @@ namespace Hi3Helper.Plugin.Core;
 /// <summary>
 /// Represents the result of a COM asynchronous operation.
 /// </summary>
-[StructLayout(LayoutKind.Explicit)] // Fits to 32 bytes
+[StructLayout(LayoutKind.Explicit)] // Fits to 48 bytes
 public struct ComAsyncResult() : IDisposable
 {
     [FieldOffset(0)]
@@ -28,6 +28,11 @@ public struct ComAsyncResult() : IDisposable
     public  nint Handle;
     [FieldOffset(24)]
     private nint _exception;
+    [FieldOffset(32)]
+    private nint _resultP;
+    [FieldOffset(40)]
+    private nint reserved;
+
 
     /// <summary>
     /// The span handle in which stores the information of the exceptions on <see cref="ComAsyncException"/> struct.
@@ -173,7 +178,7 @@ public struct ComAsyncResult() : IDisposable
     /// <param name="task">The <see cref="Task"/> instance in which the callback from <paramref name="attachCallback"/> is being passed to <see cref="TaskAwaiter.GetResult"/></param>
     /// <param name="attachCallback">A Callback to set the status/result of the <paramref name="task"/>.</param>
     /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
-    public static unsafe nint Alloc(Lock threadLock, Task task, ComAsyncResultAttachAfterCallStateDelegate attachCallback)
+    public static unsafe nint Alloc(Lock threadLock, Task task, ComAsyncResultAttachAfterCallStateDelegate? attachCallback)
     {
         // Enter and lock the current thread
         using (threadLock.EnterScope())
@@ -186,7 +191,47 @@ public struct ComAsyncResult() : IDisposable
             resultP->Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle();
 
             // Set the "attach status" callback to the task completion, then return the async result handle
-            task.GetAwaiter().OnCompleted(() => attachCallback(task, threadLock, resultP));
+            task.GetAwaiter().OnCompleted(() => attachCallback?.Invoke(task, threadLock, resultP));
+            return (nint)resultP;
+        }
+    }
+
+    /// <summary>
+    /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
+    /// </summary>
+    /// <param name="threadLock">Thread lock to be used to create the <see cref="ComAsyncResult"/> struct.</param>
+    /// <param name="task">The <see cref="Task"/> instance in which the callback from <paramref name="attachCallback"/> is being passed to <see cref="TaskAwaiter.GetResult"/></param>
+    /// <param name="attachCallback">A Callback to set the status/result of the <paramref name="task"/>.</param>
+    /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
+    public static unsafe nint Alloc<T>(Lock threadLock, Task<T> task, ComAsyncResultAttachAfterCallStateDelegate? attachCallback)
+        where T : unmanaged
+    {
+        // Enter and lock the current thread
+        using (threadLock.EnterScope())
+        {
+            // Get the result and allocate the ComAsyncResult handle
+            IAsyncResult asyncResult = task;
+            ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
+
+            // Set the WaitHandle to the handle of the async result
+            resultP->Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle();
+
+            // Allocate result pointer
+            resultP->_resultP = (nint)Mem.Alloc<T>();
+
+            // Set the "attach status" callback to the task completion, then return the async result handle
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                attachCallback?.Invoke(task, threadLock, resultP);
+                if (task.IsCompletedSuccessfully)
+                {
+                    Unsafe.Write((void*)resultP->_resultP, task.Result);
+                }
+                else if (task.IsFaulted || task.IsCanceled)
+                {
+                    resultP->_resultP = nint.Zero;
+                }
+            });
             return (nint)resultP;
         }
     }
