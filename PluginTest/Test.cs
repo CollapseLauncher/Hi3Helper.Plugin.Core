@@ -183,8 +183,7 @@ namespace PluginTest
                 logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherGameDirectoryName(): {LauncherGameDirName}", i, presetConfigLauncherGameDirectoryName);
 
                 logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->InitAsync(): Invoking Asynchronously...", i);
-                long value = 0;
-                await presetConfig.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
+                int value = await presetConfig.InitAsync(in CancelToken).WaitFromHandle<int>();
                 logger.LogInformation("Return value: {Value}", value);
             }
         }
@@ -214,9 +213,8 @@ namespace PluginTest
             if (apiMedia == null)
                 return;
 
-            long value = 0;
             logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
-            await apiMedia.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
+            int value = await apiMedia.InitAsync(in CancelToken).WaitFromHandle<int>();
             logger.LogInformation("Return value: {ReturnValue}", value);
 
             using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
@@ -281,9 +279,8 @@ namespace PluginTest
             if (apiNews == null)
                 return;
 
-            int value = 0;
             logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiNews()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
-            await apiNews.InitAsync(in CancelToken, result => value = result).WaitFromHandle();
+            int value = await apiNews.InitAsync(in CancelToken).WaitFromHandle<int>();
             logger.LogInformation("Return value: {ReturnValue}", value);
 
             using PluginDisposableMemory<LauncherSocialMediaEntry> socialMediaSpan = PluginDisposableMemoryExtension.ToManagedSpan<LauncherSocialMediaEntry>(apiNews.GetSocialMediaEntries);

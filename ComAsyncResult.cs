@@ -25,14 +25,13 @@ public struct ComAsyncResult() : IDisposable
     /// The handle to the <see cref="Microsoft.Win32.SafeHandles.SafeWaitHandle"/>.
     /// </summary>
     [FieldOffset(16)]
-    public  nint Handle;
+    public nint Handle;
     [FieldOffset(24)]
     private nint _exception;
     [FieldOffset(32)]
-    private nint _resultP;
+    internal nint _resultP;
     [FieldOffset(40)]
-    private nint reserved;
-
+    internal nint _reserved;
 
     /// <summary>
     /// The span handle in which stores the information of the exceptions on <see cref="ComAsyncException"/> struct.
@@ -89,27 +88,93 @@ public struct ComAsyncResult() : IDisposable
     {
         using (threadLock.EnterScope())
         {
-            IsFaulty     = task.IsFaulted;
-            IsCancelled  = task.IsCanceled;
-            IsSuccessful = task.IsCompletedSuccessfully;
-
-            if (!IsFaulty && !IsCancelled)
+            try
             {
-                return;
+                WriteTaskState(task);
             }
-
-            Exception? exception = task.Exception?.Flatten();
-            exception = exception is AggregateException ? exception.InnerException : exception;
-
-            int exceptionCount = GetExceptionCount(exception);
-            if (exceptionCount == 0)
+            finally
             {
-                return;
+                ComAsyncExtension.SetEvent(Handle);
             }
-
-            ExceptionMemory = PluginDisposableMemory<ComAsyncException>.Alloc(exceptionCount);
-            WriteExceptionRecursive(exception, ExceptionMemory);
         }
+    }
+
+    /// <summary>
+    /// Set the result of the task. This method is also used to write the information about the <see cref="Task"/> execution status/result to then being passed to managed code which loads the plugin.
+    /// </summary>
+    /// <param name="threadLock">Thread lock to be used to set the result.</param>
+    /// <param name="task">The <see cref="Task"/> in which the status/result is being written from.</param>
+    public unsafe void SetResult<T>(Lock threadLock, Task<T> task)
+        where T : unmanaged
+    {
+        using (threadLock.EnterScope())
+        {
+            try
+            {
+                WriteTaskState(task);
+
+                if (task.IsFaulted || task.IsCanceled)
+                {
+                    return;
+                }
+
+#if DEBUG
+                string nameOfT = typeof(T).Name;
+#endif
+
+                // Allocate result pointer
+                _resultP = (nint)Mem.Alloc<T>();
+#if DEBUG
+                // Log the exception info
+                SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] Result will be written at ptr: 0x{RetAddress:x8}", nameOfT, _resultP);
+#endif
+
+                if (_resultP == nint.Zero)
+                {
+#if DEBUG
+                    SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult _resultP isn't allocated. The return value will not be written!", nameOfT);
+#endif
+                    return;
+                }
+
+                if (task.IsCompletedSuccessfully)
+                {
+                    Unsafe.Write((void*)_resultP, task.Result);
+                }
+
+#if DEBUG
+                SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult return value value has been written!", nameOfT);
+#endif
+            }
+            finally
+            {
+                ComAsyncExtension.SetEvent(Handle);
+            }
+        }
+    }
+
+    private void WriteTaskState(Task task)
+    {
+        IsFaulty = task.IsFaulted;
+        IsCancelled = task.IsCanceled;
+        IsSuccessful = task.IsCompletedSuccessfully;
+
+        if (!IsFaulty && !IsCancelled)
+        {
+            return;
+        }
+
+        Exception? exception = task.Exception?.Flatten();
+        exception = exception is AggregateException ? exception.InnerException : exception;
+
+        int exceptionCount = GetExceptionCount(exception);
+        if (exceptionCount == 0)
+        {
+            return;
+        }
+
+        ExceptionMemory = PluginDisposableMemory<ComAsyncException>.Alloc(exceptionCount);
+        WriteExceptionRecursive(exception, ExceptionMemory);
     }
 
     private static int GetExceptionCount(Exception? exception)
@@ -175,23 +240,21 @@ public struct ComAsyncResult() : IDisposable
     /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
     /// </summary>
     /// <param name="threadLock">Thread lock to be used to create the <see cref="ComAsyncResult"/> struct.</param>
-    /// <param name="task">The <see cref="Task"/> instance in which the callback from <paramref name="attachCallback"/> is being passed to <see cref="TaskAwaiter.GetResult"/></param>
-    /// <param name="attachCallback">A Callback to set the status/result of the <paramref name="task"/>.</param>
+    /// <param name="task">The <see cref="Task"/> instance in which the result being passed to <see cref="ComAsyncResult"/></param>
     /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
-    public static unsafe nint Alloc(Lock threadLock, Task task, ComAsyncResultAttachAfterCallStateDelegate? attachCallback)
+    public static unsafe nint Alloc(Lock threadLock, Task task)
     {
         // Enter and lock the current thread
         using (threadLock.EnterScope())
         {
             // Get the result and allocate the ComAsyncResult handle
-            IAsyncResult asyncResult = task;
             ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
 
-            // Set the WaitHandle to the handle of the async result
-            resultP->Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle();
+            // Allocate wait handle
+            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, true, false, null);
 
             // Set the "attach status" callback to the task completion, then return the async result handle
-            task.GetAwaiter().OnCompleted(() => attachCallback?.Invoke(task, threadLock, resultP));
+            task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
             return (nint)resultP;
         }
     }
@@ -200,38 +263,22 @@ public struct ComAsyncResult() : IDisposable
     /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
     /// </summary>
     /// <param name="threadLock">Thread lock to be used to create the <see cref="ComAsyncResult"/> struct.</param>
-    /// <param name="task">The <see cref="Task"/> instance in which the callback from <paramref name="attachCallback"/> is being passed to <see cref="TaskAwaiter.GetResult"/></param>
-    /// <param name="attachCallback">A Callback to set the status/result of the <paramref name="task"/>.</param>
+    /// <param name="task">The <see cref="Task"/> instance in which the result being passed to <see cref="ComAsyncResult"/></param>
     /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
-    public static unsafe nint Alloc<T>(Lock threadLock, Task<T> task, ComAsyncResultAttachAfterCallStateDelegate? attachCallback)
+    public static unsafe nint Alloc<T>(Lock threadLock, Task<T> task)
         where T : unmanaged
     {
         // Enter and lock the current thread
         using (threadLock.EnterScope())
         {
             // Get the result and allocate the ComAsyncResult handle
-            IAsyncResult asyncResult = task;
             ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
 
-            // Set the WaitHandle to the handle of the async result
-            resultP->Handle = asyncResult.AsyncWaitHandle.SafeWaitHandle.DangerousGetHandle();
-
-            // Allocate result pointer
-            resultP->_resultP = (nint)Mem.Alloc<T>();
+            // Allocate wait handle
+            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, true, false, null);
 
             // Set the "attach status" callback to the task completion, then return the async result handle
-            task.GetAwaiter().OnCompleted(() =>
-            {
-                attachCallback?.Invoke(task, threadLock, resultP);
-                if (task.IsCompletedSuccessfully)
-                {
-                    Unsafe.Write((void*)resultP->_resultP, task.Result);
-                }
-                else if (task.IsFaulted || task.IsCanceled)
-                {
-                    resultP->_resultP = nint.Zero;
-                }
-            });
+            task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
             return (nint)resultP;
         }
     }

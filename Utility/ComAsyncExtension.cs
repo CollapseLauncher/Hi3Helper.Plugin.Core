@@ -1,53 +1,43 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
-using Microsoft.Win32.SafeHandles;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using static Hi3Helper.Plugin.Core.SharedStatic;
-
 // ReSharper disable AccessToModifiedClosure
 namespace Hi3Helper.Plugin.Core.Utility;
 
-public delegate void ComAsyncGetResultDelegate<in T>(T result);
-public unsafe delegate void ComAsyncResultAttachAfterCallStateDelegate(Task task, Lock threadLock, ComAsyncResult* resultP);
-
 public static partial class ComAsyncExtension
 {
+    [LibraryImport("kernel32.dll", EntryPoint = "SetEvent", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool SetEvent(nint hEvent);
+    
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateEventW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    public static partial nint CreateEvent(nint lpEventAttributes, [MarshalAs(UnmanagedType.Bool)] bool bManualReset, [MarshalAs(UnmanagedType.Bool)] bool bInitialState, string? lpName);
+
+    [LibraryImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool CloseHandle(nint hObject);
+
     private static readonly Lock CurrentThreadLock = new();
 
-    public static unsafe nint AsResult(this Task task)
-        => ComAsyncResult.Alloc(CurrentThreadLock, task, AttachAfterCallState);
+    public static nint AsResult(this Task task)
+        => ComAsyncResult.Alloc(CurrentThreadLock, task);
 
-    public static unsafe nint AsResult<T>(this Task<T> task)
+    public static nint AsResult<T>(this Task<T> task)
         where T : unmanaged
-        => ComAsyncResult.Alloc(CurrentThreadLock, task, AttachAfterCallState);
-
-    private static unsafe void AttachAfterCallState(Task task, Lock threadLock, ComAsyncResult* result)
-    {
-        if (result == null)
-        {
-#if DEBUG
-            InstanceLogger?.LogError("[ComAsyncExtension::AttachAfterCallState] ComAsyncResult* has unexpectedly set to null!");
-#endif
-            return;
-        }
-        result->SetResult(threadLock, task);
-
-#if DEBUG
-        InstanceLogger?.LogDebug("[ComAsyncExtension::AttachAfterCallState] AsyncResult state attached!");
-#endif
-    }
+        => ComAsyncResult.Alloc(CurrentThreadLock, task);
 
     public static async Task WaitFromHandle(this nint handle)
     {
         SafeWaitHandle? asyncSafeHandle = null;
         EventWaitHandle? waitHandle = null;
+        nint waitHandleP = nint.Zero;
         try
         {
+            waitHandleP = ComAsyncResult.GetWaitHandle(handle);
             asyncSafeHandle = new SafeWaitHandle(ComAsyncResult.GetWaitHandle(handle), false);
             waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset)
             {
@@ -62,6 +52,42 @@ public static partial class ComAsyncExtension
             asyncSafeHandle?.Dispose();
             waitHandle?.Dispose();
             ComAsyncResult.DisposeHandle(handle);
+
+            if (waitHandleP != nint.Zero)
+            {
+                CloseHandle(waitHandleP);
+            }
+        }
+    }
+
+    public static async Task<T> WaitFromHandle<T>(this nint handle)
+        where T : unmanaged
+    {
+        SafeWaitHandle? asyncSafeHandle = null;
+        EventWaitHandle? waitHandle = null;
+        nint waitHandleP = nint.Zero;
+        try
+        {
+            waitHandleP = ComAsyncResult.GetWaitHandle(handle);
+            asyncSafeHandle = new SafeWaitHandle(waitHandleP, false);
+            waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset)
+            {
+                SafeWaitHandle = asyncSafeHandle
+            };
+
+            await Task.Factory.StartNew(waitHandle.WaitOne);
+            return EnsureSuccessResult<T>(handle);
+        }
+        finally
+        {
+            asyncSafeHandle?.Dispose();
+            waitHandle?.Dispose();
+            ComAsyncResult.DisposeHandle(handle);
+
+            if (waitHandleP != nint.Zero)
+            {
+                CloseHandle(waitHandleP);
+            }
         }
     }
 
@@ -91,5 +117,12 @@ public static partial class ComAsyncExtension
         {
             throw new COMException();
         }
+    }
+
+    private static unsafe T EnsureSuccessResult<T>(nint handle)
+        where T : unmanaged
+    {
+        EnsureSuccessResult(handle);
+        return *(T*)((ComAsyncResult*)handle)->_resultP;
     }
 }

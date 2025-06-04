@@ -14,18 +14,13 @@ namespace Hi3Helper.Plugin.Core;
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IInitializableTask
 {
-    #region Return Callbacks
-    public delegate void InitAsyncIsSuccessCallback(int result);
-    #endregion
-
     /// <summary>
     /// Asynchronously initializes the instance.
     /// </summary>
-    /// <remarks>
-    /// You must call <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the method
-    /// </remarks>
     /// <param name="cancelToken"><see cref="Guid"/> instance for cancellation token</param>
-    /// <param name="isSuccessReturnCallback">A callback which pass the return value</param>
-    /// <returns>A pointer to <see cref="ComAsyncResult"/></returns>
-    nint InitAsync(in Guid cancelToken, InitAsyncIsSuccessCallback isSuccessReturnCallback);
+    /// <returns>
+    /// A pointer to <see cref="ComAsyncResult"/>. This method has Return value of <see cref="int"/>.<br/>
+    /// Please use <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> to get the return value.
+    /// </returns>
+    nint InitAsync(in Guid cancelToken);
 }

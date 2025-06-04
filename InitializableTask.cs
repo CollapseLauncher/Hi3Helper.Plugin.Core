@@ -1,5 +1,4 @@
-﻿using Hi3Helper.Plugin.Core.Management.PresetConfig;
-using Hi3Helper.Plugin.Core.Utility;
+﻿using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices.Marshalling;
@@ -19,7 +18,7 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComClass]
 public partial class InitializableTask : IInitializableTask
 {
-    public virtual nint InitAsync(in Guid cancelToken, IPluginPresetConfig.InitAsyncIsSuccessCallback isSuccessReturnCallback)
+    public virtual nint InitAsync(in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
