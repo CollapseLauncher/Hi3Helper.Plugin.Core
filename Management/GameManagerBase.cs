@@ -1,5 +1,10 @@
 ﻿using Hi3Helper.Plugin.Core.Management.Api;
+using Hi3Helper.Plugin.Core.Utility;
+using System;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.Core.Management;
 
@@ -40,4 +45,29 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     bool IGameManager.IsGameHasPreload() => HasPreload;
     bool IGameManager.IsGameHasUpdate()  => HasUpdate;
     bool IGameManager.IsGameInstalled()  => IsInstalled;
+
+    nint IGameManager.FindExistingInstallPathAsync(in Guid cancelToken)
+    {
+        CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
+        CancellationToken token = tokenSource.Token;
+        return Impl(token).AsResult();
+
+        async Task<PluginDisposableMemoryMarshal> Impl(CancellationToken innerToken)
+        {
+            string? existedPath = await FindExistingInstallPathAsyncInner(innerToken);
+            if (!string.IsNullOrEmpty(existedPath))
+            {
+                SharedStatic.InstanceLogger?.LogTrace("[GameManagerBase::FindExistingInstallPathAsync] Found existing game installation path: {Path}", existedPath);
+            }
+
+            return existedPath;
+        }
+    }
+
+    /// <summary>
+    /// Find the existing installation path of the game asynchronously.
+    /// </summary>
+    /// <param name="token">Cancel token for async operations.</param>
+    /// <returns>Returns <c>null</c> if none was found. Otherwise, returns the path of the directory which contains the main game executable.</returns>
+    protected abstract Task<string?> FindExistingInstallPathAsyncInner(CancellationToken token);
 }

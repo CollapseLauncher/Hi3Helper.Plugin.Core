@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hi3Helper.Plugin.Core.Utility;
+using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -94,4 +95,13 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// Perform config saving mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string, bool)"/>.
     /// </summary>
     void SaveConfig();
+
+    /// <summary>
+    /// Finds the existing installation path of the game asynchronously.
+    /// </summary>
+    /// <returns>
+    /// A safe pointer to the <see cref="ComAsyncResult"/>.<br/>
+    /// The pointer needs to be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and the generic type must be <see cref="PluginDisposableMemoryMarshal"/> of <see cref="byte"/>
+    /// </returns>
+    nint FindExistingInstallPathAsync(in Guid cancelToken);
 }
