@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Management;
@@ -13,7 +14,7 @@ namespace Hi3Helper.Plugin.Core.Management;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameManager)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IGameManager : IInitializableTask
+public partial interface IGameManager : IInitializableTask, IDisposable
 {
     /// <summary>
     /// Gets the current path where the game is installed.

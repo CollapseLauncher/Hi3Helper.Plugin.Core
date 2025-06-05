@@ -13,6 +13,8 @@ namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 [GeneratedComClass]
 public abstract partial class PluginPresetConfigBase : InitializableTask, IPluginPresetConfig
 {
+    private bool _isDisposed;
+
     public abstract string GameName { get; }
     public abstract string GameExecutableName { get; }
     public abstract string GameAppDataPath { get; }
@@ -30,9 +32,9 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     public abstract string GameMainLanguage { get; }
     public abstract string LauncherGameDirectoryName { get; }
     public abstract List<string> SupportedLanguages { get; }
-    public abstract ILauncherApiMedia? LauncherApiMedia { get; }
-    public abstract ILauncherApiNews? LauncherApiNews { get; }
-    public abstract IGameManager GameManager { get; }
+    public abstract ILauncherApiMedia? LauncherApiMedia { get; set; }
+    public abstract ILauncherApiNews? LauncherApiNews { get; set; }
+    public abstract IGameManager? GameManager { get; set; }
 
     #region Generic Read-only Properties Callbacks
     string IPluginPresetConfig.get_GameSupportedLanguages(int index)
@@ -67,14 +69,23 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     # region Generic Read-only API Instance Callbacks
     ILauncherApiMedia? IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
     ILauncherApiNews? IPluginPresetConfig.get_LauncherApiNews() => LauncherApiNews;
-    IGameManager IPluginPresetConfig.get_GameManager() => GameManager;
+    IGameManager? IPluginPresetConfig.get_GameManager() => GameManager;
     #endregion
 
     public virtual void Dispose()
     {
+        if (_isDisposed) return;
+
         LauncherApiMedia?.Dispose();
         LauncherApiNews?.Dispose();
+        GameManager?.Dispose();
+
+        LauncherApiMedia = null;
+        LauncherApiNews = null;
+        GameManager = null;
 
         GC.SuppressFinalize(this);
+
+        _isDisposed = true;
     }
 }

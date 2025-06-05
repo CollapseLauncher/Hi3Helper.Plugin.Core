@@ -13,7 +13,7 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 {
     protected readonly Lock       ThisInstanceLock      = new();
-    protected abstract HttpClient ApiResponseHttpClient { get; }
+    protected abstract HttpClient ApiResponseHttpClient { get; set; }
     protected abstract string     ApiResponseBaseUrl    { get; }
 
     protected bool IsDisposed;
@@ -84,7 +84,8 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
         using (ThisInstanceLock.EnterScope())
         {
             IsDisposed = true;
-            ApiResponseHttpClient?.Dispose();
+            ApiResponseHttpClient.Dispose();
+            ApiResponseHttpClient = null!;
             GC.SuppressFinalize(this);
         }
     }
