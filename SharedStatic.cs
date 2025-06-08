@@ -29,7 +29,15 @@ public class SharedStatic
     private class SharedLogger : ILogger
     {
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-            => InstanceLoggerCallback?.Invoke(logLevel, eventId, formatter(state, exception));
+        {
+            if (exception != null)
+            {
+                InstanceLoggerCallback?.Invoke(logLevel, eventId, formatter(state, exception) + "\r\n" + exception);
+                return;
+            }
+            
+            InstanceLoggerCallback?.Invoke(logLevel, eventId, formatter(state, exception));
+        }
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
