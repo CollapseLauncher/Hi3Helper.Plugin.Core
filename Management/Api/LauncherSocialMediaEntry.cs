@@ -253,7 +253,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
             Span<byte> outSpan = new(outPtr, outLen);
 
             writeBuffer.AsSpan(0, written).CopyTo(outSpan); // Copy to buffer
-            outSpan[outLen] = 0; // Ensure to write the \0 terminator as the memory might not be always cleared
+            outSpan[written] = 0; // Ensure to write the \0 terminator as the memory might not be always cleared
 
             // Return CoTaskMemory
             return outPtr;
