@@ -1,7 +1,7 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 // ReSharper disable ConvertToAutoProperty
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
@@ -11,52 +11,52 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 public unsafe struct LauncherPathEntry()
-    : IDisposable, IInitializableStruct
+    : IDisposable
 {
-    public const int ExPathMaxLength     = 1024;
-    public const int ExFileHashMaxLength = 64;
-
     private byte  _isFreed        = 0;
     private int   _fileHashLength;
     private byte* _path           = null;
     private byte* _fileHash       = null;
 
-    public void InitInner()
-    {
-        _path     = Mem.Alloc<byte>(ExPathMaxLength);
-        _fileHash = Mem.Alloc<byte>(ExFileHashMaxLength);
-    }
-
     /// <summary>
     /// The local path of where the asset is stored.
     /// </summary>
-    public readonly PluginDisposableMemory<byte> Path => new(_path, ExPathMaxLength);
+    public string? Path => Utf8StringMarshaller.ConvertToManaged(_path);
 
     /// <summary>
     /// The hash of the file. This is used to verify the integrity of the file.
     /// </summary>
-    public readonly PluginDisposableMemory<byte> FileHash => new(_fileHash, ExFileHashMaxLength);
+    public readonly PluginDisposableMemory<byte> FileHash => new(_fileHash, _fileHashLength);
 
     /// <summary>
-    /// The actual length of the <see cref="FileHash"/> buffer.
+    /// Write the strings into the current struct.
     /// </summary>
-    public int FileHashLength { readonly get => _fileHashLength; set => _fileHashLength = value; }
+    /// <param name="path">The local path of where the asset is stored.</param>
+    /// <param name="fileHash">The hash of the file. This is used to verify the integrity of the file.</param>
+    public void Write(ReadOnlySpan<char> path, Span<byte> fileHash)
+    {
+        if (fileHash.IsEmpty)
+        {
+            _fileHash = null;
+        }
+        else
+        {
+            _fileHash = Mem.Alloc<byte>(fileHash.Length, false);
+            _fileHashLength = fileHash.Length;
+
+            fileHash.CopyTo(new Span<byte>(_fileHash, _fileHashLength));
+        }
+
+        _path = path.Utf16SpanToUtf8Unmanaged();
+    }
 
     public void Dispose()
     {
         if (_isFreed == 1) return;
 
-        Mem.Free(_path);
+        Utf8StringMarshaller.Free(_path);
         Mem.Free(_fileHash);
 
         _isFreed = 1;
     }
-
-    /// <summary>
-    /// Get the string of <see cref="Path"/> field.
-    /// </summary>
-    /// <returns>The string of <see cref="Path"/> field.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly string? GetPathString()
-        => Path.CreateStringFromNullTerminated();
 }

@@ -1,7 +1,10 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
+using System.Buffers;
+using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 // ReSharper disable ReplaceWithPrimaryConstructorParameter
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
@@ -9,312 +12,256 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// <summary>
 /// Entry of the launcher's social media data.
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 8)]
-public unsafe struct LauncherSocialMediaEntry
-    : IDisposable, IInitializableStruct
+[StructLayout(LayoutKind.Explicit)] // Fit to 64 bytes.
+public unsafe struct LauncherSocialMediaEntry() : IDisposable
 {
-    public const int ExDescriptionMaxLength = 128;
-    public const int ExUrlMaxLength         = 512;
-
-    /// <summary>
-    /// Entry of the launcher's social media data.
-    /// </summary>
-    /// <param name="iconDataHandle">
-    /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
-    /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.
-    /// </param>
-    /// <param name="iconDataLengthInBytes">
-    /// The length of data in bytes of the <paramref name="iconDataHandle"/>.
-    /// </param>
-    /// <param name="isIconDataDisposable">
-    /// Whether to determine if handle is disposable or not.
-    /// </param>
-    /// <param name="iconHoverDataHandle">
-    /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
-    /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
-    /// This handle can be null-ed.
-    /// </param>
-    /// <param name="iconHoverDataLengthInBytes">
-    /// The length of data in bytes of the <paramref name="iconDataHandle"/>.<br/>
-    /// The size can be emptied-ed.
-    /// </param>
-    /// <param name="isIconHoverDataDisposable">
-    /// Whether to determine if handle is disposable or not.
-    /// </param>
-    /// <param name="qrImageDataHandle">
-    /// The handle of the qr image data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
-    /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
-    /// This handle can be null-ed.
-    /// </param>
-    /// <param name="qrImageDataLengthInBytes">
-    /// The length of data in bytes of the <paramref name="qrImageDataHandle"/>.<br/>
-    /// The size can be emptied-ed.
-    /// </param>
-    /// <param name="isQrImageDataDisposable">
-    /// Whether to determine if handle is disposable or not.
-    /// </param>
-    /// <param name="childEntryHandle">
-    /// The handle of the child entry.<br/>
-    /// This handle can be null-ed.
-    /// </param>
-    /// <param name="flags">
-    /// The definition of what kind of properties that the entry could have.
-    /// </param>
-    public LauncherSocialMediaEntry(void* iconDataHandle,
-                                    int iconDataLengthInBytes,
-                                    bool isIconDataDisposable,
-                                    void* iconHoverDataHandle,
-                                    int iconHoverDataLengthInBytes,
-                                    bool isIconHoverDataDisposable,
-                                    void* qrImageDataHandle,
-                                    int qrImageDataLengthInBytes,
-                                    bool isQrImageDataDisposable,
-                                    LauncherSocialMediaEntry* childEntryHandle,
-                                    LauncherSocialMediaEntryFlag flags) =>
-        InitInner(iconDataHandle,
-                  iconDataLengthInBytes,
-                  isIconDataDisposable,
-                  iconHoverDataHandle,
-                  iconHoverDataLengthInBytes,
-                  isIconHoverDataDisposable,
-                  qrImageDataHandle,
-                  qrImageDataLengthInBytes,
-                  isQrImageDataDisposable,
-                  childEntryHandle,
-                  flags);
-
-    /// <summary>
-    /// Initializes the inner-data handle of the <see cref="LauncherSocialMediaEntry"/> struct.
-    /// </summary>
-    /// <param name="iconDataHandle">
-    /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
-    /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.
-    /// </param>
-    /// <param name="iconDataLengthInBytes">
-    /// The length of data in bytes of the <paramref name="iconDataHandle"/>.
-    /// </param>
-    /// <param name="isIconDataDisposable">
-    /// Whether to determine if handle is disposable or not.
-    /// </param>
-    /// <param name="iconHoverDataHandle">
-    /// The handle of the icon data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
-    /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
-    /// This handle can be null-ed.
-    /// </param>
-    /// <param name="iconHoverDataLengthInBytes">
-    /// The length of data in bytes of the <paramref name="iconDataHandle"/>.<br/>
-    /// The size can be emptied-ed.
-    /// </param>
-    /// <param name="isIconHoverDataDisposable">
-    /// Whether to determine if handle is disposable or not.
-    /// </param>
-    /// <param name="qrImageDataHandle">
-    /// The handle of the qr image data handle.
-    /// This can be a <see cref="PluginDisposableMemory{T}"/> of data buffer or UTF-8 (null terminated) string.
-    /// depending on what the <see cref="LauncherSocialMediaEntryFlag"/> is defined.<br/>
-    /// This handle can be null-ed.
-    /// </param>
-    /// <param name="qrImageDataLengthInBytes">
-    /// The length of data in bytes of the <paramref name="qrImageDataHandle"/>.<br/>
-    /// The size can be emptied-ed.
-    /// </param>
-    /// <param name="isQrImageDataDisposable">
-    /// Whether to determine if handle is disposable or not.
-    /// </param>
-    /// <param name="childEntryHandle">
-    /// The handle of the child entry.<br/>
-    /// This handle can be null-ed.
-    /// </param>
-    /// <param name="flags">
-    /// The definition of what kind of properties that the entry could have.
-    /// </param>
-    public void InitInner(void* iconDataHandle,
-                          int iconDataLengthInBytes,
-                          bool isIconDataDisposable,
-                          void* iconHoverDataHandle,
-                          int iconHoverDataLengthInBytes,
-                          bool isIconHoverDataDisposable,
-                          void* qrImageDataHandle,
-                          int qrImageDataLengthInBytes,
-                          bool isQrImageDataDisposable,
-                          LauncherSocialMediaEntry* childEntryHandle,
-                          LauncherSocialMediaEntryFlag flags)
-    {
-        _iconPathHandle = iconDataHandle;
-        _iconPathLengthInBytes = iconDataLengthInBytes;
-        _iconHoverPathHandle = iconHoverDataHandle;
-        _iconHoverPathLengthInBytes = iconHoverDataLengthInBytes;
-        _qrPathHandle = qrImageDataHandle;
-        _qrPathLengthInBytes = qrImageDataLengthInBytes;
-        _childEntryHandle = childEntryHandle;
-        Flags = flags;
-
-        _isIconHandleDisposable = (byte)(isIconDataDisposable ? 1 : 0);
-        _isIconHoverHandleDisposable = (byte)(isIconHoverDataDisposable ? 1 : 0);
-        _isQrImageHandleDisposable = (byte)(isQrImageDataDisposable ? 1 : 0);
-
-#pragma warning disable CS0618
-        InitInner();
-#pragma warning restore CS0618
-    }
-
-    [Obsolete("This might cause an error while being used as the struct requires some fields to be initialized. Please use InitInner() instead!.")]
-    public void InitInner()
-    {
-        if (Flags.HasFlag(LauncherSocialMediaEntryFlag.HasDescription))
-        {
-            _socialMediaDescription = Mem.Alloc<byte>(ExDescriptionMaxLength);
-        }
-
-        if (Flags.HasFlag(LauncherSocialMediaEntryFlag.HasClickUrl))
-        {
-            _socialMediaClickUrl = Mem.Alloc<byte>(ExUrlMaxLength);
-        }
-
-        if (!Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage)) return;
-
-        if (Flags.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsPath))
-        {
-            _qrImageDescription = Mem.Alloc<byte>(ExDescriptionMaxLength);
-        }
-    }
-
+    [FieldOffset(0)]
     private byte _isFreed = 0;
-
-    private void* _iconPathHandle;
-    private int _iconPathLengthInBytes;
-
-    private void* _iconHoverPathHandle;
-    private int _iconHoverPathLengthInBytes;
-
-    private void* _qrPathHandle;
-    private int _qrPathLengthInBytes;
-
-    private byte* _socialMediaDescription;
-    private byte* _socialMediaClickUrl;
-    private byte* _qrImageDescription;
-
-    private LauncherSocialMediaEntry* _childEntryHandle;
 
     /// <summary>
     /// Defines the kind of properties or flags that a social media entry can have.
     /// </summary>
-    public LauncherSocialMediaEntryFlag Flags;
-    private byte _isIconHandleDisposable = 0;
-    private byte _isIconHoverHandleDisposable = 0;
-    private byte _isQrImageHandleDisposable = 0;
+    [FieldOffset(4)]
+    public LauncherSocialMediaEntryFlag Flags = LauncherSocialMediaEntryFlag.None;
+
+    [FieldOffset(8)]
+    private byte* _iconPath = null;
+
+    [FieldOffset(16)]
+    private byte* _iconHoverPath = null;
+
+    [FieldOffset(24)]
+    private byte* _qrPath = null;
+
+    [FieldOffset(32)]
+    private byte* _qrImageDescription = null;
+
+    [FieldOffset(40)]
+    private byte* _socialMediaDescription = null;
+
+    [FieldOffset(48)]
+    private byte* _socialMediaClickUrl = null;
+
+    [FieldOffset(56)]
+    private LauncherSocialMediaEntry* _childEntryHandle = null;
 
     /// <summary>
     /// The handle of the child entry. The type is <see cref="LauncherSocialMediaEntry"/>
     /// </summary>
-    public nint ChildEntryHandle => (nint)_childEntryHandle;
-
-    /// <summary>
-    /// Gets the icon handle as path.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly ref LauncherPathEntry GetIconAsPath()
-    {
-        if (!Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsPath))
-        {
-            return ref Unsafe.NullRef<LauncherPathEntry>();
-        }
-        
-        return ref Mem.AsRef<LauncherPathEntry>(_iconPathHandle);
-    }
-
-    /// <summary>
-    /// Gets the icon handle as a data buffer.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly PluginDisposableMemory<byte> GetIconAsDataBuffer() =>
-        !Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsDataBuffer) ?
-                PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>((byte*)_iconPathHandle, _iconPathLengthInBytes, _isIconHandleDisposable == 1);
-
-    /// <summary>
-    /// Gets the hovered icon handle as path.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly ref LauncherPathEntry GetIconHoverAsPath()
-    {
-        if (!Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsPath) || _iconHoverPathHandle == null)
-        {
-            return ref Unsafe.NullRef<LauncherPathEntry>();
-        }
-
-        return ref Mem.AsRef<LauncherPathEntry>(_iconHoverPathHandle);
-    }
-
-    /// <summary>
-    /// Gets the hovered icon handle as a data buffer.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly PluginDisposableMemory<byte> GetIconHoverAsDataBuffer() =>
-        !Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsDataBuffer) || _iconHoverPathHandle == null ?
-            PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>((byte*)_iconHoverPathHandle, _iconHoverPathLengthInBytes, _isIconHoverHandleDisposable == 1);
-
-    /// <summary>
-    /// Gets the QR Image handle as path.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly ref LauncherPathEntry GetQrImageAsPath()
-    {
-        if (!Flags.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsPath))
-        {
-            return ref Unsafe.NullRef<LauncherPathEntry>();
-        }
-
-        return ref Mem.AsRef<LauncherPathEntry>(_qrPathHandle);
-    }
-
-    /// <summary>
-    /// Gets the QR Image handle as a data buffer.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly PluginDisposableMemory<byte> GetQrImageAsDataBuffer() =>
-        !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) ||
-        !Flags.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsDataBuffer) ?
-            PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>((byte*)_qrPathHandle, _qrPathLengthInBytes, _isQrImageHandleDisposable == 1);
-
-    /// <summary>
-    /// A span of social media description as string. If the flag doesn't have flag for the description, it will return an empty span.
-    /// </summary>
-    public readonly PluginDisposableMemory<byte> SocialMediaDescription
+    public readonly ref LauncherSocialMediaEntry ChildEntryHandle
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasDescription) ?
-                PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>(_socialMediaDescription, ExDescriptionMaxLength);
+        get => ref Mem.AsRef<LauncherSocialMediaEntry>(_childEntryHandle);
     }
 
     /// <summary>
-    /// A span of QR Image description as string. If the flag doesn't have flag for the description, it will return an empty span.
+    /// Represent a path of the Icon.<br/>
+    /// The format can be a <see cref="Base64Url"/> if <see cref="LauncherSocialMediaEntryFlag.IconIsDataBuffer"/> is defined<br/>
+    /// or a path/URL <see cref="string"/> if <see cref="LauncherSocialMediaEntryFlag.IconIsPath"/> is defined.
     /// </summary>
-    public readonly PluginDisposableMemory<byte> QrImageDescription
+    public string? IconPath
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) ?
-                PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>(_qrImageDescription, ExDescriptionMaxLength);
+        get => Utf8StringMarshaller.ConvertToManaged(_iconPath);
     }
 
     /// <summary>
-    /// A span of social media Click URL as string. If the flag doesn't have flag for the click URL, it will return an empty span.
+    /// Represent a path of the Hover Icon.<br/>
+    /// The format can be a <see cref="Base64Url"/> if <see cref="LauncherSocialMediaEntryFlag.IconHoverIsDataBuffer"/> is defined<br/>
+    /// or a path/URL <see cref="string"/> if <see cref="LauncherSocialMediaEntryFlag.IconHoverIsPath"/> is defined.
     /// </summary>
-    public readonly PluginDisposableMemory<byte> SocialMediaClickUrl
+    public string? IconHoverPath
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => !Flags.HasFlag(LauncherSocialMediaEntryFlag.HasClickUrl) ?
-                PluginDisposableMemory<byte>.Empty :
-            new PluginDisposableMemory<byte>(_socialMediaClickUrl, ExUrlMaxLength);
+        get => Utf8StringMarshaller.ConvertToManaged(_iconHoverPath);
+    }
+
+    /// <summary>
+    /// Represent a path of the QR Image.<br/>
+    /// The format can be a <see cref="Base64Url"/> if <see cref="LauncherSocialMediaEntryFlag.QrImageIsDataBuffer"/> is defined<br/>
+    /// or a path/URL <see cref="string"/> if <see cref="LauncherSocialMediaEntryFlag.QrImageIsPath"/> is defined.
+    /// </summary>
+    public string? QrPath
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Utf8StringMarshaller.ConvertToManaged(_qrPath);
+    }
+
+    /// <summary>
+    /// Represent the description string of the QR Image description.
+    /// </summary>
+    public string? QrDescription
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Utf8StringMarshaller.ConvertToManaged(_qrImageDescription);
+    }
+
+    /// <summary>
+    /// Represent the description string of this <see cref="LauncherSocialMediaEntry"/> instance.
+    /// </summary>
+    public string? Description
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Utf8StringMarshaller.ConvertToManaged(_socialMediaDescription);
+    }
+
+    /// <summary>
+    /// Represent the click link/HREF string of this <see cref="LauncherSocialMediaEntry"/> instance.
+    /// </summary>
+    public string? ClickUrl
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Utf8StringMarshaller.ConvertToManaged(_socialMediaClickUrl);
+    }
+
+    /// <summary>
+    /// Write <see cref="IconPath"/> as a path or URL.
+    /// </summary>
+    /// <param name="path">The path/URL to write.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteIcon(string? path)
+    {
+        _iconPath = FreeAndWriteFromString(_iconPath, path);
+        Flags |= ~LauncherSocialMediaEntryFlag.IconIsDataBuffer;
+        Flags |= LauncherSocialMediaEntryFlag.IconIsPath;
+    }
+
+    /// <summary>
+    /// Write <see cref="IconPath"/> as an embedded data in <see cref="Base64Url"/> format.
+    /// </summary>
+    /// <param name="buffer">The buffer of the data to be written from.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteIcon(ReadOnlySpan<byte> buffer)
+    {
+        _iconPath = FreeAndWriteFromByte(_iconPath, buffer);
+        Flags |= ~LauncherSocialMediaEntryFlag.IconIsPath;
+        Flags |= LauncherSocialMediaEntryFlag.IconIsDataBuffer;
+    }
+
+    /// <summary>
+    /// Write <see cref="IconHoverPath"/> as a path or URL.
+    /// </summary>
+    /// <param name="path">The path/URL to write.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteIconHover(string? path)
+    {
+        _iconHoverPath = FreeAndWriteFromString(_iconHoverPath, path);
+        Flags |= ~LauncherSocialMediaEntryFlag.IconHoverIsDataBuffer;
+        Flags |= LauncherSocialMediaEntryFlag.IconHoverIsPath;
+    }
+
+    /// <summary>
+    /// Write <see cref="IconHoverPath"/> as an embedded data in <see cref="Base64Url"/> format.
+    /// </summary>
+    /// <param name="buffer">The buffer of the data to be written from.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteIconHover(ReadOnlySpan<byte> buffer)
+    {
+        _iconHoverPath = FreeAndWriteFromByte(_iconHoverPath, buffer);
+        Flags |= ~LauncherSocialMediaEntryFlag.IconHoverIsPath;
+        Flags |= LauncherSocialMediaEntryFlag.IconHoverIsDataBuffer;
+    }
+
+    /// <summary>
+    /// Write <see cref="QrPath"/> as a path or URL.
+    /// </summary>
+    /// <param name="path">The path/URL to write.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteQrImage(string? path)
+    {
+        _qrPath = FreeAndWriteFromString(_qrPath, path);
+        Flags |= ~LauncherSocialMediaEntryFlag.QrImageIsDataBuffer;
+        Flags |= LauncherSocialMediaEntryFlag.QrImageIsPath;
+    }
+
+    /// <summary>
+    /// Write <see cref="QrPath"/> as an embedded data in <see cref="Base64Url"/> format.
+    /// </summary>
+    /// <param name="buffer">The buffer of the data to be written from.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteQrImage(ReadOnlySpan<byte> buffer)
+    {
+        _qrPath = FreeAndWriteFromByte(_qrPath, buffer);
+        Flags |= ~LauncherSocialMediaEntryFlag.QrImageIsPath;
+        Flags |= LauncherSocialMediaEntryFlag.QrImageIsDataBuffer;
+    }
+
+    /// <summary>
+    /// Write the description/name of this entry
+    /// </summary>
+    /// <param name="description">The description/name of this entry.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteDescription(string? description)
+    {
+        Utf8StringMarshaller.Free(_socialMediaDescription);
+        _socialMediaDescription = Utf8StringMarshaller.ConvertToUnmanaged(description);
+    }
+
+    /// <summary>
+    /// Write the description/name of the QR Image
+    /// </summary>
+    /// <param name="description">The description/name of the QR Image.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteQrImageDescription(string? description)
+    {
+        Utf8StringMarshaller.Free(_qrImageDescription);
+        _qrImageDescription = Utf8StringMarshaller.ConvertToUnmanaged(description);
+    }
+
+    /// <summary>
+    /// Write the click link/HREF of this entry.
+    /// </summary>
+    /// <param name="url">The click link/HREF of this entry.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteClickUrl(string? url)
+    {
+        Utf8StringMarshaller.Free(_socialMediaClickUrl);
+        _socialMediaClickUrl = Utf8StringMarshaller.ConvertToUnmanaged(url);
+    }
+
+    /// <summary>
+    /// Write the click link/HREF of this entry.
+    /// </summary>
+    /// <param name="url">The click link/HREF of this entry.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteClickUrl(Uri? url) => WriteClickUrl(url?.ToString());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static byte* FreeAndWriteFromString(byte* ptr, string? inputStr)
+    {
+        Utf8StringMarshaller.Free(ptr);
+        return Utf8StringMarshaller.ConvertToUnmanaged(inputStr);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static byte* FreeAndWriteFromByte(byte* ptr, ReadOnlySpan<byte> buffer)
+    {
+        Utf8StringMarshaller.Free(ptr);
+
+        int maxEncoded = Base64Url.GetEncodedLength(buffer.Length);
+        byte[] writeBuffer = ArrayPool<byte>.Shared.Rent(maxEncoded);
+
+        try
+        {
+            if (!Base64Url.TryEncodeToUtf8(buffer, writeBuffer, out int written))
+            {
+                throw new InvalidOperationException("Cannot write data to buffer in Base64 format!");
+            }
+
+            int outLen = written + 1; // + \0 terminator
+            byte* outPtr = (byte*)Marshal.AllocCoTaskMem(outLen);
+            Span<byte> outSpan = new(outPtr, outLen);
+
+            writeBuffer.AsSpan(0, written).CopyTo(outSpan); // Copy to buffer
+            outSpan[outLen] = 0; // Ensure to write the \0 terminator as the memory might not be always cleared
+
+            // Return CoTaskMemory
+            return outPtr;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(writeBuffer);
+        }
     }
 
     /// <summary>
@@ -324,32 +271,12 @@ public unsafe struct LauncherSocialMediaEntry
     {
         if (_isFreed == 1) return;
 
-        if (Flags.HasFlag(LauncherSocialMediaEntryFlag.IconIsPath))
-        {
-            if (_isIconHandleDisposable == 1) GetIconAsPath().Dispose();
-            if (_isIconHoverHandleDisposable == 1) GetIconHoverAsPath().Dispose();
-        }
-        else
-        {
-            if (_isIconHandleDisposable == 1) Mem.Free(_iconPathHandle);
-            if (_isIconHoverHandleDisposable == 1) Mem.Free(_iconHoverPathHandle);
-        }
-
-        if (Flags.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage))
-        {
-            if (Flags.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsPath))
-            {
-                if (_isQrImageHandleDisposable == 1) GetQrImageAsPath().Dispose();
-            }
-            else
-            {
-                if (_isQrImageHandleDisposable == 1) Mem.Free(_qrPathHandle);
-            }
-        }
-
-        Mem.Free(_qrImageDescription);
-        Mem.Free(_socialMediaDescription);
-        Mem.Free(_socialMediaClickUrl);
+        Utf8StringMarshaller.Free(_iconPath);
+        Utf8StringMarshaller.Free(_iconHoverPath);
+        Utf8StringMarshaller.Free(_qrPath);
+        Utf8StringMarshaller.Free(_qrImageDescription);
+        Utf8StringMarshaller.Free(_socialMediaDescription);
+        Utf8StringMarshaller.Free(_socialMediaClickUrl);
 
         if (_childEntryHandle != null)
         {

@@ -29,14 +29,14 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
         SafeFileHandle safeFileHandle   = new(outputStreamHandle, false);
         FileStream     outputFileStream = new(safeFileHandle, FileAccess.ReadWrite);
 
-        byte[]  fileChecksum = entry.FileHash.AsSpan(0, entry.FileHashLength).ToArray();
-        string? fileUrl      = entry.Path.CreateStringFromNullTerminated();
+        PluginDisposableMemory<byte> fileHash = entry.FileHash;
+        string?                      fileUrl  = entry.Path;
         if (string.IsNullOrEmpty(fileUrl))
         {
             throw new NullReferenceException("Path of the LauncherPathEntry cannot be null!");
         }
 
-        return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, fileChecksum, downloadProgress, token).AsResult();
+        return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, fileHash, downloadProgress, token).AsResult();
     }
 
     public virtual nint DownloadAssetAsync(string                                fileUrl,
@@ -55,13 +55,13 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
             throw new NullReferenceException("Path of the LauncherPathEntry cannot be null!");
         }
 
-        return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, null, downloadProgress, token).AsResult();
+        return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, PluginDisposableMemory<byte>.Empty, downloadProgress, token).AsResult();
     }
 
     protected virtual async Task DownloadAssetAsyncInner(HttpClient?                           client,
                                                          string                                fileUrl,
                                                          Stream                                outputStream,
-                                                         byte[]?                               fileChecksum,
+                                                         PluginDisposableMemory<byte>          fileChecksum,
                                                          PluginFiles.FileReadProgressDelegate? downloadProgress,
                                                          CancellationToken                     token)
     {

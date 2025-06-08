@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -62,6 +64,20 @@ public static partial class Mem
         }
 
         _ = Encoding.UTF8.GetBytes(source, destination);
+    }
+
+    public static unsafe byte* Utf16SpanToUtf8Unmanaged(this ReadOnlySpan<char> span)
+    {
+        if (span.IsEmpty)
+            return null;
+
+        int exactByteCount = checked(Encoding.UTF8.GetByteCount(span) + 1); // + 1 for null terminator
+        byte* mem = (byte*)Marshal.AllocCoTaskMem(exactByteCount);
+        Span<byte> buffer = new(mem, exactByteCount);
+
+        int byteCount = Encoding.UTF8.GetBytes(span, buffer);
+        buffer[byteCount] = 0; // null-terminate
+        return mem;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

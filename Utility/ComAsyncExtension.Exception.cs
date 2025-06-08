@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security;
 using System.Text;
 
@@ -199,64 +200,34 @@ public static partial class ComAsyncExtension
         }
     }
 
-    internal static Exception? GetExceptionFromInfo(ref ComAsyncException result)
+    internal static unsafe Exception? GetExceptionFromInfo(ref ComAsyncException result)
     {
-        ReadOnlySpan<byte> exTypeNameSpan = result.ExceptionTypeByName.CreateSpanFromNullTerminated();
-        ReadOnlySpan<byte> exInfoSpan = result.ExceptionInfo.CreateSpanFromNullTerminated();
-        ReadOnlySpan<byte> exMessageSpan = result.ExceptionMessage.CreateSpanFromNullTerminated();
-        ReadOnlySpan<byte> exStackTraceSpan = result.ExceptionStackTrace.CreateSpanFromNullTerminated();
-
-        if (exTypeNameSpan.IsEmpty)
-        {
-            return null;
-        }
-
-        char[] exInfoBuffer = ArrayPool<char>.Shared.Rent(ComAsyncException.ExExceptionTypeNameMaxLength +
-                                                          ComAsyncException.ExExceptionInfoMaxLength +
-                                                          ComAsyncException.ExExceptionMessageMaxLength +
-                                                          ComAsyncException.ExExceptionStackTraceMaxLength);
         try
         {
-            int offset = 0;
-            Span<char> exTypeNameManaged = exInfoBuffer.AsSpan(0, ComAsyncException.ExExceptionTypeNameMaxLength);
+            string? typeNameString   = Utf8StringMarshaller.ConvertToManaged(result.ExceptionTypeByName);
+            string? infoString       = Utf8StringMarshaller.ConvertToManaged(result.ExceptionInfo);
+            string? messageString    = Utf8StringMarshaller.ConvertToManaged(result.ExceptionMessage);
+            string? stackTraceString = Utf8StringMarshaller.ConvertToManaged(result.ExceptionStackTrace);
 
-            offset += exTypeNameManaged.Length;
-            Span<char> exInfoManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExExceptionInfoMaxLength);
-
-            offset += exInfoManaged.Length;
-            Span<char> exMessageManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExExceptionMessageMaxLength);
-
-            offset += exMessageManaged.Length;
-            Span<char> exStackTraceManaged = exInfoBuffer.AsSpan(offset, ComAsyncException.ExExceptionStackTraceMaxLength);
-
-            // TODO: Split the exception name from typeName as it might contain additional info for some exception types.
-            Encoding.UTF8.TryGetChars(exTypeNameSpan, exTypeNameManaged, out int exTypeNameManagedWritten);
-            Encoding.UTF8.TryGetChars(exInfoSpan, exInfoManaged, out int exInfoManagedWritten);
-            Encoding.UTF8.TryGetChars(exMessageSpan, exMessageManaged, out int exMessageManagedWritten);
-            Encoding.UTF8.TryGetChars(exStackTraceSpan, exStackTraceManaged, out int exStackTraceWritten);
-
-            exTypeNameManaged = exTypeNameManaged[..exTypeNameManagedWritten];
-            exInfoManaged = exInfoManaged[..exInfoManagedWritten];
-            exMessageManaged = exMessageManaged[..exMessageManagedWritten];
-            exStackTraceManaged = exStackTraceManaged[..exStackTraceWritten];
+            if (string.IsNullOrEmpty(typeNameString))
+            {
+                return null;
+            }
 
             if (!ExceptionNames.ExceptionCreateDelegateLookup
-                    .TryGetValue(exTypeNameManaged, out ExceptionNames.CreateExceptionCallback<Exception>? createExceptionCallback))
+                    .TryGetValue(typeNameString, out ExceptionNames.CreateExceptionCallback<Exception>? createExceptionCallback))
             {
-                Exception anyException = new(exMessageManaged.ToString());
-                anyException.SetExceptionRemoteStackTrace() = exStackTraceManaged.ToString();
+                Exception anyException = new(messageString);
+                anyException.SetExceptionRemoteStackTrace() = stackTraceString;
                 return anyException;
             }
 
-            Exception createdException = createExceptionCallback(exInfoManaged, exMessageManaged);
-            string? stackTrace = exStackTraceWritten == 0 ? null : exStackTraceManaged.ToString();
-
-            createdException.SetExceptionRemoteStackTrace() = stackTrace;
+            Exception createdException = createExceptionCallback(infoString, messageString);
+            createdException.SetExceptionRemoteStackTrace() = stackTraceString;
             return createdException;
         }
         finally
         {
-            ArrayPool<char>.Shared.Return(exInfoBuffer);
             result.Dispose();
         }
     }

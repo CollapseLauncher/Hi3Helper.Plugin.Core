@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Hi3Helper.Plugin.Core.Utility;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
@@ -10,21 +9,8 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
-    : IDisposable, IInitializableStruct
+    : IDisposable
 {
-    public const int ExTitleMaxLength       = 128;
-    public const int ExDescriptionMaxLength = 256;
-    public const int ExUrlMaxLength         = 512;
-    public const int ExPostDateLength       = 32;
-
-    public void InitInner()
-    {
-        _title       = Mem.Alloc<byte>(ExTitleMaxLength);
-        _description = Mem.Alloc<byte>(ExDescriptionMaxLength);
-        _url         = Mem.Alloc<byte>(ExUrlMaxLength);
-        _postDate    = Mem.Alloc<byte>(ExPostDateLength);
-    }
-    
     private byte _isFreed = 0;
 
     /// <summary>
@@ -40,59 +26,51 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     /// <summary>
     /// The title of the news entry.
     /// </summary>
-    public PluginDisposableMemory<byte> Title => new(_title, ExTitleMaxLength);
+    public string? Title => Utf8StringMarshaller.ConvertToManaged(_title);
 
     /// <summary>
     /// The description of the news entry.
     /// </summary>
-    public PluginDisposableMemory<byte> Description => new(_title, ExTitleMaxLength);
+    public string? Description => Utf8StringMarshaller.ConvertToManaged(_description);
 
     /// <summary>
     /// The HREF/click URL of the news entry.
     /// </summary>
-    public PluginDisposableMemory<byte> Url => new(_title, ExTitleMaxLength);
+    public string? Url => Utf8StringMarshaller.ConvertToManaged(_url);
 
     /// <summary>
     /// The short format (DD/MM) of the date for the news entry.
     /// </summary>
-    public PluginDisposableMemory<byte> PostDate => new(_title, ExTitleMaxLength);
+    public string? PostDate => Utf8StringMarshaller.ConvertToManaged(_postDate);
 
     /// <summary>
-    /// Get the string of <see cref="Title"/> field.
+    /// Write the strings into the current struct.
     /// </summary>
-    /// <returns>The string of <see cref="Title"/> field.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string? GetTitleString() => Title.CreateStringFromNullTerminated();
+    /// <param name="title">The title of the news entry.</param>
+    /// <param name="description">The description of the news entry.</param>
+    /// <param name="url">The HREF/click URL of the news entry.</param>
+    /// <param name="postDate">The short format (DD/MM) of the date for the news entry.</param>
+    public void Write(string? title, string? description, string? url, string? postDate)
+    {
+        Utf8StringMarshaller.Free(_title);
+        Utf8StringMarshaller.Free(_description);
+        Utf8StringMarshaller.Free(_url);
+        Utf8StringMarshaller.Free(_postDate);
 
-    /// <summary>
-    /// Get the string of <see cref="Description"/> field.
-    /// </summary>
-    /// <returns>The string of <see cref="Description"/> field.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string? GetDescriptionString() => Description.CreateStringFromNullTerminated();
-
-    /// <summary>
-    /// Get the string of <see cref="Url"/> field.
-    /// </summary>
-    /// <returns>The string of <see cref="Url"/> field.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string? GetUrlString() => Url.CreateStringFromNullTerminated();
-
-    /// <summary>
-    /// Get the string of <see cref="PostDate"/> field.
-    /// </summary>
-    /// <returns>The string of <see cref="PostDate"/> field.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string? GetPostDateString() => PostDate.CreateStringFromNullTerminated();
+        _title       = Utf8StringMarshaller.ConvertToUnmanaged(title);
+        _description = Utf8StringMarshaller.ConvertToUnmanaged(description);
+        _url         = Utf8StringMarshaller.ConvertToUnmanaged(url);
+        _postDate    = Utf8StringMarshaller.ConvertToUnmanaged(postDate);
+    }
 
     public void Dispose()
     {
         if (_isFreed == 1) return;
 
-        Mem.Free(_title);
-        Mem.Free(_description);
-        Mem.Free(_url);
-        Mem.Free(_postDate);
+        Utf8StringMarshaller.Free(_title);
+        Utf8StringMarshaller.Free(_description);
+        Utf8StringMarshaller.Free(_url);
+        Utf8StringMarshaller.Free(_postDate);
 
         _isFreed = 1;
     }

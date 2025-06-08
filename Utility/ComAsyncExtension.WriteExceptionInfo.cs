@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -14,7 +15,7 @@ public static partial class ComAsyncExtension
 {
     private static partial class ExceptionNames
     {
-        internal delegate void WriteExceptionCallback(Exception exception, Span<byte> messageBuffer);
+        internal delegate int WriteExceptionCallback(Exception exception, Span<byte> messageBuffer);
 
         private static readonly Dictionary<string, WriteExceptionCallback> ExceptionWriteInfoDelegate
             = new(StringComparer.OrdinalIgnoreCase)
@@ -29,9 +30,9 @@ public static partial class ComAsyncExtension
         internal static readonly Dictionary<string, WriteExceptionCallback>.AlternateLookup<ReadOnlySpan<char>>
             ExceptionWriteInfoDelegateLookup = ExceptionWriteInfoDelegate.GetAlternateLookup<ReadOnlySpan<char>>();
 
-        private static void WriteHttpRequestExceptionInfo(Exception exception, Span<byte> buffer)
+        private static int WriteHttpRequestExceptionInfo(Exception exception, Span<byte> buffer)
         {
-            if (exception is not HttpRequestException httpRequestEx) return;
+            if (exception is not HttpRequestException httpRequestEx) return 0;
 
             HttpStatusCode statusCode = httpRequestEx.StatusCode ?? HttpStatusCode.NotAcceptable;
             int hResult = httpRequestEx.HResult;
@@ -42,12 +43,14 @@ public static partial class ComAsyncExtension
 
             int written = WriteAppendInfo(((int)statusCode).ToString(), buffer);
             buffer = buffer[written..];
-            _ = WriteAppendInfo(hResult.ToString(), buffer);
+            written += WriteAppendInfo(hResult.ToString(), buffer);
+
+            return written;
         }
 
-        private static void WriteIOExceptionInfo(Exception exception, Span<byte> buffer)
+        private static int WriteIOExceptionInfo(Exception exception, Span<byte> buffer)
         {
-            if (exception is not IOException ioException) return;
+            if (exception is not IOException ioException) return 0;
 
             int hResult = ioException.HResult;
             if (hResult == 0)
@@ -55,19 +58,19 @@ public static partial class ComAsyncExtension
                 hResult = Marshal.GetHRForLastWin32Error();
             }
 
-            _ = WriteAppendInfo(hResult.ToString(), buffer);
+            return WriteAppendInfo(hResult.ToString(), buffer);
         }
 
-        private static void WriteObjectDisposedExceptionInfo(Exception exception, Span<byte> buffer)
+        private static int WriteObjectDisposedExceptionInfo(Exception exception, Span<byte> buffer)
         {
-            if (exception is not ObjectDisposedException objectDisposedEx) return;
+            if (exception is not ObjectDisposedException objectDisposedEx) return 0;
 
-            _ = WriteAppendInfo(objectDisposedEx.ObjectName, buffer);
+            return WriteAppendInfo(objectDisposedEx.ObjectName, buffer);
         }
 
-        private static void WriteSocketExceptionInfo(Exception exception, Span<byte> buffer)
+        private static int WriteSocketExceptionInfo(Exception exception, Span<byte> buffer)
         {
-            if (exception is not SocketException socketEx) return;
+            if (exception is not SocketException socketEx) return 0;
 
             int nativeErrorCode = socketEx.NativeErrorCode;
             int hResult         = socketEx.HResult;
@@ -79,14 +82,16 @@ public static partial class ComAsyncExtension
 
             int written = WriteAppendInfo(nativeErrorCode.ToString(), buffer);
             buffer = buffer[written..];
-            _ = WriteAppendInfo(hResult.ToString(), buffer);
+            written += WriteAppendInfo(hResult.ToString(), buffer);
+
+            return written;
         }
 
-        private static void WriteTypeInitializationExceptionInfo(Exception exception, Span<byte> buffer)
+        private static int WriteTypeInitializationExceptionInfo(Exception exception, Span<byte> buffer)
         {
-            if (exception is not TypeInitializationException typeInitEx) return;
+            if (exception is not TypeInitializationException typeInitEx) return 0;
 
-            _ = WriteAppendInfo(typeInitEx.TypeName, buffer);
+            return WriteAppendInfo(typeInitEx.TypeName, buffer);
         }
 
         private static int WriteAppendInfo(string info, Span<byte> buffer)
@@ -106,25 +111,29 @@ public static partial class ComAsyncExtension
 
     internal static void WriteExceptionInfo(Exception exception, ref ComAsyncException result)
     {
-        // Initialize struct and its buffer
-        result.InitInner();
-
-        string exceptionName        = exception.GetType().Name;
-        string exceptionMessage     = exception.Message;
+        string  exceptionName       = exception.GetType().Name;
+        string  exceptionMessage    = exception.Message;
         string? exceptionStackTrace = exception.StackTrace;
-
-        Span<byte> exceptionNameSpan       = result.ExceptionTypeByName.AsSpan()[..^1];
-        Span<byte> exceptionInfo           = result.ExceptionInfo.AsSpan()[..^1];
-        Span<byte> exceptionMessageSpan    = result.ExceptionMessage.AsSpan()[..^1];
-        Span<byte> exceptionStackTraceSpan = result.ExceptionStackTrace.AsSpan()[..^1];
-
-        _ = Encoding.UTF8.TryGetBytes(exceptionName, exceptionNameSpan, out _);
-        _ = Encoding.UTF8.TryGetBytes(exceptionMessage, exceptionMessageSpan, out _);
-        _ = Encoding.UTF8.TryGetBytes(exceptionStackTrace, exceptionStackTraceSpan, out _);
+        string? exceptionInfo       = null;
 
         if (ExceptionNames.ExceptionWriteInfoDelegateLookup.TryGetValue(exceptionName,
             out ExceptionNames.WriteExceptionCallback? writeExceptionInfoCallback))
         {
-            writeExceptionInfoCallback(exception, exceptionInfo);
-        }}
+            byte[] writeInfoBuffer = ArrayPool<byte>.Shared.Rent(1 << 10);
+            try
+            {
+                int written = writeExceptionInfoCallback(exception, writeInfoBuffer);
+                if (written != 0)
+                {
+                    exceptionInfo = Encoding.UTF8.GetString(writeInfoBuffer.AsSpan(0, written));
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(writeInfoBuffer);
+            }
+        }
+
+        result.Write(exceptionName, exceptionInfo, exceptionMessage, exceptionStackTrace);
+    }
 }
