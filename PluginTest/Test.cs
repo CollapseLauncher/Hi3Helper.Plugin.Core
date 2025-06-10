@@ -6,6 +6,7 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
@@ -228,7 +229,7 @@ namespace PluginTest
             {
                 using LauncherPathEntry entry = backgroundPathMemory[j];
 
-                string? fileUrl = entry.GetPathString();
+                string? fileUrl = entry.Path;
                 ArgumentException.ThrowIfNullOrEmpty(fileUrl);
 
                 logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Background: {Url}", fileUrl);
@@ -254,7 +255,7 @@ namespace PluginTest
             {
                 using LauncherPathEntry entry = logoPathMemory[j];
 
-                string? fileUrl = entry.GetPathString();
+                string? fileUrl = entry.Path;
                 ArgumentException.ThrowIfNullOrEmpty(fileUrl);
 
                 logger.LogInformation("  LauncherPathEntry->GetStringFromHandle(): Downloading Icon: {Url}", fileUrl);
@@ -295,90 +296,42 @@ namespace PluginTest
 
         private static void InnerStartMediaSocMedChildEntryTest(ILogger logger, bool isChild, LauncherSocialMediaEntry entry)
         {
-            string? socialMediaName = entry.SocialMediaDescription.CreateStringFromNullTerminated();
-            string? socialMediaClickUrl = entry.SocialMediaClickUrl.CreateStringFromNullTerminated();
+            string? socialMediaName = entry.Description;
+            string? socialMediaClickUrl = entry.ClickUrl;
             LauncherSocialMediaEntryFlag socialMediaFlag = entry.Flags;
 
             logger.LogInformation("  LauncherSocialMediaEntry->SocialMediaDescription: {Str}", socialMediaName);
             logger.LogInformation("  LauncherSocialMediaEntry->SocialMediaClickUrl: {Str}", socialMediaClickUrl);
             logger.LogInformation("  LauncherSocialMediaEntry->Flags: {Str}", socialMediaFlag);
 
-            if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.IconIsDataBuffer))
+            string? iconDataContent = entry.IconPath;
+            string? iconHoverDataContent = entry.IconHoverPath;
+
+            if (string.IsNullOrEmpty(iconDataContent) && !isChild)
             {
-                using PluginDisposableMemory<byte> iconDataBuffer = entry.GetIconAsDataBuffer();
-                using PluginDisposableMemory<byte> iconHoverDataBuffer = entry.GetIconHoverAsDataBuffer();
-
-                Span<byte> iconDataSpan = iconDataBuffer.AsSpan();
-                Span<byte> iconHoverDataSpan = iconHoverDataBuffer.AsSpan();
-
-                if (iconDataSpan.Length == 0 && !isChild)
-                {
-                    throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have icon data!");
-                }
-
-                logger.LogInformation("  LauncherSocialMediaEntry->GetIconAsDataBuffer(): Length: {Length}", iconDataSpan.Length);
-
-                if (iconHoverDataSpan.Length != 0)
-                {
-                    logger.LogInformation("  LauncherSocialMediaEntry->GetIconHoverAsDataBuffer(): Length: {Length}", iconHoverDataSpan.Length);
-                }
+                throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have icon data!");
             }
 
-            if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.IconIsPath))
+            logger.LogInformation("  LauncherSocialMediaEntry->IconPath: Length: {Content}", iconDataContent);
+
+            if (!string.IsNullOrEmpty(iconHoverDataContent))
             {
-                using LauncherPathEntry iconPathEntry = entry.GetIconAsPath();
-                using LauncherPathEntry iconHoverPathEntry = entry.GetIconHoverAsPath();
-
-                using PluginDisposableMemory<byte> iconPathSpan = iconPathEntry.Path;
-                using PluginDisposableMemory<byte> iconHoverPathSpan = iconHoverPathEntry.Path;
-
-                if (iconPathSpan.Length == 0 && !isChild)
-                {
-                    throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have icon path/URL!");
-                }
-
-                string? iconPathString = iconPathSpan.CreateStringFromNullTerminated();
-                logger.LogInformation("  LauncherSocialMediaEntry->GetIconAsPath(): URL: {Path}", iconPathString);
-
-                if (iconHoverPathSpan.Length != 0)
-                {
-                    string? iconHoverPathString = iconHoverPathSpan.CreateStringFromNullTerminated();
-                    logger.LogInformation("  LauncherSocialMediaEntry->GetIconHoverAsPath(): URL: {Path}", iconHoverPathString);
-                }
+                logger.LogInformation("  LauncherSocialMediaEntry->IconHoverPath: {Content}", iconHoverDataContent);
             }
 
-            if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) &&
-                socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsDataBuffer))
+            string? qrDataContent = entry.QrPath;
+
+            if (!string.IsNullOrEmpty(qrDataContent))
             {
-                using PluginDisposableMemory<byte> qrDataBuffer = entry.GetQrImageAsDataBuffer();
-                Span<byte> qrDataSpan = qrDataBuffer.AsSpan();
-
-                if (qrDataSpan.Length == 0 && !isChild)
-                {
-                    throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have QR image data while it has HasQrImage and QrImageIsDataBuffer flags defined!");
-                }
-
-                logger.LogInformation("  LauncherSocialMediaEntry->GetQrImageAsDataBuffer(): Length: {Length}", qrDataSpan.Length);
+                logger.LogInformation("  LauncherSocialMediaEntry->QrPath: {Content}", qrDataContent);
             }
 
-            if (socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.HasQrImage) &&
-                socialMediaFlag.HasFlag(LauncherSocialMediaEntryFlag.QrImageIsPath))
+            if (Unsafe.IsNullRef(ref entry.ChildEntryHandle))
             {
-                using LauncherPathEntry qrPathEntry = entry.GetQrImageAsPath();
-                using PluginDisposableMemory<byte> qrPathSpan = qrPathEntry.Path;
-
-                if (qrPathSpan.Length == 0 && !isChild)
-                {
-                    throw new InvalidOperationException($"Social media entry: {socialMediaName} ({socialMediaClickUrl}) doesn't have QR image path/URL while it has HasQrImage and QrImageIsPath flags defined!");
-                }
-
-                string? qrPathString = qrPathSpan.CreateStringFromNullTerminated();
-                logger.LogInformation("  LauncherSocialMediaEntry->GetQrImageAsPath(): URL: {Path}", qrPathString);
+                return;
             }
 
-            if (entry.ChildEntryHandle == nint.Zero) return;
-
-            using LauncherSocialMediaEntry child = entry.ChildEntryHandle.AsRef<LauncherSocialMediaEntry>();
+            using LauncherSocialMediaEntry child = entry.ChildEntryHandle;
             InnerStartMediaSocMedChildEntryTest(logger, true, child);
         }
     }
