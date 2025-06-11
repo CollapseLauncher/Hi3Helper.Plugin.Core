@@ -12,4 +12,6 @@ public static class ComInterfaceId
     public const string ExLauncherApiMedia     = "436f6c6c-6170-7365-727f-000000000021";
     public const string ExLauncherApiNewsFeed  = "436f6c6c-6170-7365-727f-000000000022";
     public const string ExLauncherApiResources = "436f6c6c-6170-7365-727f-000000000023";
+    public const string ExGameInstaller        = "436f6c6c-6170-7365-727f-000000000030";
+    public const string ExGameUninstaller      = "436f6c6c-6170-7365-727f-000000000031";
 }
