@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Win32.SafeHandles;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 

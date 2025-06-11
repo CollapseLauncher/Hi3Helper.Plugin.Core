@@ -3,26 +3,18 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core;
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
-public unsafe struct PluginDisposableMemory<T> : IDisposable
+[method: MethodImpl(MethodImplOptions.AggressiveInlining)]
+public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisposable = true) : IDisposable
     where T : unmanaged
 {
-    private byte _isFreed = 0;
-    public  byte IsDisposable;
-    public  int  Length;
-    private T*   _handle;
-
-    [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-    // ReSharper disable once ConvertToPrimaryConstructor
-    public PluginDisposableMemory(T* handle, int count, bool isDisposable = true)
-    {
-        _handle       = handle;
-        Length        = count;
-        IsDisposable = (byte)(isDisposable ? 1 : 0);
-    }
+    private byte _isFreed     = 0;
+    public  byte IsDisposable = (byte)(isDisposable ? 1 : 0);
+    public  int  Length       = count;
 
     public  readonly bool IsEmpty => Length == 0;
 
@@ -35,15 +27,15 @@ public unsafe struct PluginDisposableMemory<T> : IDisposable
         {
             ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Length, nameof(index));
 
-            return ref Unsafe.AsRef<T>(Unsafe.Add<T>(_handle, index));
+            return ref Unsafe.AsRef<T>(Unsafe.Add<T>(handle, index));
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly ref T AsRef() => ref Unsafe.AsRef<T>(_handle);
+    public readonly ref T AsRef() => ref Unsafe.AsRef<T>(handle);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly T* AsPointer() => _handle;
+    public readonly T* AsPointer() => handle;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly nint AsSafePointer() => (nint)AsPointer();
@@ -59,7 +51,7 @@ public unsafe struct PluginDisposableMemory<T> : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Span<T> AsSpan(int offset, int length)
-        => new(Unsafe.Add<T>(_handle, offset), length);
+        => new(Unsafe.Add<T>(handle, offset), length);
 
     /// <summary>
     /// Dispose the handle inside the span
@@ -79,7 +71,7 @@ public unsafe struct PluginDisposableMemory<T> : IDisposable
     {
         if (_isFreed == 1) return;
 
-        Mem.Free(_handle);
+        Mem.Free(handle);
         _isFreed = 1;
     }
 

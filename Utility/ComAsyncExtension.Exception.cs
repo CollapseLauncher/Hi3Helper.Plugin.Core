@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -10,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Security;
-using System.Text;
 
 // ReSharper disable InconsistentNaming
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -102,7 +100,7 @@ public static partial class ComAsyncExtension
         {
             ReadOnlySpan<char> httpStatusCode = GetExceptionInfo(typeExceptionInfo, out int read);
             typeExceptionInfo = typeExceptionInfo[read..];
-            ReadOnlySpan<char> hResult = GetExceptionInfo(typeExceptionInfo, out read);
+            ReadOnlySpan<char> hResult = GetExceptionInfo(typeExceptionInfo, out _);
 
             string messageStr = message.ToString();
 

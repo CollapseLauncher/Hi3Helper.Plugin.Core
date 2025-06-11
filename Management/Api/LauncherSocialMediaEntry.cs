@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 // ReSharper disable ReplaceWithPrimaryConstructorParameter
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
@@ -59,7 +60,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// The format can be a <see cref="Base64Url"/> if <see cref="LauncherSocialMediaEntryFlag.IconIsDataBuffer"/> is defined<br/>
     /// or a path/URL <see cref="string"/> if <see cref="LauncherSocialMediaEntryFlag.IconIsPath"/> is defined.
     /// </summary>
-    public string? IconPath
+    public readonly string? IconPath
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Utf8StringMarshaller.ConvertToManaged(_iconPath);
@@ -70,7 +71,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// The format can be a <see cref="Base64Url"/> if <see cref="LauncherSocialMediaEntryFlag.IconHoverIsDataBuffer"/> is defined<br/>
     /// or a path/URL <see cref="string"/> if <see cref="LauncherSocialMediaEntryFlag.IconHoverIsPath"/> is defined.
     /// </summary>
-    public string? IconHoverPath
+    public readonly string? IconHoverPath
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Utf8StringMarshaller.ConvertToManaged(_iconHoverPath);
@@ -81,7 +82,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// The format can be a <see cref="Base64Url"/> if <see cref="LauncherSocialMediaEntryFlag.QrImageIsDataBuffer"/> is defined<br/>
     /// or a path/URL <see cref="string"/> if <see cref="LauncherSocialMediaEntryFlag.QrImageIsPath"/> is defined.
     /// </summary>
-    public string? QrPath
+    public readonly string? QrPath
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Utf8StringMarshaller.ConvertToManaged(_qrPath);
@@ -90,7 +91,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// <summary>
     /// Represent the description string of the QR Image description.
     /// </summary>
-    public string? QrDescription
+    public readonly string? QrDescription
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Utf8StringMarshaller.ConvertToManaged(_qrImageDescription);
@@ -99,7 +100,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// <summary>
     /// Represent the description string of this <see cref="LauncherSocialMediaEntry"/> instance.
     /// </summary>
-    public string? Description
+    public readonly string? Description
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Utf8StringMarshaller.ConvertToManaged(_socialMediaDescription);
@@ -108,7 +109,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// <summary>
     /// Represent the click link/HREF string of this <see cref="LauncherSocialMediaEntry"/> instance.
     /// </summary>
-    public string? ClickUrl
+    public readonly string? ClickUrl
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Utf8StringMarshaller.ConvertToManaged(_socialMediaClickUrl);

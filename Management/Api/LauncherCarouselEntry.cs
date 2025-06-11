@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
@@ -19,17 +20,17 @@ public unsafe struct LauncherCarouselEntry()
     /// <summary>
     /// Gets a string to the description of the carousel entry.
     /// </summary>
-    public string? Description => Utf8StringMarshaller.ConvertToManaged(_description);
+    public readonly string? Description => Utf8StringMarshaller.ConvertToManaged(_description);
 
     /// <summary>
     /// Gets a span to the image URL of the carousel entry.
     /// </summary>
-    public string? ImageUrl => Utf8StringMarshaller.ConvertToManaged(_imageUrl);
+    public readonly string? ImageUrl => Utf8StringMarshaller.ConvertToManaged(_imageUrl);
 
     /// <summary>
     /// Gets a span to the click URL of the carousel entry.
     /// </summary>
-    public string? ClickUrl => Utf8StringMarshaller.ConvertToManaged(_clickUrl);
+    public readonly string? ClickUrl => Utf8StringMarshaller.ConvertToManaged(_clickUrl);
 
     /// <summary>
     /// Write the strings into the current struct.

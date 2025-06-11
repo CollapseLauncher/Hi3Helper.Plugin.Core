@@ -1,4 +1,5 @@
 ﻿using System;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management;
 
