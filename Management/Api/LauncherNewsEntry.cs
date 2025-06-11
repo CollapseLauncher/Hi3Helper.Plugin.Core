@@ -27,22 +27,22 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     /// <summary>
     /// The title of the news entry.
     /// </summary>
-    public string? Title => Utf8StringMarshaller.ConvertToManaged(_title);
+    public readonly string? Title => Utf8StringMarshaller.ConvertToManaged(_title);
 
     /// <summary>
     /// The description of the news entry.
     /// </summary>
-    public string? Description => Utf8StringMarshaller.ConvertToManaged(_description);
+    public readonly string? Description => Utf8StringMarshaller.ConvertToManaged(_description);
 
     /// <summary>
     /// The HREF/click URL of the news entry.
     /// </summary>
-    public string? Url => Utf8StringMarshaller.ConvertToManaged(_url);
+    public readonly string? Url => Utf8StringMarshaller.ConvertToManaged(_url);
 
     /// <summary>
     /// The short format (DD/MM) of the date for the news entry.
     /// </summary>
-    public string? PostDate => Utf8StringMarshaller.ConvertToManaged(_postDate);
+    public readonly string? PostDate => Utf8StringMarshaller.ConvertToManaged(_postDate);
 
     /// <summary>
     /// Write the strings into the current struct.
