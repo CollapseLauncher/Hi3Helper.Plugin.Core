@@ -133,6 +133,20 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     string get_LauncherGameDirectoryName();
 
     /// <summary>
+    /// Retrieves the name of the game vendor.
+    /// </summary>
+    /// <returns>The game vendor name.</returns>
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameVendorName();
+
+    /// <summary>
+    /// Retrieves the registry key name for the game.
+    /// </summary>
+    /// <returns>The registry key name for the game.</returns>
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string get_GameRegistryKeyName();
+
+    /// <summary>
     /// Gets an instance to the <see cref="ILauncherApiMedia"/>.
     /// </summary>
     /// <returns>The launcher Media API instance.</returns>
@@ -154,17 +168,10 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     IGameManager? get_GameManager();
 
     /// <summary>
-    /// Retrieves the name of the game vendor.
+    /// Gets an instance to the <see cref="IGameInstaller"/> and <see cref="IGameUninstaller"/>
     /// </summary>
-    /// <returns>The game vendor name.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string get_GameVendorName();
-
-    /// <summary>
-    /// Retrieves the registry key name for the game.
-    /// </summary>
-    /// <returns>The registry key name for the game.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string get_GameRegistryKeyName();
+    /// <returns>The game installer and uninstaller instance.</returns>
+    [return: MarshalAs(UnmanagedType.Interface)]
+    IGameInstaller? get_GameInstaller();
     #endregion
 }

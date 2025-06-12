@@ -35,6 +35,7 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     public abstract ILauncherApiMedia? LauncherApiMedia { get; set; }
     public abstract ILauncherApiNews? LauncherApiNews { get; set; }
     public abstract IGameManager? GameManager { get; set; }
+    public abstract IGameInstaller? GameInstaller { get; set; }
 
     #region Generic Read-only Properties Callbacks
     string IPluginPresetConfig.get_GameSupportedLanguages(int index)
@@ -70,6 +71,7 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     ILauncherApiMedia? IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
     ILauncherApiNews? IPluginPresetConfig.get_LauncherApiNews() => LauncherApiNews;
     IGameManager? IPluginPresetConfig.get_GameManager() => GameManager;
+    IGameInstaller? IPluginPresetConfig.get_GameInstaller() => GameInstaller;
     #endregion
 
     public virtual void Dispose()
