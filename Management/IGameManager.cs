@@ -94,7 +94,8 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// <summary>
     /// Perform config saving mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string, bool)"/>.
     /// </summary>
-    void SaveConfig();
+    /// <param name="updatePathOnly">Whether to only save the path and ignore other settings (Example: Version, Channels, etc.) or saving both (if false)</param>
+    void SaveConfig([MarshalAs(UnmanagedType.Bool)] bool updatePathOnly = false);
 
     /// <summary>
     /// Finds the existing installation path of the game asynchronously.

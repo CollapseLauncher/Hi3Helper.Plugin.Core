@@ -40,7 +40,7 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     protected abstract void SetGamePathInner(string gamePath, bool isSave);
 
     public abstract void LoadConfig();
-    public abstract void SaveConfig();
+    public abstract void SaveConfig(bool updatePathOnly = false);
 
     bool IGameManager.IsGameHasPreload() => HasPreload;
     bool IGameManager.IsGameHasUpdate()  => HasUpdate;
