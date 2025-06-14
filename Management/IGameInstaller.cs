@@ -23,7 +23,7 @@ public delegate void InstallProgressStateDelegate(in InstallProgressState state)
 public partial interface IGameInstaller : IDisposable
 {
     /// <summary>
-    /// Get the estimated total size of the game depends on the current state.
+    /// Gets the estimated total size of the game depends on the current state.
     /// </summary>
     /// <param name="gameInstallerKind">Kind of game state of the size to retrieve.</param>
     /// <param name="cancelToken">Cancel token for the async operation.</param>
@@ -33,6 +33,18 @@ public partial interface IGameInstaller : IDisposable
     /// result to <see cref="long"/> in order to await and get the result from this async function.
     /// </returns>
     nint GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken);
+
+    /// <summary>
+    /// Gets the size of existing/downloaded assets depends on the current state.
+    /// </summary>
+    /// <param name="gameInstallerKind">Kind of game state of the size to retrieve.</param>
+    /// <param name="cancelToken">Cancel token for the async operation.</param>
+    /// <returns>
+    /// A pointer to the <see cref="ComAsyncResult"/> instance.<br/>
+    /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and set the generic<br/>
+    /// result to <see cref="long"/> in order to await and get the result from this async function.
+    /// </returns>
+    nint GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken);
 
     /// <summary>
     /// Perform installation routine asynchronously.
