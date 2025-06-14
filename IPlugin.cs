@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 // ReSharper disable InconsistentNaming
 
+#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core;
 
 /// <summary>
@@ -86,4 +87,9 @@ public partial interface IPlugin : IDisposable
     /// </summary>
     /// <param name="localeId">The locale ID to be set (for example: en-US)</param>
     void SetPluginLocaleId([MarshalAs(UnmanagedType.LPWStr)] string? localeId);
+
+    #region DynamicInterfaceCastable Explicit Calls
+    /// <inheritdoc/>
+    void IDisposable.Dispose() => Dispose();
+    #endregion
 }

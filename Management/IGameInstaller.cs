@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
+#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management;
 
 /// <summary>
@@ -71,4 +72,9 @@ public partial interface IGameInstaller : IDisposable
     /// The function, however is not-returnable.
     /// </returns>
     nint StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken);
+
+    #region DynamicInterfaceCastable Explicit Calls
+    /// <inheritdoc/>
+    void IDisposable.Dispose() => Dispose();
+    #endregion
 }

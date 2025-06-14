@@ -1,10 +1,10 @@
 ﻿using Hi3Helper.Plugin.Core.Management.Api;
 using Hi3Helper.Plugin.Core.Utility;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.Core.Management;
 
@@ -21,32 +21,32 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     protected abstract bool HasUpdate    { get; }
     protected abstract bool IsInstalled  { get; }
 
-    void IGameManager.GetCurrentGameVersion(out GameVersion gameVersion)     => gameVersion = CurrentGameVersion;
-    void IGameManager.GetApiGameVersion(out GameVersion gameVersion)         => gameVersion = ApiGameVersion;
-    void IGameManager.GetApiPreloadGameVersion(out GameVersion gameVersion)  => gameVersion = ApiPreloadGameVersion;
-    void IGameManager.SetCurrentGameVersion(in GameVersion gameVersion, bool isSave)
+    public void GetCurrentGameVersion(out GameVersion gameVersion)     => gameVersion = CurrentGameVersion;
+    public void GetApiGameVersion(out GameVersion gameVersion)         => gameVersion = ApiGameVersion;
+    public void GetApiPreloadGameVersion(out GameVersion gameVersion)  => gameVersion = ApiPreloadGameVersion;
+    public void SetCurrentGameVersion(in GameVersion gameVersion)
     {
         CurrentGameVersion = gameVersion;
-        SetCurrentGameVersionInner(in gameVersion, isSave);
+        SetCurrentGameVersionInner(in gameVersion);
     }
-    protected abstract void SetCurrentGameVersionInner(in GameVersion gameVersion, bool isSave);
+    protected abstract void SetCurrentGameVersionInner(in GameVersion gameVersion);
 
-    string? IGameManager.GetGamePath() => CurrentGameInstallPath;
-    void IGameManager.SetGamePath(string gamePath, bool isSave)
+    public string? GetGamePath() => CurrentGameInstallPath;
+    public void SetGamePath(string gamePath)
     {
         CurrentGameInstallPath = gamePath;
-        SetGamePathInner(gamePath, isSave);
+        SetGamePathInner(gamePath);
     }
-    protected abstract void SetGamePathInner(string gamePath, bool isSave);
+    protected abstract void SetGamePathInner(string gamePath);
 
     public abstract void LoadConfig();
-    public abstract void SaveConfig(bool updatePathOnly = false);
+    public abstract void SaveConfig();
 
-    bool IGameManager.IsGameHasPreload() => HasPreload;
-    bool IGameManager.IsGameHasUpdate()  => HasUpdate;
-    bool IGameManager.IsGameInstalled()  => IsInstalled;
+    public bool IsGameHasPreload() => HasPreload;
+    public bool IsGameHasUpdate()  => HasUpdate;
+    public bool IsGameInstalled()  => IsInstalled;
 
-    nint IGameManager.FindExistingInstallPathAsync(in Guid cancelToken)
+    public nint FindExistingInstallPathAsync(in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;

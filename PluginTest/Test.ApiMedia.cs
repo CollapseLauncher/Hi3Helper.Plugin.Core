@@ -29,12 +29,12 @@ internal static partial class Test
 
     private static async Task InnerStartBackgroundImageEntryTest(ILogger logger, IPluginPresetConfig presetConfig, int presetConfigIndex)
     {
-        ILauncherApiMedia? apiMedia = presetConfig.get_LauncherApiMedia();
+        ILauncherApiMedia? apiMedia = presetConfig.comGet_LauncherApiMedia();
 
         if (apiMedia == null)
             return;
 
-        logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
+        logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
         int value = await apiMedia.InitAsync(in CancelToken).WaitFromHandle<int>();
         logger.LogInformation("Return value: {ReturnValue}", value);
 
@@ -43,7 +43,7 @@ internal static partial class Test
 
         logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundPathMemory.AsSafePointer());
 
-        string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.get_ProfileName());
+        string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.comGet_ProfileName());
 
         for (int j = 0; j < backgroundUrlCount; j++)
         {
@@ -95,12 +95,12 @@ internal static partial class Test
 
     private static async Task InnerStartMediaSocMedEntryTest(ILogger logger, IPluginPresetConfig presetConfig, int presetConfigIndex, bool isChild)
     {
-        ILauncherApiNews? apiNews = presetConfig.get_LauncherApiNews();
+        ILauncherApiNews? apiNews = presetConfig.comGet_LauncherApiNews();
 
         if (apiNews == null)
             return;
 
-        logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->get_LauncherApiNews()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
+        logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherApiNews()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
         int value = await apiNews.InitAsync(in CancelToken).WaitFromHandle<int>();
         logger.LogInformation("Return value: {ReturnValue}", value);
 

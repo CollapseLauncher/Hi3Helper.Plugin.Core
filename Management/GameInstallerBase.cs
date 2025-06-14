@@ -11,35 +11,35 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
 {
     protected readonly IGameManager GameManager = gameManager ?? throw new NullReferenceException("Game Manager is null!");
 
-    nint IGameInstaller.GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken)
+    public nint GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         return GetGameSizeAsyncInner(gameInstallerKind, token).AsResult();
     }
 
-    nint IGameInstaller.StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
+    public nint StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         return StartInstallAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
     }
 
-    nint IGameInstaller.StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
+    public nint StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         return StartUpdateAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
     }
 
-    nint IGameInstaller.StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
+    public nint StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         return StartPreloadAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
     }
 
-    nint IGameUninstaller.UninstallAsync(in Guid cancelToken)
+    public nint UninstallAsync(in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;

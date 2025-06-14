@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
+#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management;
 
 /// <summary>
@@ -28,17 +29,19 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// Set-only or Set-Save the path of the game installation.
     /// </summary>
     /// <param name="gamePath">The new file system path to the game installation directory.</param>
-    /// <param name="isSave">
-    /// Whether to perform config update or just set the game path.
-    /// Set <c>true</c> to perform config update inside the plugin or <c>false</c> to just set the config.
-    /// </param>
-    void SetGamePath([MarshalAs(UnmanagedType.LPWStr)] string gamePath, [MarshalAs(UnmanagedType.Bool)] bool isSave = false);
+    void SetGamePath([MarshalAs(UnmanagedType.LPWStr)] string gamePath);
 
     /// <summary>
     /// Gets the current version of the installed game.
     /// </summary>
     /// <param name="gameVersion">An <see cref="GameVersion"/> representing the installed game version.</param>
     void GetCurrentGameVersion(out GameVersion gameVersion);
+
+    /// <summary>
+    /// Sets the current version of the installed game.
+    /// </summary>
+    /// <param name="version">The <see cref="IVersion"/> to set as the current game version.</param>
+    void SetCurrentGameVersion(in GameVersion version);
 
     /// <summary>
     /// Gets the latest game version available from the API.
@@ -51,16 +54,6 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// </summary>
     /// <param name="gameVersion">An <see cref="GameVersion"/> representing the preload version, or <see cref="GameVersion.Empty"/> if not available.</param>
     void GetApiPreloadGameVersion(out GameVersion gameVersion);
-
-    /// <summary>
-    /// Sets the current version of the installed game.
-    /// </summary>
-    /// <param name="version">The <see cref="IVersion"/> to set as the current game version.</param>
-    /// <param name="isSave">
-    /// Whether to perform config update or just set the current game version.
-    /// Set <c>true</c> to perform config update inside the plugin or <c>false</c> to just set the config.
-    /// </param>
-    void SetCurrentGameVersion(in GameVersion version, [MarshalAs(UnmanagedType.Bool)] bool isSave = false);
 
     /// <summary>
     /// Determines whether the game is currently installed.
@@ -87,15 +80,14 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     bool IsGameHasPreload();
 
     /// <summary>
-    /// Perform config loading mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string, bool)"/>.
+    /// Perform config loading mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string)"/>.
     /// </summary>
     void LoadConfig();
 
     /// <summary>
-    /// Perform config saving mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string, bool)"/>.
+    /// Perform config saving mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string)"/>.
     /// </summary>
-    /// <param name="updatePathOnly">Whether to only save the path and ignore other settings (Example: Version, Channels, etc.) or saving both (if false)</param>
-    void SaveConfig([MarshalAs(UnmanagedType.Bool)] bool updatePathOnly = false);
+    void SaveConfig();
 
     /// <summary>
     /// Finds the existing installation path of the game asynchronously.
@@ -105,4 +97,12 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// The pointer needs to be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and the generic type must be <see cref="PluginDisposableMemoryMarshal"/> of <see cref="byte"/>
     /// </returns>
     nint FindExistingInstallPathAsync(in Guid cancelToken);
+
+    #region DynamicInterfaceCastable Explicit Calls
+    /// <inheritdoc/>
+    nint IInitializableTask.InitAsync(in Guid cancelToken) => InitAsync(in cancelToken);
+
+    /// <inheritdoc/>
+    void IDisposable.Dispose() => Dispose();
+    #endregion
 }

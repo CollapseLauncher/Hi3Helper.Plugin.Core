@@ -3,6 +3,7 @@ using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices;
 using Hi3Helper.Plugin.Core.Utility;
 
+#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management.Api;
 
 /// <summary>
@@ -47,4 +48,12 @@ public partial interface ILauncherApi : IInitializableTask, IDisposable
                             nint                                     outputStreamHandle,
                             PluginFiles.FileReadProgressDelegate?    downloadProgress,
                             in Guid                                  cancelToken);
+
+    #region DynamicInterfaceCastable Explicit Calls
+    /// <inheritdoc/>
+    nint IInitializableTask.InitAsync(in Guid cancelToken) => InitAsync(in cancelToken);
+
+    /// <inheritdoc/>
+    void IDisposable.Dispose() => Dispose();
+    #endregion
 }

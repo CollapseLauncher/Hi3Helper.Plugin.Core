@@ -38,7 +38,7 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     public abstract IGameInstaller? GameInstaller { get; set; }
 
     #region Generic Read-only Properties Callbacks
-    string IPluginPresetConfig.get_GameSupportedLanguages(int index)
+    public string comGet_GameSupportedLanguages(int index)
     {
         if (index < 0 || index >= SupportedLanguages.Count)
         {
@@ -48,30 +48,30 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
         return SupportedLanguages[index];
     }
 
-    int IPluginPresetConfig.get_GameSupportedLanguagesCount() => SupportedLanguages.Count;
-    string IPluginPresetConfig.get_GameExecutableName() => GameExecutableName;
-    string IPluginPresetConfig.get_GameAppDataPath() => GameAppDataPath;
-    string IPluginPresetConfig.get_GameLogFileName() => GameLogFileName;
-    string IPluginPresetConfig.get_LauncherGameDirectoryName() => LauncherGameDirectoryName;
-    string IPluginPresetConfig.get_GameName() => GameName;
-    string IPluginPresetConfig.get_ProfileName() => ProfileName;
-    string IPluginPresetConfig.get_ZoneDescription() => ZoneDescription;
-    string IPluginPresetConfig.get_ZoneName() => ZoneName;
-    string IPluginPresetConfig.get_ZoneFullName() => ZoneFullName;
-    string IPluginPresetConfig.get_ZoneLogoUrl() => ZoneLogoUrl;
-    string IPluginPresetConfig.get_ZonePosterUrl() => ZonePosterUrl;
-    string IPluginPresetConfig.get_ZoneHomePageUrl() => ZoneHomePageUrl;
-    GameReleaseChannel IPluginPresetConfig.get_ReleaseChannel() => ReleaseChannel;
-    string IPluginPresetConfig.get_GameMainLanguage() => GameMainLanguage;
-    string IPluginPresetConfig.get_GameVendorName() => GameVendorName;
-    string IPluginPresetConfig.get_GameRegistryKeyName() => GameRegistryKeyName;
+    public int    comGet_GameSupportedLanguagesCount() => SupportedLanguages.Count;
+    public string comGet_GameExecutableName() => GameExecutableName;
+    public string comGet_GameAppDataPath() => GameAppDataPath;
+    public string comGet_GameLogFileName() => GameLogFileName;
+    public string comGet_LauncherGameDirectoryName() => LauncherGameDirectoryName;
+    public string comGet_GameName() => GameName;
+    public string comGet_ProfileName() => ProfileName;
+    public string comGet_ZoneDescription() => ZoneDescription;
+    public string comGet_ZoneName() => ZoneName;
+    public string comGet_ZoneFullName() => ZoneFullName;
+    public string comGet_ZoneLogoUrl() => ZoneLogoUrl;
+    public string comGet_ZonePosterUrl() => ZonePosterUrl;
+    public string comGet_ZoneHomePageUrl() => ZoneHomePageUrl;
+    public GameReleaseChannel comGet_ReleaseChannel() => ReleaseChannel;
+    public string comGet_GameMainLanguage() => GameMainLanguage;
+    public string comGet_GameVendorName() => GameVendorName;
+    public string comGet_GameRegistryKeyName() => GameRegistryKeyName;
     #endregion
 
     # region Generic Read-only API Instance Callbacks
-    ILauncherApiMedia? IPluginPresetConfig.get_LauncherApiMedia() => LauncherApiMedia;
-    ILauncherApiNews? IPluginPresetConfig.get_LauncherApiNews() => LauncherApiNews;
-    IGameManager? IPluginPresetConfig.get_GameManager() => GameManager;
-    IGameInstaller? IPluginPresetConfig.get_GameInstaller() => GameInstaller;
+    public ILauncherApiMedia? comGet_LauncherApiMedia() => LauncherApiMedia;
+    public ILauncherApiNews? comGet_LauncherApiNews() => LauncherApiNews;
+    public IGameManager? comGet_GameManager() => GameManager;
+    public IGameInstaller? comGet_GameInstaller() => GameInstaller;
     #endregion
 
     public virtual void Dispose()

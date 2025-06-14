@@ -22,13 +22,13 @@ public abstract partial class PluginBase : IPlugin
     public abstract int GetPresetConfigCount();
     public abstract IPluginPresetConfig GetPresetConfig(int index);
 
-    void IPlugin.CancelAsync(in Guid cancelToken)
+    public void CancelAsync(in Guid cancelToken)
     {
         // Cancel the async operation using the provided cancel token
         ComCancellationTokenVault.CancelToken(in cancelToken);
     }
 
-    bool IPlugin.SetPluginProxySettings(string? hostUri, string? username, string? password)
+    public bool SetPluginProxySettings(string? hostUri, string? username, string? password)
     {
         // If all nulls or empty, assume as it resets the configuration, then return true.
         if (string.IsNullOrEmpty(hostUri) &&
@@ -59,7 +59,7 @@ public abstract partial class PluginBase : IPlugin
         return true;
     }
 
-    void IPlugin.SetPluginLocaleId(string? localeId) => SharedStatic.SetPluginCurrentLocale(localeId);
+    public void SetPluginLocaleId(string? localeId) => SharedStatic.SetPluginCurrentLocale(localeId);
 
     public virtual void Dispose()
     {

@@ -3,10 +3,12 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
+#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management;
 
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameUninstaller)]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IGameUninstaller : IDisposable
 {
     /// <summary>
@@ -19,4 +21,9 @@ public partial interface IGameUninstaller : IDisposable
     /// The function, however is not-returnable.
     /// </returns>
     nint UninstallAsync(in Guid cancelToken);
+
+    #region DynamicInterfaceCastable Explicit Calls
+    /// <inheritdoc/>
+    void IDisposable.Dispose() => Dispose();
+    #endregion
 }
