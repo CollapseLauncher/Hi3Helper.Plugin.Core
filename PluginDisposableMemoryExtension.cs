@@ -12,7 +12,6 @@ public static class PluginDisposableMemoryExtension
         where T : unmanaged
     {
         PluginDisposableMemory<T> span = new((T*)memory.Handle, memory.Length, memory.IsDisposable);
-        FreeMarshal(ref memory);
         return span;
     }
 
