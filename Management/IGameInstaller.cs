@@ -10,7 +10,7 @@ namespace Hi3Helper.Plugin.Core.Management;
 /// Delegate to provide callback to get progress of the game installation.
 /// </summary>
 /// <param name="progress">A readonly reference struct of the progress</param>
-public delegate void InstallProgressDelegate(in InstallProgress progress);
+public unsafe delegate void InstallProgressDelegate(InstallProgress* progress);
 
 /// <summary>
 /// Delegate to provide callback to get the state of the game installation progress.
