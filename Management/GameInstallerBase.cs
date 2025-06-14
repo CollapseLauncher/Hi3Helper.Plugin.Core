@@ -18,6 +18,13 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
         return GetGameSizeAsyncInner(gameInstallerKind, token).AsResult();
     }
 
+    public nint GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken)
+    {
+        CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
+        CancellationToken token = tokenSource.Token;
+        return GetGameDownloadedSizeAsyncInner(gameInstallerKind, token).AsResult();
+    }
+
     public nint StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
@@ -47,6 +54,7 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
     }
 
     protected abstract Task<long> GetGameSizeAsyncInner(GameInstallerKind gameInstallerKind, CancellationToken token);
+    protected abstract Task<long> GetGameDownloadedSizeAsyncInner(GameInstallerKind gameInstallerKind, CancellationToken token);
     protected abstract Task StartInstallAsyncInner(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, CancellationToken token);
     protected abstract Task StartUpdateAsyncInner(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, CancellationToken token);
     protected abstract Task StartPreloadAsyncInner(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, CancellationToken token);
