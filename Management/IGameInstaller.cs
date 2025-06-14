@@ -16,7 +16,7 @@ public delegate void InstallProgressDelegate(in InstallProgress progress);
 /// Delegate to provide callback to get the state of the game installation progress.
 /// </summary>
 /// <param name="state">A readonly reference enum of the installation progress state.</param>
-public delegate void InstallProgressStateDelegate(in InstallProgressState state);
+public delegate void InstallProgressStateDelegate(InstallProgressState state);
 
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameInstaller)]
