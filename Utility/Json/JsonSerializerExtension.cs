@@ -2,7 +2,7 @@
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 
-namespace Hi3Helper.Plugin.Core.Utility;
+namespace Hi3Helper.Plugin.Core.Utility.Json;
 
 public static class JsonSerializerExtension
 {
