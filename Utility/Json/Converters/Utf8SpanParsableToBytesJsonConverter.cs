@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,9 +12,8 @@ namespace Hi3Helper.Plugin.Core.Utility.Json.Converters;
 public class Utf8SpanParsableToBytesJsonConverter<TSpan> : JsonConverter<byte[]?>
     where TSpan : unmanaged, IUtf8SpanParsable<TSpan>, IUtf8SpanFormattable, IEquatable<TSpan>
 {
-    public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert == typeof(IUtf8SpanParsable<>) &&
-        typeToConvert == typeof(IUtf8SpanFormattable);
+    public override bool CanConvert(Type typeToConvert)
+        => default(TSpan) is IUtf8SpanFormattable;
 
     public override unsafe byte[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -80,46 +78,56 @@ public class Utf8SpanParsableToBytesJsonConverter<TSpan> : JsonConverter<byte[]?
             return;
         }
 
+        // Box the value to object
+        object dataBoxed = *dataP;
+
         // Check if the type is a boolean
-        if (typeof(TSpan) == typeof(bool))
+        if (dataBoxed is bool dataAsBool)
         {
-            writer.WriteBooleanValue(*(bool*)dataP);
+            writer.WriteBooleanValue(dataAsBool);
             return;
         }
 
         // Handles the number if it has WriteAsString flag
         if (!options.NumberHandling.HasFlag(JsonNumberHandling.WriteAsString))
         {
-            // First, check if the data is floating type numbers.
-            if (typeof(TSpan) == typeof(decimal))
+            switch (dataBoxed)
             {
-                writer.WriteNumberValue(*(decimal*)dataP);
-                return;
-            }
-
-            if (typeof(TSpan) == typeof(double))
-            {
-                writer.WriteNumberValue(*(double*)dataP);
-                return;
-            }
-
-            if (typeof(TSpan) == typeof(float))
-            {
-                writer.WriteNumberValue(*(float*)dataP);
-                return;
-            }
-
-            // Second, check if the data is an integer number (signed or unsigned).
-            if (typeof(TSpan) == typeof(ISignedNumber<>))
-            {
-                writer.WriteNumberValue((long)(object)*dataP);
-                return;
-            }
-
-            if (typeof(TSpan) == typeof(IUnsignedNumber<>))
-            {
-                writer.WriteNumberValue((ulong)(object)*dataP);
-                return;
+                // First, check if the data is floating type numbers.
+                case decimal asDecimal:
+                    writer.WriteNumberValue(asDecimal);
+                    return;
+                case double asDouble:
+                    writer.WriteNumberValue(asDouble);
+                    return;
+                case float asFloat:
+                    writer.WriteNumberValue(asFloat);
+                    return;
+                // Second, check if the data is an integer number (signed or unsigned).
+                case long asLong:
+                    writer.WriteNumberValue(asLong);
+                    return;
+                case ulong asULong:
+                    writer.WriteNumberValue(asULong);
+                    return;
+                case int asInt:
+                    writer.WriteNumberValue(asInt);
+                    return;
+                case uint asUInt:
+                    writer.WriteNumberValue(asUInt);
+                    return;
+                case short asShort:
+                    writer.WriteNumberValue(asShort);
+                    return;
+                case ushort asUShort:
+                    writer.WriteNumberValue(asUShort);
+                    return;
+                case sbyte asSByte:
+                    writer.WriteNumberValue(asSByte);
+                    return;
+                case byte asByte:
+                    writer.WriteNumberValue(asByte);
+                    return;
             }
         }
 
@@ -132,37 +140,5 @@ public class Utf8SpanParsableToBytesJsonConverter<TSpan> : JsonConverter<byte[]?
 
         // Write to the JSON directly
         writer.WriteStringValue(resultWriteP[..bytesWritten]);
-    }
-}
-
-/// <summary>
-/// Converts <see cref="INumberBase{TSelf}"/> members into <see cref="byte"/> array and vice versa.
-/// </summary>
-/// <typeparam name="TNumber">Where it's a member of <see cref="INumberBase{TSelf}"/></typeparam>
-public class NumberToBytesJsonConverter<TNumber> : Utf8SpanParsableToBytesJsonConverter<TNumber>
-    where TNumber : unmanaged, INumberBase<TNumber>
-{
-    public override bool CanConvert(Type typeToConvert) =>
-        typeof(INumberBase<>) == typeToConvert; // We don't need to merge base.CanConvert() result since TNumber
-                                                // must be guaranteed as INumber<> and since it has IUtf8SpanParsable<> and IUtf8SpanFormattable already.
-
-    public override byte[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        ThrowIfNotINumber();
-        return base.Read(ref reader, typeToConvert, options);
-    }
-
-    public override void Write(Utf8JsonWriter writer, byte[]? value, JsonSerializerOptions options)
-    {
-        ThrowIfNotINumber();
-        base.Write(writer, value, options);
-    }
-
-    private static void ThrowIfNotINumber()
-    {
-        if (typeof(TNumber) != typeof(INumber<>))
-        {
-            throw new InvalidOperationException("Number type is not a type of INumber<T>!");
-        }
     }
 }
