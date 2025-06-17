@@ -6,6 +6,13 @@ using System.Runtime.InteropServices.Marshalling;
 #pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management;
 
+/// <summary>
+/// Defines a method which handles the game's uninstallation process.
+/// </summary>
+/// <remarks>
+/// This interface is intended to perform uninstallation process.<br/>
+/// All methods included within this interface are mostly asynchronous which requires awaiting via <see cref="ComAsyncResult"/>.
+/// </remarks>
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameUninstaller)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

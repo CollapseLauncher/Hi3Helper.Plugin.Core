@@ -2,6 +2,9 @@
 
 namespace Hi3Helper.Plugin.Core.Management;
 
+/// <summary>
+/// Defines the status of each of the download progress, including: Asset Download Size, Asset Count and State Count.
+/// </summary>
 [StructLayout(LayoutKind.Explicit)] // Fit to 32 bytes
 public struct InstallProgress
 {

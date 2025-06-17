@@ -18,8 +18,16 @@ public delegate void InstallProgressDelegate(in InstallProgress progress);
 /// <param name="state">A readonly reference enum of the installation progress state.</param>
 public delegate void InstallProgressStateDelegate(InstallProgressState state);
 
+/// <summary>
+/// Defines a method which handles the game's installation and updates.
+/// </summary>
+/// <remarks>
+/// This interface is intended to perform installation, updates and game download size retrieval.<br/>
+/// All methods included within this interface are mostly asynchronous which requires awaiting via <see cref="ComAsyncResult"/>.
+/// </remarks>
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameInstaller)]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public partial interface IGameInstaller : IDisposable
 {
     /// <summary>

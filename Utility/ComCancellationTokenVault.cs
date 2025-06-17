@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
+/// <summary>
+/// An internal static class which stores the Cancellation Token of each respective Guid token.<br/>
+/// This class also handles token registration for <see cref="CancellationTokenSource"/> used by plugin's async method.
+/// </summary>
 internal static class ComCancellationTokenVault
 {
     private static readonly Dictionary<Guid, CancellationTokenSource> TokenVault = new();
@@ -99,6 +103,12 @@ internal static class ComCancellationTokenVault
         }
     }
 
+    /// <summary>
+    /// Cancel, Dispose and Unregister all the Guid Token of the respective cancel tokens.
+    /// </summary>
+    /// <remarks>
+    /// USE THIS ONLY IF YOU'RE DONE OR ABOUT TO FREE THE PLUGIN.
+    /// </remarks>
     internal static void DangerousCancelAndUnregisterAllToken()
     {
         using (ThreadLock.EnterScope())
