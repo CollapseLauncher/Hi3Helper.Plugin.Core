@@ -10,10 +10,12 @@ namespace Hi3Helper.Plugin.Core.Utility.Json.Converters;
 /// </summary>
 /// <typeparam name="TSpan">Where it's a member of both <see cref="IUtf8SpanParsable{TSelf}"/> and <see cref="IUtf8SpanFormattable"/></typeparam>
 public class Utf8SpanParsableToBytesJsonConverter<TSpan> : JsonConverter<byte[]?>
-    where TSpan : unmanaged, IUtf8SpanParsable<TSpan>, IUtf8SpanFormattable, IEquatable<TSpan>
+    where TSpan : unmanaged,
+                  IUtf8SpanParsable<TSpan>,
+                  IUtf8SpanFormattable,
+                  IEquatable<TSpan>
 {
-    public override bool CanConvert(Type typeToConvert)
-        => default(TSpan) is IUtf8SpanFormattable;
+    public override bool CanConvert(Type typeToConvert) => true;
 
     public override unsafe byte[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
