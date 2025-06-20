@@ -73,11 +73,41 @@ public struct GameVersion :
         return new GameVersion(nextMajor, nextMinor, Build, Revision);
     }
 
+    /// <summary>
+    /// Create a <see cref="Span{T}"/> of <see cref="int"/> representation of this struct.
+    /// </summary>
+    /// <returns>A <see cref="Span{T}"/> of <see cref="int"/> with 4-int by length.</returns>
     public unsafe ReadOnlySpan<int> AsSpan() => new(this.AsPointer(), 4);
-    public readonly Version ToVersion() => new(Major, Minor, Build, Revision);
-    public readonly override string ToString() => $"{Major}.{Minor}.{Build}";
 
-    public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+    /// <summary>
+    /// Convert this instance into <see cref="Version"/>.
+    /// </summary>
+    /// <returns>A <see cref="Version"/> instance.</returns>
+    public readonly Version ToVersion() => new(Major, Minor, Build, Revision);
+
+    /// <summary>
+    /// Create a string representation of <see cref="GameVersion"/> into full "Major.Minor.Build.Revision" format.
+    /// </summary>
+    public readonly override string ToString() => ToString(string.Empty, null);
+
+    /// <summary>
+    /// Create a string representation of <see cref="GameVersion"/>.
+    /// </summary>
+    /// <param name="format">
+    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written. Otherwise or by default, only "Major.Minor.Build.Revision" format is written.
+    /// </param>
+    /// <param name="formatProvider">A format provider instance to write the result.</param>
+    /// <returns>A string representation of <see cref="GameVersion"/>.</returns>
+    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        Span<char> writeStackalloc = stackalloc char[64];
+        if (!TryFormat(writeStackalloc, out int written, format, formatProvider))
+        {
+            throw new InvalidOperationException("Cannot write string to stackalloc buffer!");
+        }
+
+        return new string(writeStackalloc[..written]);
+    }
 
     public static bool operator <(GameVersion? left, GameVersion? right) =>
         left.HasValue && right.HasValue &&
@@ -176,7 +206,7 @@ public struct GameVersion :
     /// When this method returns, contains the number of characters that were written to <paramref name="destination"/>.
     /// </param>
     /// <param name="format">
-    /// An optional format specifier. If it's 'F' or 'f', the "Major.Minor.Build.Revision" format is written. Otherwise, only "Major.Minor.Build" format is written.
+    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written. Otherwise or by default, only "Major.Minor.Build.Revision" format is written.
     /// </param>
     /// <param name="provider">
     /// An optional format provider. This parameter is ignored in this implementation.
@@ -187,11 +217,11 @@ public struct GameVersion :
     /// <remarks>
     /// The formatted version string will be in the form "Major.Minor.Build" or "Major.Minor.Build.Revision" depending on the format specifier.
     /// </remarks>
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    public readonly bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         charsWritten = 0;
 
-        bool isUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == 'f'; // This compares both 'F' or 'f' as true.
+        bool isUseMiniFormat = !format.IsEmpty && (format[0] | 0x20) == 'n'; // This compares both 'n' or 'N' as true.
         if (destination.Length < 4)
         {
             return false;
@@ -209,13 +239,13 @@ public struct GameVersion :
         }
         charsWritten += offsetWritten;
 
-        if (!TryWriteAppend(Build, destination[charsWritten..], out offsetWritten, !isUseFullFormat))
+        if (!TryWriteAppend(Build, destination[charsWritten..], out offsetWritten, isUseMiniFormat))
         {
             return false;
         }
         charsWritten += offsetWritten;
 
-        if (!isUseFullFormat)
+        if (isUseMiniFormat)
         {
             return true;
         }
@@ -255,7 +285,7 @@ public struct GameVersion :
     /// When this method returns, contains the number of characters that were written to <paramref name="utf8Destination"/>.
     /// </param>
     /// <param name="format">
-    /// An optional format specifier. If it's 'F' or 'f', the "Major.Minor.Build.Revision" format is written. Otherwise, only "Major.Minor.Build" format is written.
+    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written. Otherwise or by default, only "Major.Minor.Build.Revision" format is written.
     /// </param>
     /// <param name="provider">
     /// An optional format provider. This parameter is ignored in this implementation.
@@ -266,11 +296,11 @@ public struct GameVersion :
     /// <remarks>
     /// The formatted version string will be in the form "Major.Minor.Build" or "Major.Minor.Build.Revision" depending on the format specifier.
     /// </remarks>
-    public bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    public readonly bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         bytesWritten = 0;
 
-        bool isUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == 'f'; // This compares both 'F' or 'f' as true.
+        bool isUseMiniFormat = !format.IsEmpty && (format[0] | 0x20) == 'n'; // This compares both 'n' or 'N' as true.
         if (utf8Destination.Length < 4)
         {
             return false;
@@ -288,13 +318,13 @@ public struct GameVersion :
         }
         bytesWritten += offsetWritten;
 
-        if (!TryWriteAppend(Build, utf8Destination[bytesWritten..], out offsetWritten, !isUseFullFormat))
+        if (!TryWriteAppend(Build, utf8Destination[bytesWritten..], out offsetWritten, isUseMiniFormat))
         {
             return false;
         }
         bytesWritten += offsetWritten;
 
-        if (!isUseFullFormat)
+        if (isUseMiniFormat)
         {
             return true;
         }
