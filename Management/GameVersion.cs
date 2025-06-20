@@ -375,6 +375,15 @@ public struct GameVersion :
     /// Attempts to parse a UTF-8 encoded byte span into a <see cref="GameVersion"/> instance.
     /// </summary>
     /// <param name="utf8Text">The UTF-8 encoded byte span representing the version string.</param>
+    /// <param name="result">When this method returns, contains the parsed <see cref="GameVersion"/> if successful; otherwise, the default value.</param>
+    /// <returns><see langword="true"/> if parsing was successful; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(ReadOnlySpan<byte> utf8Text, out GameVersion result)
+        => TryParse(utf8Text, null, out result);
+
+    /// <summary>
+    /// Attempts to parse a UTF-8 encoded byte span into a <see cref="GameVersion"/> instance.
+    /// </summary>
+    /// <param name="utf8Text">The UTF-8 encoded byte span representing the version string.</param>
     /// <param name="provider">An optional format provider. This parameter is ignored in this implementation.</param>
     /// <param name="result">When this method returns, contains the parsed <see cref="GameVersion"/> if successful; otherwise, the default value.</param>
     /// <returns><see langword="true"/> if parsing was successful; otherwise, <see langword="false"/>.</returns>
@@ -440,6 +449,15 @@ public struct GameVersion :
 
         return result;
     }
+
+    /// <summary>
+    /// Attempts to parse a character span into a <see cref="GameVersion"/> instance.
+    /// </summary>
+    /// <param name="versionSpan">The character span representing the version.</param>
+    /// <param name="result">When this method returns, contains the parsed <see cref="GameVersion"/> if successful; otherwise, the default value.</param>
+    /// <returns><see langword="true"/> if parsing was successful; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(ReadOnlySpan<char> versionSpan, out GameVersion result)
+        => TryParse(versionSpan, null, out result);
 
     /// <summary>
     /// Attempts to parse a character span into a <see cref="GameVersion"/> instance.
