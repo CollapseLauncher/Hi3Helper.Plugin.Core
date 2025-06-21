@@ -3,9 +3,6 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -75,37 +72,14 @@ public class SharedStatic
 
         try
         {
-            Assembly? currentAssembly = Assembly.GetExecutingAssembly();
-            if (currentAssembly == null)
+            Version? versionAssembly = _thisPluginInstance?.GetType().Assembly.GetName().Version;
+            if (versionAssembly == null)
             {
+                InstanceLogger.LogTrace("versionFromIPluginAssembly is null");
                 return _currentDllVersion.AsPointer();
             }
 
-            string? dllName = currentAssembly.FullName;
-            string dllPath = AppContext.BaseDirectory;
-            if (string.IsNullOrEmpty(dllName))
-            {
-                return _currentDllVersion.AsPointer();
-            }
-
-            string fullPath = Path.Combine(dllPath, dllName);
-            if (!File.Exists(fullPath))
-            {
-                return _currentDllVersion.AsPointer();
-            }
-
-            FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(fullPath);
-            if (fileVersion == null)
-            {
-                return _currentDllVersion.AsPointer();
-            }
-
-            string? versionString = fileVersion.FileVersion;
-            if (GameVersion.TryParse(versionString, out var version))
-            {
-                _currentDllVersion = version;
-            }
-
+            _currentDllVersion = new GameVersion(versionAssembly.Major, versionAssembly.Minor, versionAssembly.Build, versionAssembly.Revision);
             return _currentDllVersion.AsPointer();
         }
         catch
