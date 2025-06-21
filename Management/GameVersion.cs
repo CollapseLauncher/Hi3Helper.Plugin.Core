@@ -404,14 +404,13 @@ public struct GameVersion :
         int i = 0;
         foreach (var currentRange in utf8Text.SplitAny(ExSeparatorsUtf8))
         {
-            i++;
             if (!int.TryParse(utf8Text[currentRange], out int currentInt))
             {
                 result = default;
                 return false;
             }
 
-            versionInt[i] = currentInt;
+            versionInt[i++] = currentInt;
         }
 
         result = new GameVersion(versionInt);
