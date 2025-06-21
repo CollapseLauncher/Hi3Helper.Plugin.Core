@@ -36,16 +36,15 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
     private          Stream?                          _sourceStream;
     private readonly Stream                           _targetStream;
 
-    private bool _disposed;
+    private int _disposed;
 
     public void Dispose()
     {
-        if (_disposed)
+        // Ensure the _disposed state atomically to avoid invalid state due to race-condition.
+        if (_disposed == 1 || Interlocked.Exchange(ref _disposed, 1) == 1)
         {
             return;
         }
-
-        Interlocked.Exchange(ref _disposed, true);
 
         if (_options.IsDisposeTargetStream)
         {
@@ -58,12 +57,11 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        // Ensure the _disposed state atomically to avoid invalid state due to race-condition.
+        if (_disposed == 1 || Interlocked.Exchange(ref _disposed, 1) == 1)
         {
             return;
         }
-
-        Interlocked.Exchange(ref _disposed, true);
 
         if (_options.IsDisposeTargetStream)
         {
