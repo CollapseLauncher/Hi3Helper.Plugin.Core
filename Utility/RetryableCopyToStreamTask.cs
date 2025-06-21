@@ -196,7 +196,7 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
                     throw;
                 }
 
-                SharedStatic.InstanceLogger?.LogError(ex, "An error has occurred while running copy-to task to target stream! (Retry attempt left: {LastAttempt}) Exception: {Exception}", lastAttemptLeft, ex);
+                SharedStatic.InstanceLogger.LogError(ex, "An error has occurred while running copy-to task to target stream! (Retry attempt left: {LastAttempt}) Exception: {Exception}", lastAttemptLeft, ex);
                 if (_options.RetryDelaySeconds > 0)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(_options.RetryDelaySeconds), token);

@@ -55,7 +55,7 @@ public static class PluginFiles
                 throw;
             }
 
-            SharedStatic.InstanceLogger?.LogError(ex, "An error has occured while trying to download file: {FileUrl} (Retrying attempt left: {RetryAttempt})", fileUrl, retry);
+            SharedStatic.InstanceLogger.LogError(ex, "An error has occured while trying to download file: {FileUrl} (Retrying attempt left: {RetryAttempt})", fileUrl, retry);
             --retry;
             goto StartOver;
         }

@@ -116,7 +116,7 @@ internal static class ComCancellationTokenVault
             // Cancel all the token sources in the vault and clear the vault.
             foreach (KeyValuePair<Guid, CancellationTokenSource> tokenSource in TokenVault)
             {
-                SharedStatic.InstanceLogger?.LogTrace("[ComCancellationTokenVault::DangerousCancelAndUnregisterAllToken()] Disposing all async operations from cancel token: {Guid}", tokenSource.Key);
+                SharedStatic.InstanceLogger.LogTrace("[ComCancellationTokenVault::DangerousCancelAndUnregisterAllToken()] Disposing all async operations from cancel token: {Guid}", tokenSource.Key);
 
                 tokenSource.Value.Cancel();
                 tokenSource.Value.Dispose();

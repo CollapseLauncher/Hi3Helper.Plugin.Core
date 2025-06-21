@@ -126,13 +126,13 @@ public struct ComAsyncResult() : IDisposable
                 _resultP = (nint)Mem.Alloc<T>();
 #if DEBUG
                 // Log the exception info
-                SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] Result will be written at ptr: 0x{RetAddress:x8}", nameOfT, _resultP);
+                SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] Result will be written at ptr: 0x{RetAddress:x8}", nameOfT, _resultP);
 #endif
 
                 if (_resultP == nint.Zero)
                 {
 #if DEBUG
-                    SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult _resultP isn't allocated. The return value will not be written!", nameOfT);
+                    SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult _resultP isn't allocated. The return value will not be written!", nameOfT);
 #endif
                     return;
                 }
@@ -143,7 +143,7 @@ public struct ComAsyncResult() : IDisposable
                 }
 
 #if DEBUG
-                SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult return value value has been written!", nameOfT);
+                SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult return value value has been written!", nameOfT);
 #endif
             }
             finally
@@ -202,7 +202,7 @@ public struct ComAsyncResult() : IDisposable
 
 #if DEBUG
         // Log the exception info
-        SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing parent exception: {ExceptionName}", exception.GetType().Name);
+        SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing parent exception: {ExceptionName}", exception.GetType().Name);
 #endif
 
         // Write parent exception
@@ -220,7 +220,7 @@ public struct ComAsyncResult() : IDisposable
         {
 #if DEBUG
             // Log the exception info
-            SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing inner exception: {ExceptionName}", exception.GetType().Name);
+            SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing inner exception: {ExceptionName}", exception.GetType().Name);
 #endif
 
             // Write current inner exception
@@ -232,7 +232,7 @@ public struct ComAsyncResult() : IDisposable
 
 #if DEBUG
         // Log the exception info
-        SharedStatic.InstanceLogger?.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Write completed!");
+        SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Write completed!");
 #endif
     }
 

@@ -35,7 +35,7 @@ public abstract partial class PluginBase : IPlugin
             string.IsNullOrEmpty(username) &&
             string.IsNullOrEmpty(password))
         {
-            SharedStatic.InstanceLogger?.LogTrace("[IPlugin::SetPluginProxySettings] Proxy has been disabled!");
+            SharedStatic.InstanceLogger.LogTrace("[IPlugin::SetPluginProxySettings] Proxy has been disabled!");
 
             SharedStatic.ProxyHost     = null;
             SharedStatic.ProxyUsername = null;
@@ -51,7 +51,7 @@ public abstract partial class PluginBase : IPlugin
             return false;
         }
 
-        SharedStatic.InstanceLogger?.LogTrace("[IPlugin::SetPluginProxySettings] Proxy has been enabled! Hostname: {Hostname} as: {Username}", hostUri, username);
+        SharedStatic.InstanceLogger.LogTrace("[IPlugin::SetPluginProxySettings] Proxy has been enabled! Hostname: {Hostname} as: {Username}", hostUri, username);
 
         // Set the username and password and return true.
         SharedStatic.ProxyUsername = username;
@@ -78,6 +78,6 @@ public abstract partial class PluginBase : IPlugin
         }
 
         GC.SuppressFinalize(this);
-        SharedStatic.InstanceLogger?.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", GetPluginName());
+        SharedStatic.InstanceLogger.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", GetPluginName());
     }
 }

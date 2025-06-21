@@ -57,7 +57,7 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
             string? existedPath = await FindExistingInstallPathAsyncInner(innerToken);
             if (!string.IsNullOrEmpty(existedPath))
             {
-                SharedStatic.InstanceLogger?.LogTrace("[GameManagerBase::FindExistingInstallPathAsync] Found existing game installation path: {Path}", existedPath);
+                SharedStatic.InstanceLogger.LogTrace("[GameManagerBase::FindExistingInstallPathAsync] Found existing game installation path: {Path}", existedPath);
             }
 
             return existedPath;

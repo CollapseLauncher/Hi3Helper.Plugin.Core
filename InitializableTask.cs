@@ -43,21 +43,21 @@ public partial class InitializableTask : IInitializableTask
     /// </remarks>
     protected virtual async Task<int> InitAsync(CancellationToken token)
     {
-        InstanceLogger?.LogDebug("Hello World! from Initializable->InitAsync()!");
-        InstanceLogger?.LogDebug("If you see this message, that means you need to override this method in your own Initializable member class.");
-        InstanceLogger?.LogDebug("");
-        InstanceLogger?.LogDebug("Moreover, this is a test method to ensure that the interop async is working as expected.");
-        InstanceLogger?.LogDebug("Delaying for 10 seconds and you should've expected to get a return value of: 69420");
-        InstanceLogger?.LogDebug("You can also try to cancel this method by passing the Guid Cancel token to IPlugin.CancelAsync() method.");
+        InstanceLogger.LogDebug("Hello World! from Initializable->InitAsync()!");
+        InstanceLogger.LogDebug("If you see this message, that means you need to override this method with your own Initializable member class.");
+        InstanceLogger.LogDebug("");
+        InstanceLogger.LogDebug("Moreover, this is a test method to ensure that the interop async is working as expected.");
+        InstanceLogger.LogDebug("Delaying for 10 seconds and you should've expected to get a return value of: 69420");
+        InstanceLogger.LogDebug("You can also try to cancel this method by passing the Guid Cancel token to IPlugin.CancelAsync() method.");
         try
         {
             await Task.Delay(10000, token);
-            InstanceLogger?.LogDebug("Delay is done! Exiting method and returning: 69420...");
+            InstanceLogger.LogDebug("Delay is done! Exiting method and returning: 69420...");
             return 69420;
         }
         catch (OperationCanceledException)
         {
-            InstanceLogger?.LogError("Delay is cancelled! Exiting method and returning: {Value}...", int.MinValue);
+            InstanceLogger.LogError("Delay is cancelled! Exiting method and returning: {Value}...", int.MinValue);
             return int.MinValue;
         }
     }
