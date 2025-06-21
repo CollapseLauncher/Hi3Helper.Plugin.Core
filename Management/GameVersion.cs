@@ -265,6 +265,11 @@ public struct GameVersion :
                 return false;
             }
 
+            if (isFinal)
+            {
+                return true;
+            }
+
             if (!isFinal && dest.Length <= outWritten)
             {
                 return false;
