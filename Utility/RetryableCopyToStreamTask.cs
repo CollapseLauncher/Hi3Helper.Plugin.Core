@@ -108,7 +108,7 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
     public ValueTask StartTaskAsync(ReadDelegate? readDelegate = null, CancellationToken token = default)
     {
         // Throw if the task instance is already disposed
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed == 1, this);
 
         // Create task
         return StartTaskAsyncCore(readDelegate, token);
