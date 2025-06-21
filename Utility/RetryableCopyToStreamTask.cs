@@ -117,7 +117,7 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
 
     private async ValueTask StartTaskAsyncCore(ReadDelegate? readDelegate, CancellationToken token)
     {
-        int bufferLen = _options.MaxBufferSize <= 0 ? 4 << 10 : _options.MaxBufferSize;
+        int bufferLen = Math.Clamp(_options.MaxBufferSize, 1 << 10, 1 << 20);
         byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferLen);
 
         try
