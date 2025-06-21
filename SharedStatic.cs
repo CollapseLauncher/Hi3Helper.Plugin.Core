@@ -28,7 +28,6 @@ public class SharedStatic
 
     #region Private Static Fields
     private static GameVersion _currentDllVersion = GameVersion.Empty;
-    private static GameVersion _libraryStandardVersion = new(0, 1, 0, 0);
     private static IPlugin?    _thisPluginInstance;
     #endregion
 
@@ -40,7 +39,8 @@ public class SharedStatic
     internal static string?                    ProxyPassword;
     internal static string                     PluginLocaleCode = "en-us";
 
-    public static readonly ILogger InstanceLogger = new SharedLogger();
+    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 0, 0);
+    public static readonly ILogger     InstanceLogger         = new SharedLogger();
 
 #if DEBUG
     internal static bool IsDebug = true;
@@ -58,7 +58,13 @@ public class SharedStatic
     protected        delegate void         SetCallbackPointerDelegate(nint callbackP);
     protected        delegate void         VoidDelegate();
 
-    private static unsafe GameVersion* GetPluginStandardVersion() => _libraryStandardVersion.AsPointer();
+    private static unsafe GameVersion* GetPluginStandardVersion()
+    {
+        fixed (GameVersion* ptr = &LibraryStandardVersion)
+        {
+            return ptr;
+        }
+    }
 
     private static unsafe GameVersion* GetPluginVersion()
     {
