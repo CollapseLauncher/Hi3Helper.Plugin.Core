@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -143,12 +144,14 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
                 throw new NullReferenceException("Source stream cannot be null!");
             }
 
-            var (timedOutCts, coopCts) = RenewTimeOutCancelToken(timeoutSpan, token);
+            var (timedOutCts, coopCts) = RenewTimeOutCancelToken(in timeoutSpan, in token);
 
             try
             {
                 int read;
-                int bufferLen = buffer.Length;
+                int bufferLen           = buffer.Length;
+                int timeoutLastTick     = Environment.TickCount;
+                int timeoutMinRenewTick = _options.MinTokenBeforeTimeoutTicks;
 
                 while ((read = await _sourceStream
                     .ReadAsync(new Memory<byte>(buffer, 0, bufferLen), coopCts.Token)
@@ -160,11 +163,23 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
                         .WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, read), coopCts.Token)
                         .ConfigureAwait(false);
 
+                    // Check whether the token can be renewed. If it's still have enough time before the minimum renewal ticks (in milliseconds),
+                    // then continue and reuse the token. Otherwise, perform the renewal.
+                    if (!IsRenewTimeoutToken(
+                        in  timeoutSpan,
+                        in  token,
+                        ref timeoutLastTick,
+                        in  timeoutMinRenewTick,
+                        out CancellationTokenSource? newTimedOutCts,
+                        out CancellationTokenSource? newCoopCts))
+                        continue;
+
                     // Both timedOutCts and coopCts required to be disposed before renewal to avoid memory leaks.
                     timedOutCts.Dispose();
                     coopCts.Dispose();
 
-                    (timedOutCts, coopCts) = RenewTimeOutCancelToken(timeoutSpan, token);
+                    timedOutCts = newTimedOutCts;
+                    coopCts     = newCoopCts;
                 }
 
                 return;
@@ -214,10 +229,34 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
                isSuccessStatusCode;
     }
 
-    private static (CancellationTokenSource TimedOutCts, CancellationTokenSource CoopCts) RenewTimeOutCancelToken(TimeSpan timeoutSpan, CancellationToken innerToken)
+    private static bool IsRenewTimeoutToken(
+        in  TimeSpan          timeoutSpan,
+        in  CancellationToken innerToken,
+        ref int               lastTick,
+        in  int               tickRenewMinimum,
+        [NotNullWhen(true)] out CancellationTokenSource? timedOutCts,
+        [NotNullWhen(true)] out CancellationTokenSource? coopCts)
+    {
+        int currentTick = Environment.TickCount;
+        int remained    = lastTick - currentTick;
+
+        if (remained < tickRenewMinimum)
+        {
+            (timedOutCts, coopCts) = RenewTimeOutCancelToken(in timeoutSpan, in innerToken);
+            Interlocked.Exchange(ref lastTick, currentTick);
+            return true;
+        }
+
+        timedOutCts = null;
+        coopCts     = null;
+        return false;
+    }
+
+    private static (CancellationTokenSource TimedOutCts, CancellationTokenSource CoopCts)
+        RenewTimeOutCancelToken(in TimeSpan timeoutSpan, in CancellationToken innerToken)
     {
         CancellationTokenSource timedOutCts = new CancellationTokenSource(timeoutSpan);
-        CancellationTokenSource coopCts = CancellationTokenSource.CreateLinkedTokenSource(timedOutCts.Token, innerToken);
+        CancellationTokenSource coopCts     = CancellationTokenSource.CreateLinkedTokenSource(timedOutCts.Token, innerToken);
 
         return (timedOutCts, coopCts);
     }

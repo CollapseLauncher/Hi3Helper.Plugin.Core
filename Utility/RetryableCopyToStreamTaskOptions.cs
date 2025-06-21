@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 // ReSharper disable IdentifierTypo
 
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -41,6 +42,32 @@ public class RetryableCopyToStreamTaskOptions
     /// Default: 1 second
     /// </remarks>
     public double RetryDelaySeconds { get; init; } = 1d;
+
+    /// <summary>
+    /// How many milliseconds before the internal cancellation token can be renewed.
+    /// </summary>
+    /// <remarks>
+    /// Default: (<see cref="MaxTimeoutSeconds"/> * 1000) / 4<br/>
+    /// The value CANNOT BE LOWER than 2000 milliseconds. Otherwise, the cancellation token will always be renewed before timeout period.
+    /// </remarks>
+    public int MinTokenBeforeTimeoutTicks
+    {
+        get
+        {
+            if (MaxTimeoutSeconds <= 2 && field < 2000)
+            {
+                return 0;
+            }
+
+            if (field >= 2000)
+            {
+                return field * 1000 / 4;
+            }
+
+            return (int)(MaxTimeoutSeconds * 1000) / 4;
+        }
+        set;
+    }
 
     /// <summary>
     /// Whether to dispose the target <see cref="Stream"/> once <see cref="IDisposable.Dispose()"/> is being called.
