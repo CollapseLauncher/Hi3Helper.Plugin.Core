@@ -85,8 +85,10 @@ internal class Program
 
     private static void FreeLibrary(nint handle)
     {
-        nint exportFreePlugin = NativeLibrary.GetExport(handle, "FreePlugin");
-        Marshal.GetDelegateForFunctionPointer<FreeLibraryDelegate>(exportFreePlugin)();
+        if (!PInvoke.TryGetProcAddress(handle, "FreePlugin", out _, out FreeLibraryDelegate exportFreePlugin))
+            throw new InvalidOperationException("Cannot find \"FreePlugin\" export API from the plugin.");
+
+        exportFreePlugin();
     }
 
     internal static readonly InvokeLogger InvokeLogger = new();

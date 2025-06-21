@@ -39,24 +39,41 @@ namespace PluginTest
             return false;
         }
 
-        public static bool TryGetProcAddress<T>(nint handle, string exportName, out int err, out T delegateOut)
+        private unsafe delegate int TryGetApiExportDelegate(char* exportName, out nint delegateP);
+
+        public static unsafe bool TryGetProcAddress<T>(nint handle, string exportName, out int err, out T delegateOut)
         {
             Unsafe.SkipInit(out delegateOut);
 
             err = 0;
-            nint procAddress = GetProcAddress(handle, exportName);
-            if (procAddress != nint.Zero)
-            {
-                delegateOut = Marshal.GetDelegateForFunctionPointer<T>(procAddress);
-                return true;
-            }
+            nint getApiProcAddress = GetProcAddress(handle, "TryGetApiExport");
+            TryGetApiExportDelegate tryGetApiExportCallback = Marshal.GetDelegateForFunctionPointer<TryGetApiExportDelegate>(getApiProcAddress);
 
-            err = Marshal.GetLastWin32Error();
-            Console.Error.WriteLine("    Error while trying to get export: {0}\r\nWin32 Error Code: {1} ({2})",
-                exportName,
-                err,
-                Marshal.GetPInvokeErrorMessage(err));
-            return false;
+            fixed (char* namePtr = exportName)
+            {
+                int resGetApiPtr = tryGetApiExportCallback(namePtr, out nint procAddress);
+                if (resGetApiPtr != 0)
+                {
+                    err = Marshal.GetLastWin32Error();
+                    Console.Error.WriteLine("    Cannot retrieve TryGetApiExport export!\r\nWin32 Error Code: {0} ({1})",
+                        err,
+                        Marshal.GetPInvokeErrorMessage(err));
+                    return false;
+                }
+
+                if (procAddress != nint.Zero)
+                {
+                    delegateOut = Marshal.GetDelegateForFunctionPointer<T>(procAddress);
+                    return true;
+                }
+
+                err = Marshal.GetLastWin32Error();
+                Console.Error.WriteLine("    Error while trying to get export: {0}\r\nWin32 Error Code: {1} ({2})",
+                    exportName,
+                    err,
+                    Marshal.GetPInvokeErrorMessage(err));
+                return false;
+            }
         }
     }
 }
