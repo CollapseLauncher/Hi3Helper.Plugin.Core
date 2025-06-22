@@ -54,6 +54,20 @@ public partial interface IPlugin : IFree, IDisposable
     int GetPresetConfigCount();
 
     /// <summary>
+    /// Gets the app icon URL of the plugin.
+    /// </summary>
+    /// <returns>The icon URL of the plugin.</returns>
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string? GetPluginAppIconUrl();
+
+    /// <summary>
+    /// Gets the notification poster URL of the plugin.
+    /// </summary>
+    /// <returns>The notification poster URL of the plugin.</returns>
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string? GetNotificationPosterUrl();
+
+    /// <summary>
     /// Gets a specific <see cref="IPluginPresetConfig"/> instance by index.
     /// </summary>
     /// <param name="index">The index of the preset configuration.</param>

@@ -23,6 +23,8 @@ public abstract partial class PluginBase : IPlugin
     public abstract int GetPresetConfigCount();
     public abstract IPluginPresetConfig GetPresetConfig(int index);
     public virtual IPluginSelfUpdate? GetPluginSelfUpdater() => null;
+    public virtual string? GetPluginAppIconUrl() => null;
+    public virtual string? GetNotificationPosterUrl() => null;
 
     public void CancelAsync(in Guid cancelToken)
     {
