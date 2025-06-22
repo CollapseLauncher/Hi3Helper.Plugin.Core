@@ -103,6 +103,6 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     nint IInitializableTask.InitAsync(in Guid cancelToken) => InitAsync(in cancelToken);
 
     /// <inheritdoc/>
-    void IDisposable.Dispose() => Dispose();
+    void IDisposable.Dispose() => Free();
     #endregion
 }

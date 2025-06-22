@@ -75,6 +75,8 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
         await PluginFiles.DownloadFilesAsync(client, fileUrl, outputStream, downloadProgress, token).ConfigureAwait(false);
     }
 
+    public override void Free() => Dispose();
+
     public virtual void Dispose()
     {
         if (IsDisposed)

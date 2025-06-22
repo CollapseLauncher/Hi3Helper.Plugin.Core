@@ -28,7 +28,7 @@ public delegate void InstallProgressStateDelegate(InstallProgressState state);
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameInstaller)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IGameInstaller : IDisposable
+public partial interface IGameInstaller : IFree, IDisposable
 {
     /// <summary>
     /// Gets the estimated total size of the game depends on the current state.
@@ -95,6 +95,6 @@ public partial interface IGameInstaller : IDisposable
 
     #region DynamicInterfaceCastable Explicit Calls
     /// <inheritdoc/>
-    void IDisposable.Dispose() => Dispose();
+    void IDisposable.Dispose() => Free();
     #endregion
 }

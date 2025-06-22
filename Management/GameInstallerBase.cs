@@ -71,5 +71,7 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
         return gamePath;
     }
 
+    public override void Free() => Dispose();
+
     public abstract void Dispose();
 }

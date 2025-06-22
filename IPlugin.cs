@@ -16,7 +16,7 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExPlugin)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IPlugin : IDisposable
+public partial interface IPlugin : IFree, IDisposable
 {
     /// <summary>
     /// Gets the name of the plugin or the game it represents.
@@ -90,6 +90,6 @@ public partial interface IPlugin : IDisposable
 
     #region DynamicInterfaceCastable Explicit Calls
     /// <inheritdoc/>
-    void IDisposable.Dispose() => Dispose();
+    void IDisposable.Dispose() => Free();
     #endregion
 }

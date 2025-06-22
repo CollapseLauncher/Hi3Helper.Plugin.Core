@@ -74,6 +74,8 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     public IGameInstaller? comGet_GameInstaller() => GameInstaller;
     #endregion
 
+    public override void Free() => Dispose();
+
     public virtual void Dispose()
     {
         if (_isDisposed) return;

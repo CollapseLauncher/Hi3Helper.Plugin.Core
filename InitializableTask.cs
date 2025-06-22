@@ -16,7 +16,7 @@ namespace Hi3Helper.Plugin.Core;
 /// The base class where its derived class must require asynchronous initialization before use.
 /// </summary>
 [GeneratedComClass]
-public partial class InitializableTask : IInitializableTask
+public abstract partial class InitializableTask : IInitializableTask
 {
     public virtual nint InitAsync(in Guid cancelToken)
     {
@@ -61,4 +61,9 @@ public partial class InitializableTask : IInitializableTask
             return int.MinValue;
         }
     }
+
+    /// <summary>
+    /// Free the resources associated by an instance.
+    /// </summary>
+    public abstract void Free();
 }

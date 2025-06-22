@@ -178,9 +178,6 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
 
     #region DynamicInterfaceCastable Explicit Calls
     /// <inheritdoc/>
-    nint IInitializableTask.InitAsync(in Guid cancelToken) => InitAsync(in cancelToken);
-
-    /// <inheritdoc/>
-    void IDisposable.Dispose() => Dispose();
+    void IDisposable.Dispose() => Free();
     #endregion
 }

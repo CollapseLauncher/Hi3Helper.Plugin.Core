@@ -12,7 +12,7 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExInitializable)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IInitializableTask
+public partial interface IInitializableTask : IFree
 {
     /// <summary>
     /// Asynchronously initializes the instance.
