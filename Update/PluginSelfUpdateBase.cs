@@ -7,6 +7,9 @@ using System.Threading;
 
 namespace Hi3Helper.Plugin.Core.Update;
 
+/// <summary>
+/// A plugin self-updater instance which is used to perform update check and update download.
+/// </summary>
 [GeneratedComClass]
 public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
 {
