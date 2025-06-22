@@ -44,6 +44,7 @@ public class SharedStatic
 #else
     internal static bool IsDebug = false;
 #endif
+    internal static unsafe GameVersion CurrentPluginVersion => *GetPluginVersion();
     #endregion
 
     #region API Exports
