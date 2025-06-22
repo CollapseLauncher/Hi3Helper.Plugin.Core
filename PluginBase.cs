@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices.Marshalling;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
+using Hi3Helper.Plugin.Core.Update;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +22,7 @@ public abstract partial class PluginBase : IPlugin
     public abstract unsafe DateTime* GetPluginCreationDate();
     public abstract int GetPresetConfigCount();
     public abstract IPluginPresetConfig GetPresetConfig(int index);
+    public virtual IPluginSelfUpdate? GetPluginSelfUpdater() => null;
 
     public void CancelAsync(in Guid cancelToken)
     {

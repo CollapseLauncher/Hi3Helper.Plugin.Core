@@ -1,4 +1,5 @@
 ﻿using Hi3Helper.Plugin.Core.Management.PresetConfig;
+using Hi3Helper.Plugin.Core.Update;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
@@ -87,6 +88,13 @@ public partial interface IPlugin : IFree, IDisposable
     /// </summary>
     /// <param name="localeId">The locale ID to be set (for example: en-US)</param>
     void SetPluginLocaleId([MarshalAs(UnmanagedType.LPWStr)] string? localeId);
+
+    /// <summary>
+    /// Gets the plugin self-updater instance.
+    /// </summary>
+    /// <returns>An instance to <see cref="IPluginSelfUpdate"/></returns>
+    [return: MarshalAs(UnmanagedType.Interface)]
+    IPluginSelfUpdate? GetPluginSelfUpdater();
 
     #region DynamicInterfaceCastable Explicit Calls
     /// <inheritdoc/>

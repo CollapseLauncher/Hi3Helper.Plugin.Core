@@ -1,4 +1,5 @@
-﻿using Hi3Helper.Plugin.Core.Utility;
+﻿using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
@@ -17,13 +18,17 @@ public partial interface IPluginSelfUpdate : IFree, IDisposable
     /// <summary>
     /// Asynchronously perform update on the plugin.
     /// </summary>
-    /// <param name="outputTempDir">An output directory which the new version of library will be downloaded to.</param>
+    /// <param name="outputDir">An output directory which the new version of library will be downloaded to.</param>
+    /// <param name="checkForUpdatesOnly">Whether to perform the check only or also to perform the update at the same time.</param>
+    /// <param name="progressDelegate">A delegate which pass <see cref="InstallProgress"/> to indicate update progress into the callback.</param>
     /// <param name="cancelToken"><see cref="Guid"/> instance for cancellation token.</param>
     /// <returns>
     /// A pointer to <see cref="ComAsyncResult"/>. This method has Return value of <see cref="SelfUpdateReturnCode"/>.<br/>
-    /// Please use <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> to get the return value.
+    /// Please use <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> to get the return value.<br/><br/>
+    /// 
+    /// While <paramref name="checkForUpdatesOnly"/> is set to <c>true</c>, the status will only return <see cref="SelfUpdateReturnCode.UpdateIsAvailable"/> or <see cref="SelfUpdateReturnCode.NoAvailableUpdate"/> and the update won't be performed.
     /// </returns>
-    nint TryPerformUpdateAsync([MarshalAs(UnmanagedType.LPWStr)] string? outputTempDir, in Guid cancelToken);
+    nint TryPerformUpdateAsync([MarshalAs(UnmanagedType.LPWStr)] string? outputDir, [MarshalAs(UnmanagedType.Bool)] bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, in Guid cancelToken);
 
     #region DynamicInterfaceCastable Explicit Calls
     /// <inheritdoc/>

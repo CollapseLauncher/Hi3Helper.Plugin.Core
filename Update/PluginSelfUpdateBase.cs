@@ -1,4 +1,5 @@
-﻿using Hi3Helper.Plugin.Core.Utility;
+﻿using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Net.Http;
 using System.Runtime.InteropServices.Marshalling;
@@ -9,14 +10,14 @@ namespace Hi3Helper.Plugin.Core.Update;
 [GeneratedComClass]
 public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
 {
-    protected virtual ReadOnlySpan<string> BaseCdnUrlSpan => ReadOnlySpan<string>.Empty;
+    protected abstract ReadOnlySpan<string> BaseCdnUrlSpan { get; }
     protected abstract HttpClient UpdateHttpClient { get; }
 
-    nint IPluginSelfUpdate.TryPerformUpdateAsync(string? outputTempDir, in Guid cancelToken)
+    nint IPluginSelfUpdate.TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, in Guid cancelToken)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return TryPerformUpdateAsync(outputTempDir, token).AsResult();
+        return TryPerformUpdateAsync(outputDir, checkForUpdatesOnly, progressDelegate, token).AsResult();
     }
 
     public void Free() => Dispose();
