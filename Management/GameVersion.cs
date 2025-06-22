@@ -98,7 +98,7 @@ public struct GameVersion :
     /// </param>
     /// <param name="formatProvider">A format provider instance to write the result.</param>
     /// <returns>A string representation of <see cref="GameVersion"/>.</returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    public readonly string ToString(string? format, IFormatProvider? formatProvider = null)
     {
         Span<char> writeStackalloc = stackalloc char[64];
         if (!TryFormat(writeStackalloc, out int written, format, formatProvider))
