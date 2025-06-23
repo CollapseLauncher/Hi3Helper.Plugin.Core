@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 namespace Hi3Helper.Plugin.Core.Update;
 
 [JsonSerializable(typeof(SelfUpdateReferenceInfo))]
+[JsonSourceGenerationOptions(IndentSize = 2, NewLine = "\n", WriteIndented = true, IndentCharacter = ' ')]
 public partial class SelfUpdateReferenceInfoContext : JsonSerializerContext;
 
 public class SelfUpdateReferenceInfo
