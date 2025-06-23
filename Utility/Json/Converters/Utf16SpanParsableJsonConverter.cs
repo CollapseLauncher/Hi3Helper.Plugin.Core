@@ -43,7 +43,7 @@ public class Utf16SpanParsableJsonConverter<TSpan> : JsonConverter<TSpan>
         }
 
         Span<char> writeBuffer = stackalloc char[256];
-        if (!value.TryFormat(writeBuffer, out int written, ReadOnlySpan<char>.Empty, null))
+        if (value.TryFormat(writeBuffer, out int written, ReadOnlySpan<char>.Empty, null))
         {
             writer.WriteStringValue(writeBuffer[..written]);
         }
