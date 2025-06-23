@@ -265,18 +265,16 @@ public struct GameVersion :
                 return false;
             }
 
-            if (isFinal)
+            switch (isFinal)
             {
-                return true;
+                case true:
+                    return true;
+                case false when dest.Length <= outWritten:
+                    return false;
+                default:
+                    dest[outWritten++] = '.';
+                    return true;
             }
-
-            if (!isFinal && dest.Length <= outWritten)
-            {
-                return false;
-            }
-
-            dest[outWritten++] = '.';
-            return true;
         }
     }
 
@@ -349,13 +347,16 @@ public struct GameVersion :
                 return false;
             }
 
-            if (!isFinal && dest.Length <= outWritten)
+            switch (isFinal)
             {
-                return false;
+                case true:
+                    return true;
+                case false when dest.Length <= outWritten:
+                    return false;
+                default:
+                    dest[outWritten++] = (byte)'.';
+                    return true;
             }
-
-            dest[outWritten++] = (byte)'.';
-            return true;
         }
     }
 
