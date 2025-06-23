@@ -4,10 +4,10 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
 using System.IO;
-using System.IO.Hashing;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -132,14 +132,13 @@ public partial class PluginSelfUpdateBase
         }
     }
 
-
     private static async ValueTask<bool> IsHashMatchedAsync(
         FileStream fileStream,
         byte[] remoteHash,
         Action<long> readStatusCallback,
         CancellationToken token)
     {
-        XxHash64 hasher = new XxHash64();
+        MD5 hasher = MD5.Create();
         const int bufferSize = 256 << 10;
         byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize); // 256 KB of buffer
 
@@ -149,12 +148,18 @@ public partial class PluginSelfUpdateBase
             int read;
             while ((read = await fileStream.ReadAtLeastAsync(new Memory<byte>(buffer, 0, bufferSize), bufferSize, false, token)) > 0)
             {
-                hasher.Append(new ReadOnlySpan<byte>(buffer, 0, read));
+                hasher.TransformBlock(buffer, 0, read, buffer, 0);
                 totalRead += read;
                 readStatusCallback(read);
             }
+            hasher.TransformBlock(buffer, 0, read, buffer, 0);
 
-            byte[] hashResult = hasher.GetHashAndReset();
+            byte[]? hashResult = hasher.Hash;
+            if (hashResult == null)
+            {
+                return false;
+            }
+
             if (hashResult.SequenceEqual(remoteHash))
             {
                 return true;
