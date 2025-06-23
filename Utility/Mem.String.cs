@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 // ReSharper disable UnusedMember.Global
+// ReSharper disable GrammarMistakeInComment
 
 namespace Hi3Helper.Plugin.Core.Utility;
 

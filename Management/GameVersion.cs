@@ -88,7 +88,7 @@ public struct GameVersion :
     /// <summary>
     /// Create a string representation of <see cref="GameVersion"/> into full "Major.Minor.Build.Revision" format.
     /// </summary>
-    public readonly override string ToString() => ToString(string.Empty, null);
+    public readonly override string ToString() => ToString(string.Empty);
 
     /// <summary>
     /// Create a string representation of <see cref="GameVersion"/>.

@@ -43,6 +43,7 @@ public static class PluginDisposableMemoryExtension
         return ref Mem.AsRef<PluginDisposableMemoryMarshal>(ptr);
     }
 
+    // ReSharper disable once UnusedMember.Global
     public static unsafe void FreeMarshal(this ref PluginDisposableMemoryMarshal marshal) => FreeMarshal(marshal.AsPointer());
 
     public static unsafe void FreeMarshal(PluginDisposableMemoryMarshal* marshal) => Mem.Free(marshal);
