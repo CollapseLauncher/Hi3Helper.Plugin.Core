@@ -16,10 +16,12 @@ public class SelfUpdateReferenceInfo
     public GameVersion PluginVersion { get; set; }
 
     [JsonConverter(typeof(Utf16SpanParsableJsonConverter<DateTimeOffset>))]
-    public DateTimeOffset ReleaseDate { get; set; }
+    public DateTimeOffset PluginCreationDate { get; set; }
 
-    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
-    public long Size { get; set; }
+    [JsonConverter(typeof(Utf16SpanParsableJsonConverter<DateTimeOffset>))]
+    public DateTimeOffset ManifestDate { get; set; }
+
+    public required string MainLibraryName { get; set; }
 
     public required List<SelfUpdateAssetInfo> Assets { get; set; }
 }
