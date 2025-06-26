@@ -23,9 +23,7 @@ using System.Net.Sockets;
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
-public class PluginHttpClientBuilder : PluginHttpClientBuilder<SocketsHttpHandler>;
-
-public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandler, new()
+public class PluginHttpClientBuilder
 {
     private const int ExMaxConnectionsDefault = 32;
     private const double ExHttpTimeoutDefault = 90; // in Seconds
@@ -61,7 +59,7 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
             + $"CollapsePlugin/{SharedStatic.LibraryStandardVersion}-{(SharedStatic.IsDebug ? "Debug" : "Release")}";
     }
 
-    public PluginHttpClientBuilder<THandler> SetMaxConnection(int maxConnections = ExMaxConnectionsDefault)
+    public PluginHttpClientBuilder SetMaxConnection(int maxConnections = ExMaxConnectionsDefault)
     {
         if (maxConnections < 2)
             maxConnections = 2;
@@ -70,37 +68,37 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> SetAllowedDecompression(DecompressionMethods decompressionMethods = DecompressionMethods.All)
+    public PluginHttpClientBuilder SetAllowedDecompression(DecompressionMethods decompressionMethods = DecompressionMethods.All)
     {
         DecompressionMethod = decompressionMethods;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> AllowRedirections(bool allowRedirections = true)
+    public PluginHttpClientBuilder AllowRedirections(bool allowRedirections = true)
     {
         IsAllowHttpRedirections = allowRedirections;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> SetAuthHeader(string authHeader)
+    public PluginHttpClientBuilder SetAuthHeader(string authHeader)
     {
         if (!string.IsNullOrEmpty(authHeader)) HttpAuthHeader = authHeader;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> AllowCookies(bool allowCookies = true)
+    public PluginHttpClientBuilder AllowCookies(bool allowCookies = true)
     {
         IsAllowHttpCookies = allowCookies;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> AllowUntrustedCert(bool allowUntrustedCert = false)
+    public PluginHttpClientBuilder AllowUntrustedCert(bool allowUntrustedCert = false)
     {
         IsAllowUntrustedCert = allowUntrustedCert;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> SetHttpVersion(Version? version = null, HttpVersionPolicy versionPolicy = HttpVersionPolicy.RequestVersionOrLower)
+    public PluginHttpClientBuilder SetHttpVersion(Version? version = null, HttpVersionPolicy versionPolicy = HttpVersionPolicy.RequestVersionOrLower)
     {
         if (version != null)
             HttpProtocolVersion = version;
@@ -109,7 +107,7 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> SetTimeout(double fromSeconds = ExHttpTimeoutDefault)
+    public PluginHttpClientBuilder SetTimeout(double fromSeconds = ExHttpTimeoutDefault)
     {
         if (double.IsNaN(fromSeconds) || double.IsInfinity(fromSeconds))
             fromSeconds = ExHttpTimeoutDefault;
@@ -117,32 +115,32 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
         return SetTimeout(TimeSpan.FromSeconds(fromSeconds));
     }
 
-    public PluginHttpClientBuilder<THandler> SetTimeout(TimeSpan? timeout = null)
+    public PluginHttpClientBuilder SetTimeout(TimeSpan? timeout = null)
     {
         timeout ??= TimeSpan.FromSeconds(ExHttpTimeoutDefault);
         HttpTimeout = timeout.Value;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> SetUserAgent(string? userAgent = null)
+    public PluginHttpClientBuilder SetUserAgent(string? userAgent = null)
     {
         HttpUserAgent = userAgent;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> SetBaseUrl(string baseUrl)
+    public PluginHttpClientBuilder SetBaseUrl(string baseUrl)
     {
         Uri baseUri = new(baseUrl);
         return SetBaseUrl(baseUri);
     }
 
-    public PluginHttpClientBuilder<THandler> SetBaseUrl(Uri baseUrl)
+    public PluginHttpClientBuilder SetBaseUrl(Uri baseUrl)
     {
         HttpBaseUri = baseUrl;
         return this;
     }
 
-    public PluginHttpClientBuilder<THandler> AddHeader(string key, string? value)
+    public PluginHttpClientBuilder AddHeader(string key, string? value)
     {
         // Throw if the key is null or empty
         ArgumentException.ThrowIfNullOrEmpty(key, nameof(key));
@@ -169,66 +167,32 @@ public class PluginHttpClientBuilder<THandler> where THandler : HttpMessageHandl
     public HttpClient Create()
     {
         // Create the instance of the handler
-        THandler handler = new();
+        SocketsHttpHandler handler = new();
 
-        // Set the features of each handler
-        if (typeof(THandler) == typeof(HttpClientHandler))
+        // Set the properties
+        handler.UseProxy = IsUseProxy || IsUseSystemProxy;
+        handler.MaxConnectionsPerServer = MaxConnections;
+        handler.AllowAutoRedirect = IsAllowHttpRedirections;
+        handler.UseCookies = IsAllowHttpCookies;
+        handler.AutomaticDecompression = DecompressionMethod;
+        handler.EnableMultipleHttp2Connections = true;
+        handler.EnableMultipleHttp3Connections = true;
+
+        // Toggle for allowing untrusted cert
+        if (IsAllowUntrustedCert)
         {
-            // Cast as HttpClientHandler
-            if (handler is not HttpClientHandler httpClientHandler)
-                throw new InvalidCastException("Cannot cast handler as HttpClientHandler");
-
-            // Set the properties
-            httpClientHandler.UseProxy = IsUseProxy || IsUseSystemProxy;
-            httpClientHandler.MaxConnectionsPerServer = MaxConnections;
-            httpClientHandler.AllowAutoRedirect = IsAllowHttpRedirections;
-            httpClientHandler.UseCookies = IsAllowHttpCookies;
-            httpClientHandler.AutomaticDecompression = DecompressionMethod;
-            httpClientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
-
-            // Toggle for allowing untrusted cert
-            if (IsAllowUntrustedCert)
-                httpClientHandler.ServerCertificateCustomValidationCallback = delegate { return true; };
-
-            // Set if the external proxy is set
-            if (!IsUseSystemProxy && ExternalProxy != null)
-                httpClientHandler.Proxy = ExternalProxy;
-        }
-        else if (typeof(THandler) == typeof(SocketsHttpHandler))
-        {
-            // Cast as SocketsHttpHandler
-            if (handler is not SocketsHttpHandler socketsHttpHandler)
-                throw new InvalidCastException("Cannot cast handler as SocketsHttpHandler");
-
-            // Set the properties
-            socketsHttpHandler.UseProxy = IsUseProxy || IsUseSystemProxy;
-            socketsHttpHandler.MaxConnectionsPerServer = MaxConnections;
-            socketsHttpHandler.AllowAutoRedirect = IsAllowHttpRedirections;
-            socketsHttpHandler.UseCookies = IsAllowHttpCookies;
-            socketsHttpHandler.AutomaticDecompression = DecompressionMethod;
-            socketsHttpHandler.EnableMultipleHttp2Connections = true;
-            socketsHttpHandler.EnableMultipleHttp3Connections = true;
-
-            // Toggle for allowing untrusted cert
-            if (IsAllowUntrustedCert)
+            SslClientAuthenticationOptions sslOptions = new()
             {
-                SslClientAuthenticationOptions sslOptions = new()
-                {
-                    RemoteCertificateValidationCallback = delegate { return true; }
-                };
-                socketsHttpHandler.SslOptions = sslOptions;
-            }
-
-            // Set if the external proxy is set
-            if (!IsUseSystemProxy && ExternalProxy != null)
-                socketsHttpHandler.Proxy = ExternalProxy;
-
-            socketsHttpHandler.ConnectCallback = ExternalDnsConnectCallback;
+                RemoteCertificateValidationCallback = delegate { return true; }
+            };
+            handler.SslOptions = sslOptions;
         }
-        else
-        {
-            throw new InvalidOperationException("Generic must be a member of HttpMessageHandler!");
-        }
+
+        // Set if the external proxy is set
+        if (!IsUseSystemProxy && ExternalProxy != null)
+            handler.Proxy = ExternalProxy;
+
+        handler.ConnectCallback = ExternalDnsConnectCallback;
 
         // Create the HttpClient instance
         HttpClient client = new(handler, false)
