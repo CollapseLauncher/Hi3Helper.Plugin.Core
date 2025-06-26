@@ -83,19 +83,19 @@ public static partial class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ThrowIfNotByteOrChar<T>(out bool isChar)
+    private static unsafe void ThrowIfNotByteOrChar<T>(out bool isChar)
         where T : unmanaged
     {
         isChar = false;
-        Type currentType = typeof(T);
+        int sizeofT = sizeof(T);
 
-        if (currentType == typeof(char))
+        if (sizeofT == 2)
         {
             isChar = true;
             return;
         }
 
-        if (currentType != typeof(byte)) throw new InvalidOperationException("Type must be a char or byte!");
+        if (sizeofT != 1) throw new InvalidOperationException("Type must be a char or byte!");
     }
 
     public static string CombineUrlFromString(this string? baseUrl, params ReadOnlySpan<string?> segments)

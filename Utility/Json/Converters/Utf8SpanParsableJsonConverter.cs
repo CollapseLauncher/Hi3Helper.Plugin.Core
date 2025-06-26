@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !USELIGHTWEIGHTJSONPARSER
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -42,3 +43,4 @@ public class Utf8SpanParsableJsonConverter<TSpan> : JsonConverter<TSpan>
         }
     }
 }
+#endif

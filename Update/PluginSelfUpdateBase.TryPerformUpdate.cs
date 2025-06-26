@@ -6,11 +6,14 @@ using System.Buffers;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if !USELIGHTWEIGHTJSONPARSER
+using System.Net.Http.Json;
+#endif
 
 namespace Hi3Helper.Plugin.Core.Update;
 
@@ -205,7 +208,12 @@ public partial class PluginSelfUpdateBase
             using HttpResponseMessage jsonMessage = await UpdateHttpClient.GetAsync(manifestUrl, HttpCompletionOption.ResponseHeadersRead, token);
             jsonMessage.EnsureSuccessStatusCode();
 
+#if USELIGHTWEIGHTJSONPARSER
+            await using Stream networkStream = await jsonMessage.Content.ReadAsStreamAsync(token);
+            SelfUpdateReferenceInfo? info = await SelfUpdateReferenceInfo.ParseFromAsync(networkStream, token: token);
+#else
             SelfUpdateReferenceInfo? info = await jsonMessage.Content.ReadFromJsonAsync(SelfUpdateReferenceInfoContext.Default.SelfUpdateReferenceInfo, token);
+#endif
             if (info == null || info.Assets.Count == 0)
             {
                 continue;

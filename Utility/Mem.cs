@@ -66,7 +66,7 @@ public static partial class Mem
         int sizeOf = sizeof(T);
         if (sizeOf == 0)
         {
-            throw new ArgumentException("Size of T cannot be zero.", nameof(T));
+            throw new ArgumentException("Size of T cannot be zero.");
         }
 
         if (count <= 0)

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Text.Json.Nodes;
+
+#if !USELIGHTWEIGHTJSONPARSER
 using System.Text.Json.Serialization.Metadata;
+#endif
 
 namespace Hi3Helper.Plugin.Core.Utility.Json;
 
@@ -22,7 +25,11 @@ public static class JsonSerializerExtension
         return default;
     }
 
-    public static void SetConfigValue<T>(this JsonObject obj, string propertyName, T? value, JsonTypeInfo<T>? typeInfo = null)
+    public static void SetConfigValue<T>(this JsonObject obj, string propertyName, T? value
+#if !USELIGHTWEIGHTJSONPARSER
+        , JsonTypeInfo<T>? typeInfo = null
+#endif
+        )
     {
         obj[propertyName] = value switch
         {
@@ -51,18 +58,31 @@ public static class JsonSerializerExtension
 
             Guid valueAsGuid => JsonValue.Create(valueAsGuid),
 
+#if !USELIGHTWEIGHTJSONPARSER
             not null => typeInfo != null
                 ? JsonValue.Create(value, typeInfo)
                 : throw new NotSupportedException(
                     $"Setting the value to JsonValue for Type \"{typeof(T).FullName}\" is not supported without providing a JsonTypeInfo<T> to the '{nameof(typeInfo)}' argument.")
+#else
+            not null => throw new NotSupportedException(
+                    $"Setting the value to JsonValue for the type is not supported under Lightweight parser mode.")
+#endif
         };
     }
 
-    public static void SetConfigValueIfEmpty<T>(this JsonObject obj, string propertyName, T? value, JsonTypeInfo<T>? typeInfo = null)
+    public static void SetConfigValueIfEmpty<T>(this JsonObject obj, string propertyName, T? value
+#if !USELIGHTWEIGHTJSONPARSER
+        , JsonTypeInfo<T>? typeInfo = null
+#endif
+        )
     {
         if (!obj.ContainsKey(propertyName))
         {
-            obj.SetConfigValue(propertyName, value, typeInfo);
+            obj.SetConfigValue(propertyName, value
+#if !USELIGHTWEIGHTJSONPARSER
+                , typeInfo
+#endif
+                );
         }
     }
 }

@@ -97,9 +97,10 @@ public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisp
             return string.Empty;
         }
 
-        if (typeof(T) != typeof(byte) && typeof(T) != typeof(char))
+        int sizeofT = sizeof(T);
+        if (sizeofT > 2)
         {
-            throw new InvalidCastException($"Cannot convert {typeof(T).Name} to string. You must pass PluginDisposableMemory<byte> or PluginDisposableMemory<char> to convert into string implicitly.");
+            throw new InvalidCastException("Cannot convert the span type to string. You must pass PluginDisposableMemory<byte> or PluginDisposableMemory<char> to convert into string implicitly.");
         }
 
         return memory.CreateStringFromNullTerminated();

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !USELIGHTWEIGHTJSONPARSER
+using System;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -144,3 +145,4 @@ public class Utf8SpanParsableToBytesJsonConverter<TSpan> : JsonConverter<byte[]?
         writer.WriteStringValue(resultWriteP[..bytesWritten]);
     }
 }
+#endif
