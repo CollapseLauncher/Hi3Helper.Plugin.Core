@@ -119,7 +119,11 @@ public struct ComAsyncResult() : IDisposable
                 }
 
 #if DEBUG
+#if MANUALCOM
+                string nameOfT = $"<unknown>_sizeof({sizeof(T)})";
+#else
                 string nameOfT = typeof(T).Name;
+#endif
 #endif
 
                 // Allocate result pointer

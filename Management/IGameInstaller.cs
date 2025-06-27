@@ -3,7 +3,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
-#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management;
 
 /// <summary>
@@ -28,7 +27,7 @@ public delegate void InstallProgressStateDelegate(InstallProgressState state);
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameInstaller)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IGameInstaller : IFree, IDisposable
+public partial interface IGameInstaller : IGameUninstaller
 {
     /// <summary>
     /// Gets the estimated total size of the game depends on the current state.
@@ -92,9 +91,4 @@ public partial interface IGameInstaller : IFree, IDisposable
     /// The function, however is not-returnable.
     /// </returns>
     nint StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken);
-
-    #region DynamicInterfaceCastable Explicit Calls
-    /// <inheritdoc/>
-    void IDisposable.Dispose() => Free();
-    #endregion
 }

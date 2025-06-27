@@ -11,7 +11,7 @@
     <LangVersion>preview</LangVersion>
     <DebugType>embedded</DebugType>
     <Deterministic>true</Deterministic>
-    <DefineConstants>USELIGHTWEIGHTJSONPARSER</DefineConstants>
+    <DefineConstants>USELIGHTWEIGHTJSONPARSER;MANUALCOM</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

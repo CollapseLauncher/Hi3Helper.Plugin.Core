@@ -1,4 +1,5 @@
-﻿using Hi3Helper.Plugin.Core.Management;
+﻿using Hi3Helper.Plugin.Core.ABI;
+using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
@@ -89,8 +90,12 @@ public class SharedStatic
         }
     }
 
-    private static unsafe void* GetPlugin() =>
-        ComInterfaceMarshaller<IPlugin>.ConvertToUnmanaged(_thisPluginInstance);
+    private static unsafe void* GetPlugin()
+#if !MANUALCOM
+        => ComInterfaceMarshaller<IPlugin>.ConvertToUnmanaged(_thisPluginInstance);
+#else
+        => ABIExtension<PluginWrappers>.GetComInterfacePtrFromWrappers(_thisPluginInstance);
+#endif
 
     private static void SetLoggerCallback(nint loggerCallback)
     {
@@ -192,5 +197,5 @@ public class SharedStatic
         *delegateP = (void*)delegatePSafe;
         return 0;
     }
-    #endregion
+#endregion
 }
