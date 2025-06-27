@@ -23,157 +23,135 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     /// <summary>
     /// Gets the name of the game.
     /// </summary>
-    /// <returns>The game name as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_GameName();
+    /// <param name="result">The game name as a string.</param>
+    void comGet_GameName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the name of the profile.
     /// </summary>
-    /// <returns>The profile name as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_ProfileName();
+    /// <param name="result">The profile name as a string.</param>
+    void comGet_ProfileName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the description of the zone.
     /// </summary>
-    /// <returns>The zone description as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_ZoneDescription();
+    /// <param name="result">The zone description as a string.</param>
+    void comGet_ZoneDescription([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the short name of the zone.
     /// </summary>
-    /// <returns>The zone name as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_ZoneName();
+    /// <param name="result">The zone name as a string.</param>
+    void comGet_ZoneName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the full name of the zone.
     /// </summary>
-    /// <returns>The zone full name as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_ZoneFullName();
+    /// <param name="result">The zone full name as a string.</param>
+    void comGet_ZoneFullName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the URL of the zone's logo.
     /// </summary>
-    /// <returns>The zone logo URL as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_ZoneLogoUrl();
+    /// <param name="result">The zone logo URL as a string.</param>
+    void comGet_ZoneLogoUrl([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the URL of the zone's poster.
     /// </summary>
-    /// <returns>The zone poster URL as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_ZonePosterUrl();
+    /// <param name="result">The zone poster URL as a string.</param>
+    void comGet_ZonePosterUrl([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the URL of the zone's home page.
     /// </summary>
-    /// <returns>The zone home page URL as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_ZoneHomePageUrl();
+    /// <param name="result">The zone home page URL as a string.</param>
+    void comGet_ZoneHomePageUrl([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the release channel of the game.
     /// </summary>
-    /// <returns>The <see cref="GameReleaseChannel"/> value.</returns>
-    [PreserveSig]
-    GameReleaseChannel comGet_ReleaseChannel();
+    /// <param name="result">The <see cref="GameReleaseChannel"/> value.</param>
+    void comGet_ReleaseChannel(out GameReleaseChannel result);
 
     /// <summary>
     /// Gets the main language of the game.
     /// </summary>
-    /// <returns>The main language as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_GameMainLanguage();
+    /// <param name="result">The main language as a string.</param>
+    void comGet_GameMainLanguage([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the number of supported languages for the game.
     /// </summary>
-    /// <returns>The count of supported languages as an integer.</returns>
-    [PreserveSig]
-    int comGet_GameSupportedLanguagesCount();
+    /// <param name="result">The count of supported languages as an integer.</param>
+    void comGet_GameSupportedLanguagesCount(out int result);
 
     /// <summary>
     /// Gets the supported language at the specified index.
     /// </summary>
     /// <param name="index">The index of the supported language.</param>
-    /// <returns>The 2-letter locale language code (such as: en) as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_GameSupportedLanguages(int index);
+    /// <param name="result">The 2-letter locale language code (such as: en) as a string.</param>
+    void comGet_GameSupportedLanguages(int index, [MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the name of the game's executable file.
     /// </summary>
-    /// <returns>The executable name as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_GameExecutableName();
+    /// <param name="result">The executable name as a string.</param>
+    void comGet_GameExecutableName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets the file name of the game's log file.
     /// </summary>
-    /// <returns>The filename or path of the log file.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string? comGet_GameLogFileName();
+    /// <param name="result">The filename or path of the log file.</param>
+    void comGet_GameLogFileName([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Gets the path where the game's cache data is stored (usually, it's used as well as to store the Game's Log File for Unity games),
     /// </summary>
-    /// <returns>The path of the game's cache directory.</returns>
-    [return : MarshalAs(UnmanagedType.LPWStr)]
-    string? comGet_GameAppDataPath();
+    /// <param name="result">The path of the game's cache directory.</param>
+    void comGet_GameAppDataPath([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Gets the directory name used by the launcher for the game.
     /// </summary>
-    /// <returns>The launcher game directory name as a string.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_LauncherGameDirectoryName();
+    /// <param name="result">The launcher game directory name as a string.</param>
+    void comGet_LauncherGameDirectoryName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Retrieves the name of the game vendor.
     /// </summary>
-    /// <returns>The game vendor name.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_GameVendorName();
+    /// <param name="result">The game vendor name.</param>
+    void comGet_GameVendorName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Retrieves the registry key name for the game.
     /// </summary>
-    /// <returns>The registry key name for the game.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string comGet_GameRegistryKeyName();
+    /// <param name="result">The registry key name for the game.</param>
+    void comGet_GameRegistryKeyName([MarshalAs(UnmanagedType.LPWStr)] out string result);
 
     /// <summary>
     /// Gets an instance to the <see cref="ILauncherApiMedia"/>.
     /// </summary>
-    /// <returns>The launcher Media API instance.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    ILauncherApiMedia? comGet_LauncherApiMedia();
+    /// <param name="result">The launcher Media API instance.</param>
+    void comGet_LauncherApiMedia([MarshalAs(UnmanagedType.Interface)] out ILauncherApiMedia? result);
 
     /// <summary>
     /// Gets an instance to the <see cref="ILauncherApiNews"/>.
     /// </summary>
-    /// <returns>The launcher News API instance.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    ILauncherApiNews? comGet_LauncherApiNews();
+    /// <param name="result">The launcher News API instance.</param>
+    void comGet_LauncherApiNews([MarshalAs(UnmanagedType.Interface)] out ILauncherApiNews? result);
 
     /// <summary>
     /// Gets an instance to the <see cref="IGameManager"/>
     /// </summary>
-    /// <returns>The game manager instance.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    IGameManager? comGet_GameManager();
+    /// <param name="result">The game manager instance.</param>
+    void comGet_GameManager([MarshalAs(UnmanagedType.Interface)] out IGameManager? result);
 
     /// <summary>
     /// Gets an instance to the <see cref="IGameInstaller"/> and <see cref="IGameUninstaller"/>
     /// </summary>
-    /// <returns>The game installer and uninstaller instance.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    IGameInstaller? comGet_GameInstaller();
+    /// <param name="result">The game installer and uninstaller instance.</param>
+    void comGet_GameInstaller([MarshalAs(UnmanagedType.Interface)] out IGameInstaller? result);
     #endregion
 
     #region DynamicInterfaceCastable Explicit Calls

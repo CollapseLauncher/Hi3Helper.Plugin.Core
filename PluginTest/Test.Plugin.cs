@@ -55,48 +55,48 @@ internal static partial class Test
             IPluginPresetConfig presetConfig = GetPresetConfig(PluginInterface, i, out nint presetConfigAddress);
             logger.LogInformation("  IPlugin->GetPresetConfig({PresetConfigIndex}): Preset config found at: 0x{PresetConfigAddress:x8}", i, presetConfigAddress);
 
-            string presetConfigGameName = presetConfig.comGet_GameName();
+            presetConfig.comGet_GameName(out string presetConfigGameName);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_GameName(): {GameName}", i, presetConfigGameName);
 
-            string presetConfigProfileName = presetConfig.comGet_ProfileName();
+            presetConfig.comGet_ProfileName(out string presetConfigProfileName);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ProfileName(): {ProfileName}", i, presetConfigProfileName);
 
-            string presetConfigZoneDescription = presetConfig.comGet_ZoneDescription();
+            presetConfig.comGet_ZoneDescription(out string presetConfigZoneDescription);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ZoneDescription(): {ZoneDescription}", i, presetConfigZoneDescription);
 
-            string presetConfigZoneName = presetConfig.comGet_ZoneName();
+            presetConfig.comGet_ZoneName(out string presetConfigZoneName);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ZoneName(): {ZoneName}", i, presetConfigZoneName);
 
-            string presetConfigZoneFullName = presetConfig.comGet_ZoneFullName();
+            presetConfig.comGet_ZoneFullName(out string presetConfigZoneFullName);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ZoneFullName(): {ZoneFullName}", i, presetConfigZoneFullName);
 
-            string presetConfigZoneLogoUrl = presetConfig.comGet_ZoneLogoUrl();
+            presetConfig.comGet_ZoneLogoUrl(out string presetConfigZoneLogoUrl);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ZoneLogoUrl(): {ZoneLogoUrl}", i, presetConfigZoneLogoUrl);
 
-            string presetConfigZonePosterUrl = presetConfig.comGet_ZonePosterUrl();
+            presetConfig.comGet_ZonePosterUrl(out string presetConfigZonePosterUrl);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ZonePosterUrl(): {ZonePosterUrl}", i, presetConfigZonePosterUrl);
 
-            string presetConfigZoneHomePageUrl = presetConfig.comGet_ZoneHomePageUrl();
+            presetConfig.comGet_ZoneHomePageUrl(out string presetConfigZoneHomePageUrl);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ZoneHomePageUrl(): {ZoneHomePageUrl}", i, presetConfigZoneHomePageUrl);
 
-            GameReleaseChannel presetConfigGameReleaseChannel = presetConfig.comGet_ReleaseChannel();
+            presetConfig.comGet_ReleaseChannel(out GameReleaseChannel presetConfigGameReleaseChannel);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_ReleaseChannel(): {GameReleaseChannel}", i, presetConfigGameReleaseChannel);
 
-            string presetConfigGameMainLanguage = presetConfig.comGet_GameMainLanguage();
+            presetConfig.comGet_GameMainLanguage(out string presetConfigGameMainLanguage);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_GameMainLanguage(): {GameMainLanguage}", i, presetConfigGameMainLanguage);
 
-            int langSupported = presetConfig.comGet_GameSupportedLanguagesCount();
+            presetConfig.comGet_GameSupportedLanguagesCount(out int langSupported);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_GameSupportedLanguagesCount(): {GameLanguageCount}", i, langSupported);
             for (int j = 0; j < langSupported; j++)
             {
-                string supportedLanguage = presetConfig.comGet_GameSupportedLanguages(j);
+                presetConfig.comGet_GameSupportedLanguages(j, out string supportedLanguage);
                 logger.LogInformation("      IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_GameSupportedLanguages({LanguageIndex}): {GameLanguage}", i, j, supportedLanguage);
             }
 
-            string presetConfigGameExecutableName = presetConfig.comGet_GameExecutableName();
+            presetConfig.comGet_GameExecutableName(out string presetConfigGameExecutableName);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_GameExecutableName(): {GameExecutableName}", i, presetConfigGameExecutableName);
 
-            string presetConfigLauncherGameDirectoryName = presetConfig.comGet_LauncherGameDirectoryName();
+            presetConfig.comGet_LauncherGameDirectoryName(out string presetConfigLauncherGameDirectoryName);
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherGameDirectoryName(): {LauncherGameDirName}", i, presetConfigLauncherGameDirectoryName);
 
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->InitAsync(): Invoking Asynchronously...", i);
