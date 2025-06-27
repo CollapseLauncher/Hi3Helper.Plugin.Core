@@ -100,7 +100,9 @@ internal static partial class Test
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherGameDirectoryName(): {LauncherGameDirName}", i, presetConfigLauncherGameDirectoryName);
 
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->InitAsync(): Invoking Asynchronously...", i);
-            int value = await presetConfig.InitAsync(in CancelToken).WaitFromHandle<int>();
+
+            presetConfig.InitAsync(in CancelToken, out nint initAsync);
+            int value = await initAsync.WaitFromHandle<int>();
             logger.LogInformation("Return value: {Value}", value);
         }
     }

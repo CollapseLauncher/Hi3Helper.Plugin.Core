@@ -100,9 +100,6 @@ public partial interface IGameManager : IInitializableTask, IDisposable
 
     #region DynamicInterfaceCastable Explicit Calls
     /// <inheritdoc/>
-    nint IInitializableTask.InitAsync(in Guid cancelToken) => InitAsync(in cancelToken);
-
-    /// <inheritdoc/>
     void IDisposable.Dispose() => Free();
     #endregion
 }

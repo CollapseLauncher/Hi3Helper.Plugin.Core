@@ -29,13 +29,13 @@ internal static partial class Test
 
     private static async Task InnerStartBackgroundImageEntryTest(ILogger logger, IPluginPresetConfig presetConfig, int presetConfigIndex)
     {
-        ILauncherApiMedia? apiMedia = presetConfig.comGet_LauncherApiMedia();
-
+        presetConfig.comGet_LauncherApiMedia(out ILauncherApiMedia? apiMedia);
         if (apiMedia == null)
             return;
 
         logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
-        int value = await apiMedia.InitAsync(in CancelToken).WaitFromHandle<int>();
+        apiMedia.InitAsync(in CancelToken, out nint asyncP);
+        int value = await asyncP.WaitFromHandle<int>();
         logger.LogInformation("Return value: {ReturnValue}", value);
 
         using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
@@ -43,7 +43,8 @@ internal static partial class Test
 
         logger.LogInformation("ILauncherApiMedia->GetBackgroundEntries(): Found {count} background handles at: 0x{address:x8}", backgroundUrlCount, backgroundPathMemory.AsSafePointer());
 
-        string thisLocalPath = Path.Combine(Environment.CurrentDirectory, presetConfig.comGet_ProfileName());
+        presetConfig.comGet_ProfileName(out string profileName);
+        string thisLocalPath = Path.Combine(Environment.CurrentDirectory, profileName);
 
         for (int j = 0; j < backgroundUrlCount; j++)
         {
@@ -95,13 +96,13 @@ internal static partial class Test
 
     private static async Task InnerStartMediaSocMedEntryTest(ILogger logger, IPluginPresetConfig presetConfig, int presetConfigIndex, bool isChild)
     {
-        ILauncherApiNews? apiNews = presetConfig.comGet_LauncherApiNews();
-
+        presetConfig.comGet_LauncherApiNews(out ILauncherApiNews? apiNews);
         if (apiNews == null)
             return;
 
         logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherApiNews()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
-        int value = await apiNews.InitAsync(in CancelToken).WaitFromHandle<int>();
+        apiNews.InitAsync(in CancelToken, out nint asyncP);
+        int value = await asyncP.WaitFromHandle<int>();
         logger.LogInformation("Return value: {ReturnValue}", value);
 
         using PluginDisposableMemory<LauncherSocialMediaEntry> socialMediaSpan = PluginDisposableMemoryExtension.ToManagedSpan<LauncherSocialMediaEntry>(apiNews.GetSocialMediaEntries);
