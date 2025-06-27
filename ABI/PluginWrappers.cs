@@ -60,16 +60,16 @@ public sealed unsafe class PluginWrappers : ComWrappers
         {
             void** vtable = (void**)RuntimeHelpers.AllocateTypeAssociatedMemory(typeof(IPlugin), sizeof(void*) * 4);
 
-            vtable[1] = (void*)fpQueryInterface;
-            vtable[2] = (void*)fpAddRef;
-            vtable[3] = (void*)fpRelease;
+            vtable[0] = (void*)fpQueryInterface;
+            vtable[1] = (void*)fpAddRef;
+            vtable[2] = (void*)fpRelease;
 
             /* =======================================================================================================================
              * NOTE FOR PLUGIN DEVELOPERS
              * =======================================================================================================================
              * To find which type being used for the delegated arguments, please refer to the source-generated code from GeneratedComInterface
              */
-            vtable[4] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, int>)&ABI_IFreeWrapper.ABI_Free;
+            vtable[3] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, int>)&ABI_IFreeWrapper.ABI_Free;
 
             sIFreeVTable = (IntPtr)vtable;
         }
