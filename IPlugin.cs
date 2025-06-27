@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 // ReSharper disable InconsistentNaming
 
-#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core;
 
 /// <summary>
@@ -100,9 +99,4 @@ public partial interface IPlugin : IFree, IDisposable
     /// </summary>
     /// <param name="selfUpdate">An instance to <see cref="IPluginSelfUpdate"/>.</param>
     void GetPluginSelfUpdater([MarshalAs(UnmanagedType.Interface)] out IPluginSelfUpdate? selfUpdate);
-
-    #region DynamicInterfaceCastable Explicit Calls
-    /// <inheritdoc/>
-    void IDisposable.Dispose() => Free();
-    #endregion
 }

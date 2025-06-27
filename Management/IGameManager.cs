@@ -3,7 +3,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
-#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management;
 
 /// <summary>
@@ -97,9 +96,4 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// The pointer needs to be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and the generic type must be <see cref="PluginDisposableMemoryMarshal"/> of <see cref="byte"/>
     /// </returns>
     nint FindExistingInstallPathAsync(in Guid cancelToken);
-
-    #region DynamicInterfaceCastable Explicit Calls
-    /// <inheritdoc/>
-    void IDisposable.Dispose() => Free();
-    #endregion
 }

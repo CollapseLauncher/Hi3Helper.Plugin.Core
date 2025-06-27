@@ -3,7 +3,6 @@ using Hi3Helper.Plugin.Core.Management.Api;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
-#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 
 /// <summary>
@@ -152,10 +151,5 @@ public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
     /// </summary>
     /// <param name="result">The game installer and uninstaller instance.</param>
     void comGet_GameInstaller([MarshalAs(UnmanagedType.Interface)] out IGameInstaller? result);
-    #endregion
-
-    #region DynamicInterfaceCastable Explicit Calls
-    /// <inheritdoc/>
-    void IDisposable.Dispose() => Free();
     #endregion
 }
