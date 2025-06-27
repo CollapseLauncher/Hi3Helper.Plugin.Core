@@ -18,11 +18,11 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComClass]
 public abstract partial class InitializableTask : IInitializableTask
 {
-    public virtual nint InitAsync(in Guid cancelToken)
+    public virtual void InitAsync(in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return InitAsync(token).AsResult();
+        result = InitAsync(token).AsResult();
     }
 
     /// <summary>

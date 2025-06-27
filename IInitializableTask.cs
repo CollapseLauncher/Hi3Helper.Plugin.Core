@@ -17,10 +17,11 @@ public partial interface IInitializableTask : IFree
     /// <summary>
     /// Asynchronously initializes the instance.
     /// </summary>
-    /// <param name="cancelToken"><see cref="Guid"/> instance for cancellation token</param>
-    /// <returns>
-    /// A pointer to <see cref="ComAsyncResult"/>. This method has Return value of <see cref="int"/>.<br/>
+    /// <param name="cancelToken"><see cref="Guid"/> instance for cancellation token.</param>
+    /// <param name="result">A pointer to <see cref="ComAsyncResult"/>.</param>
+    /// <remarks>
+    /// This method returns a pointer to <see cref="ComAsyncResult"/> via <c>out</c> <paramref name="result"/>. This method has Return value of <see cref="int"/>.<br/>
     /// Please use <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> to get the return value.
-    /// </returns>
-    nint InitAsync(in Guid cancelToken);
+    /// </remarks>
+    void InitAsync(in Guid cancelToken, out nint result);
 }
