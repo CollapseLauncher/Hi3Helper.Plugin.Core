@@ -39,16 +39,16 @@ internal static partial class Test
         DateTime pluginCreationDate = GetDateTime(PluginInterface);
         logger.LogInformation("IPlugin->GetPluginCreationDate(): {PluginCreationDate} UTC", pluginCreationDate.ToString("F"));
 
-        string pluginName = PluginInterface.GetPluginName();
+        PluginInterface.GetPluginName(out string? pluginName);
         logger.LogInformation("IPlugin->GetPluginName(): {PluginName}", pluginName);
 
-        string pluginAuthor = PluginInterface.GetPluginAuthor();
+        PluginInterface.GetPluginAuthor(out string? pluginAuthor);
         logger.LogInformation("IPlugin->GetPluginAuthor(): {PluginAuthor}", pluginAuthor);
 
-        string pluginDescription = PluginInterface.GetPluginDescription();
+        PluginInterface.GetPluginDescription(out string? pluginDescription);
         logger.LogInformation("IPlugin->GetPluginDescription(): {PluginDescription}", pluginDescription);
 
-        int pluginPresetConfigCount = PluginInterface.GetPresetConfigCount();
+        PluginInterface.GetPresetConfigCount(out int pluginPresetConfigCount);
         logger.LogInformation("IPlugin->GetPresetConfigCount(): Found {PluginPresetConfigCount} preset config!", pluginPresetConfigCount);
         for (int i = 0; i < pluginPresetConfigCount; i++)
         {

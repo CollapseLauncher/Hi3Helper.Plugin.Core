@@ -17,13 +17,13 @@ internal static partial class Test
 
     private static unsafe DateTime GetDateTime(IPlugin pluginInterface)
     {
-        DateTime* pluginCreationDate = pluginInterface.GetPluginCreationDate();
+        pluginInterface.GetPluginCreationDate(out DateTime* pluginCreationDate);
         return *pluginCreationDate;
     }
 
     private static unsafe IPluginPresetConfig GetPresetConfig(IPlugin pluginInterface, int index, out nint presetConfigAddress)
     {
-        IPluginPresetConfig presetConfig = pluginInterface.GetPresetConfig(index);
+        pluginInterface.GetPresetConfig(index, out IPluginPresetConfig presetConfig);
         presetConfigAddress = (nint)ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(presetConfig);
 
         return presetConfig;

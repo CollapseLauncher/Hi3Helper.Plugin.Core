@@ -22,58 +22,51 @@ public partial interface IPlugin : IFree, IDisposable
     /// <summary>
     /// Gets the name of the plugin or the game it represents.
     /// </summary>
-    /// <returns>The name of the plugin or game.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string GetPluginName();
+    /// <param name="result">The name of the plugin or game.</param>
+    void GetPluginName([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Gets the description of the plugin.
     /// </summary>
-    /// <returns>The description of the plugin or game.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string GetPluginDescription();
+    /// <param name="result">The description of the plugin or game.</param>
+    void GetPluginDescription([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Gets information about the author of the plugin.
     /// </summary>
-    /// <returns>The author information.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string GetPluginAuthor();
+    /// <param name="result">The author information.</param>
+    void GetPluginAuthor([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Gets the creation date of the plugin.
     /// </summary>
-    /// <returns>A pointer to a <see cref="DateTime"/> instance representing the creation date.</returns>
-    unsafe DateTime* GetPluginCreationDate();
+    /// <param name="result">A pointer to a <see cref="DateTime"/> instance representing the creation date (Equivalent to <c>DateTime** result</c>).</param>
+    unsafe void GetPluginCreationDate(out DateTime* result);
 
     /// <summary>
     /// Gets the number of available <see cref="IPluginPresetConfig"/> instances.
     /// </summary>
-    /// <returns>The count of preset configurations.</returns>
-    [PreserveSig]
-    int GetPresetConfigCount();
+    /// <param name="count">The count of how much Plugin Preset Configs are available.</param>
+    void GetPresetConfigCount(out int count);
 
     /// <summary>
     /// Gets the app icon URL of the plugin.
     /// </summary>
-    /// <returns>The icon URL of the plugin.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string? GetPluginAppIconUrl();
+    /// <param name="result">The icon URL of the plugin.</param>
+    void GetPluginAppIconUrl([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Gets the notification poster URL of the plugin.
     /// </summary>
-    /// <returns>The notification poster URL of the plugin.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string? GetNotificationPosterUrl();
+    /// <param name="result">The notification poster URL of the plugin.</param>
+    void GetNotificationPosterUrl([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Gets a specific <see cref="IPluginPresetConfig"/> instance by index.
     /// </summary>
     /// <param name="index">The index of the preset configuration.</param>
-    /// <returns>The <see cref="IPluginPresetConfig"/> instance at the specified index.</returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    IPluginPresetConfig GetPresetConfig(int index);
+    /// <param name="presetConfig">The <see cref="IPluginPresetConfig"/> instance at the specified index.</param>
+    void GetPresetConfig(int index, [MarshalAs(UnmanagedType.Interface)] out IPluginPresetConfig presetConfig);
 
     /// <summary>
     /// Cancels an asynchronous operation associated with the specified cancellation token.
@@ -90,12 +83,11 @@ public partial interface IPlugin : IFree, IDisposable
     /// </param>
     /// <param name="username">The username for proxy authentication. Leave it as <c>null</c> if none is needed.</param>
     /// <param name="password">The password for proxy authentication. Leave it as <c>null</c> if none is needed.</param>
-    /// <returns>Returns <c>true</c> if the settings are valid. Otherwise, returns <c>false</c></returns>
-    [PreserveSig]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    bool SetPluginProxySettings([MarshalAs(UnmanagedType.LPWStr)] string? hostUri = null,
-                                [MarshalAs(UnmanagedType.LPWStr)] string? username = null,
-                                [MarshalAs(UnmanagedType.LPWStr)] string? password = null);
+    /// <param name="isSuccess">Returns <c>true</c> if the settings are valid. Otherwise, returns <c>false</c>.</param>
+    void SetPluginProxySettings([MarshalAs(UnmanagedType.LPWStr)] string? hostUri,
+                                [MarshalAs(UnmanagedType.LPWStr)] string? username,
+                                [MarshalAs(UnmanagedType.LPWStr)] string? password,
+                                [MarshalAs(UnmanagedType.Bool)]   out bool isSuccess);
 
     /// <summary>
     /// Set the locale ID for the plugin.
@@ -106,9 +98,8 @@ public partial interface IPlugin : IFree, IDisposable
     /// <summary>
     /// Gets the plugin self-updater instance.
     /// </summary>
-    /// <returns>An instance to <see cref="IPluginSelfUpdate"/></returns>
-    [return: MarshalAs(UnmanagedType.Interface)]
-    IPluginSelfUpdate? GetPluginSelfUpdater();
+    /// <param name="selfUpdate">An instance to <see cref="IPluginSelfUpdate"/>.</param>
+    void GetPluginSelfUpdater([MarshalAs(UnmanagedType.Interface)] out IPluginSelfUpdate? selfUpdate);
 
     #region DynamicInterfaceCastable Explicit Calls
     /// <inheritdoc/>

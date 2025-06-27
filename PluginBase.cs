@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.Marshalling;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Update;
@@ -16,15 +17,15 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComClass]
 public abstract partial class PluginBase : IPlugin
 {
-    public abstract string GetPluginName();
-    public abstract string GetPluginDescription();
-    public abstract string GetPluginAuthor();
-    public abstract unsafe DateTime* GetPluginCreationDate();
-    public abstract int GetPresetConfigCount();
-    public abstract IPluginPresetConfig GetPresetConfig(int index);
-    public virtual IPluginSelfUpdate? GetPluginSelfUpdater() => null;
-    public virtual string? GetPluginAppIconUrl() => null;
-    public virtual string? GetNotificationPosterUrl() => null;
+    public abstract void GetPluginName(out string? result);
+    public abstract void GetPluginDescription(out string? result);
+    public abstract void GetPluginAuthor(out string? result);
+    public abstract unsafe void GetPluginCreationDate(out DateTime* result);
+    public abstract void GetPresetConfigCount(out int count);
+    public abstract void GetPresetConfig(int index, out IPluginPresetConfig result);
+    public virtual void GetPluginSelfUpdater(out IPluginSelfUpdate? selfUpdate) => Unsafe.SkipInit(out selfUpdate);
+    public virtual void GetPluginAppIconUrl(out string result) => Unsafe.SkipInit(out result);
+    public virtual void GetNotificationPosterUrl(out string result) => Unsafe.SkipInit(out result);
 
     public void CancelAsync(in Guid cancelToken)
     {
@@ -32,7 +33,7 @@ public abstract partial class PluginBase : IPlugin
         ComCancellationTokenVault.CancelToken(in cancelToken);
     }
 
-    public bool SetPluginProxySettings(string? hostUri, string? username, string? password)
+    public void SetPluginProxySettings(string? hostUri, string? username, string? password, out bool isSuccess)
     {
         // If all nulls or empty, assume as it resets the configuration, then return true.
         if (string.IsNullOrEmpty(hostUri) &&
@@ -44,7 +45,8 @@ public abstract partial class PluginBase : IPlugin
             SharedStatic.ProxyHost     = null;
             SharedStatic.ProxyUsername = null;
             SharedStatic.ProxyPassword = null;
-            return true;
+            isSuccess = true;
+            return;
         }
 
         // Try parse host URI and check if the username is not blank while the password isn't.
@@ -52,7 +54,8 @@ public abstract partial class PluginBase : IPlugin
             (string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password)))
         {
             SharedStatic.ProxyHost = null;
-            return false;
+            isSuccess = false;
+            return;
         }
 
         SharedStatic.InstanceLogger.LogTrace("[IPlugin::SetPluginProxySettings] Proxy has been enabled! Hostname: {Hostname} as: {Username}", hostUri, username);
@@ -60,7 +63,7 @@ public abstract partial class PluginBase : IPlugin
         // Set the username and password and return true.
         SharedStatic.ProxyUsername = username;
         SharedStatic.ProxyPassword = password;
-        return true;
+        isSuccess = true;
     }
 
     public void SetPluginLocaleId(string? localeId) => SharedStatic.SetPluginCurrentLocale(localeId);
@@ -73,10 +76,10 @@ public abstract partial class PluginBase : IPlugin
         ComCancellationTokenVault.DangerousCancelAndUnregisterAllToken();
 
         // Then continue disposing all the plugin.
-        int presetConfigCount = GetPresetConfigCount();
+        GetPresetConfigCount(out int presetConfigCount);
         for (int i = 0; i < presetConfigCount; i++)
         {
-            IPluginPresetConfig presetConfig = GetPresetConfig(i);
+            GetPresetConfig(i, out IPluginPresetConfig presetConfig);
             if (presetConfig is IDisposable disposablePresetConfig)
             {
                 disposablePresetConfig.Dispose();
@@ -84,6 +87,7 @@ public abstract partial class PluginBase : IPlugin
         }
 
         GC.SuppressFinalize(this);
-        SharedStatic.InstanceLogger.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", GetPluginName());
+        GetPluginName(out string? pluginName);
+        SharedStatic.InstanceLogger.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", pluginName);
     }
 }

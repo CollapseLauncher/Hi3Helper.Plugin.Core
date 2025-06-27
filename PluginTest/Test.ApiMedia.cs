@@ -17,7 +17,7 @@ internal static partial class Test
         PluginInterface ??= GetPlugin(delegateIn, out _);
         ThrowIfPluginIsNull(PluginInterface);
 
-        int pluginPresetConfigCount = PluginInterface.GetPresetConfigCount();
+        PluginInterface.GetPresetConfigCount(out int pluginPresetConfigCount);
         for (int i = 0; i < pluginPresetConfigCount; i++)
         {
             IPluginPresetConfig presetConfig = GetPresetConfig(PluginInterface, i, out _);
