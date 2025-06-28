@@ -233,11 +233,12 @@ public class PluginHttpClientBuilder
         int      count          = 0;
         ushort** ipAddressOut   = null;
         ushort*  unmanagedHostP = null;
+        nint ipAddressP = nint.Zero;
 
         try
         {
             unmanagedHostP = Utf16StringMarshaller.ConvertToUnmanaged(host);
-            SharedStatic.InstanceDnsResolverCallback!(ref Unsafe.AsRef<ushort>(unmanagedHostP), out nint ipAddressP, out count);
+            SharedStatic.InstanceDnsResolverCallback!(ref Unsafe.AsRef<ushort>(unmanagedHostP), out ipAddressP, out count);
             ipAddressOut = (ushort**)ipAddressP;
 
             ipAddresses = new string[count];
@@ -255,6 +256,11 @@ public class PluginHttpClientBuilder
                 {
                     Utf16StringMarshaller.Free(ipAddressOut[i]);
                 }
+            }
+
+            if (ipAddressP != nint.Zero)
+            {
+                NativeMemory.Free((void*)ipAddressP);
             }
         }
     }
