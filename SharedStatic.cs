@@ -1,5 +1,4 @@
-﻿using Hi3Helper.Plugin.Core.ABI;
-using Hi3Helper.Plugin.Core.Management;
+﻿using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
@@ -8,6 +7,8 @@ using System.Runtime.InteropServices;
 
 #if !MANUALCOM
 using System.Runtime.InteropServices.Marshalling;
+#else
+using Hi3Helper.Plugin.Core.ABI;
 #endif
 
 namespace Hi3Helper.Plugin.Core;
