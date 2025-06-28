@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices;
 using Hi3Helper.Plugin.Core.Utility;
+using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management.Api;
@@ -25,13 +26,15 @@ public partial interface ILauncherApi : IInitializableTask, IDisposable
     /// <param name="outputStreamHandle">A handle to the output stream where the asset will be written.</param>
     /// <param name="downloadProgress">An optional callback delegate for reporting download progress.</param>
     /// <param name="cancelToken">A <see cref="Guid"/> used as a cancellation token for the operation.</param>
-    /// <returns>
-    /// A native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> representing the asynchronous operation.
-    /// </returns>
-    nint DownloadAssetAsync(LauncherPathEntry                     entry,
+    /// <param name="result">A native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> representing the asynchronous operation.</param>
+    /// <remarks>
+    /// This method returns a native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> via <paramref name="result"/> representing the asynchronous operation.
+    /// </remarks>
+    void DownloadAssetAsync(LauncherPathEntry                     entry,
                             nint                                  outputStreamHandle,
                             PluginFiles.FileReadProgressDelegate? downloadProgress,
-                            in Guid                               cancelToken);
+                            in Guid                               cancelToken,
+                            out nint                              result);
 
 
     /// <summary>
@@ -41,16 +44,13 @@ public partial interface ILauncherApi : IInitializableTask, IDisposable
     /// <param name="outputStreamHandle">A handle to the output stream where the asset will be written.</param>
     /// <param name="downloadProgress">An optional callback delegate for reporting download progress.</param>
     /// <param name="cancelToken">A <see cref="Guid"/> used as a cancellation token for the operation.</param>
-    /// <returns>
+    /// <param name="result">A native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> representing the asynchronous operation.</param>
+    /// <remarks>
     /// A native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> representing the asynchronous operation.
-    /// </returns>
-    nint DownloadAssetAsync([MarshalAs(UnmanagedType.LPWStr)] string fileUrl,
-                            nint                                     outputStreamHandle,
-                            PluginFiles.FileReadProgressDelegate?    downloadProgress,
-                            in Guid                                  cancelToken);
-
-    #region DynamicInterfaceCastable Explicit Calls
-    /// <inheritdoc/>
-    void IDisposable.Dispose() => Free();
-    #endregion
+    /// </remarks>
+    void DownloadAssetAsync([MarshalAs(UnmanagedType.LPWStr)] [NotNull] string? fileUrl,
+                            nint                                        outputStreamHandle,
+                            PluginFiles.FileReadProgressDelegate?       downloadProgress,
+                            in Guid                                     cancelToken,
+                            out nint                                    result);
 }

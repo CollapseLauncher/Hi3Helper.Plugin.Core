@@ -19,10 +19,11 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 
     protected bool IsDisposed;
 
-    public virtual nint DownloadAssetAsync(LauncherPathEntry                     entry,
+    public virtual void DownloadAssetAsync(LauncherPathEntry                     entry,
                                            nint                                  outputStreamHandle,
                                            PluginFiles.FileReadProgressDelegate? downloadProgress,
-                                           in Guid                               cancelToken)
+                                           in Guid                               cancelToken,
+                                           out nint                              result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken       token       = tokenSource.Token;
@@ -37,13 +38,14 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
             throw new NullReferenceException("Path of the LauncherPathEntry cannot be null!");
         }
 
-        return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, fileHash, downloadProgress, token).AsResult();
+        result = DownloadAssetAsyncInner(null, fileUrl, outputFileStream, fileHash, downloadProgress, token).AsResult();
     }
 
-    public virtual nint DownloadAssetAsync(string                                fileUrl,
+    public virtual void DownloadAssetAsync(string                                fileUrl,
                                            nint                                  outputStreamHandle,
                                            PluginFiles.FileReadProgressDelegate? downloadProgress,
-                                           in Guid                               cancelToken)
+                                           in Guid                               cancelToken,
+                                           out nint                              result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken       token       = tokenSource.Token;
@@ -56,7 +58,7 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
             throw new NullReferenceException("Path of the LauncherPathEntry cannot be null!");
         }
 
-        return DownloadAssetAsyncInner(null, fileUrl, outputFileStream, PluginDisposableMemory<byte>.Empty, downloadProgress, token).AsResult();
+        result = DownloadAssetAsyncInner(null, fileUrl, outputFileStream, PluginDisposableMemory<byte>.Empty, downloadProgress, token).AsResult();
     }
 
     protected virtual async Task DownloadAssetAsyncInner(HttpClient?                           client,

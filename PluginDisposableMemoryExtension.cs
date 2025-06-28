@@ -5,7 +5,7 @@ namespace Hi3Helper.Plugin.Core;
 
 public static class PluginDisposableMemoryExtension
 {
-    public delegate bool MarshalToMemorySelectorDelegate(out nint handle, out int count, out bool isDisposable);
+    public delegate void MarshalToMemorySelectorDelegate(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe PluginDisposableMemory<T> ToManagedSpan<T>(this ref PluginDisposableMemoryMarshal memory)
@@ -18,7 +18,8 @@ public static class PluginDisposableMemoryExtension
     public static unsafe PluginDisposableMemory<T> ToManagedSpan<T>(this MarshalToMemorySelectorDelegate selector)
         where T : unmanaged
     {
-        if (!selector(out nint handle, out int length, out bool isDisposable) || length <= 0)
+        selector(out nint handle, out int length, out bool isDisposable, out bool isAllocated);
+        if (!isAllocated || length <= 0)
         {
             return PluginDisposableMemory<T>.Empty;
         }

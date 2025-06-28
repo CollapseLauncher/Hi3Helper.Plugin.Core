@@ -26,12 +26,8 @@ public unsafe partial interface ILauncherApiMedia : ILauncherApi
     /// <param name="handle">The handle to the <see cref="LauncherPathEntry"/> struct</param>
     /// <param name="count">How much data is available from the <paramref name="handle"/></param>
     /// <param name="isDisposable">Whether if the handle can be freed or not</param>
-    /// <returns>
-    /// Returns <c>true</c> if it's not empty. Otherwise, <c>false</c>.
-    /// </returns>
-    [PreserveSig]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    bool GetBackgroundEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
+    /// <param name="isAllocated"><c>true</c> if it's not empty. Otherwise, <c>false</c></param>
+    void GetBackgroundEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable, [MarshalAs(UnmanagedType.Bool)] out bool isAllocated);
 
     /// <summary>
     /// Gets the logo overlay's URL entries for the launcher.<br/>
@@ -41,35 +37,30 @@ public unsafe partial interface ILauncherApiMedia : ILauncherApi
     /// <param name="handle">The handle to the <see cref="LauncherPathEntry"/> struct</param>
     /// <param name="count">How much data is available from the <paramref name="handle"/></param>
     /// <param name="isDisposable">Whether if the handle can be freed or not</param>
-    /// <returns>
-    /// Returns <c>true</c> if it's not empty. Otherwise, <c>false</c>.
-    /// </returns>
-    [PreserveSig]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    bool GetLogoOverlayEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable);
+    /// <param name="isAllocated"><c>true</c> if it's not empty. Otherwise, <c>false</c></param>
+    void GetLogoOverlayEntries(out nint handle, out int count, [MarshalAs(UnmanagedType.Bool)] out bool isDisposable, [MarshalAs(UnmanagedType.Bool)] out bool isAllocated);
 
     /// <summary>
     /// Gets the current background flag, which indicates the type and source of the launcher background.
     /// </summary>
-    /// <returns>
-    /// A <see cref="LauncherBackgroundFlag"/> value representing the type (image, image sequence, video) and source (file, zip) of the background.
-    /// </returns>
-    [PreserveSig]
-    LauncherBackgroundFlag GetBackgroundFlag();
+    /// <param name="result">A <see cref="LauncherBackgroundFlag"/> value which representing the type (image, image sequence, video) and source (file, zip) of the background.</param>
+    /// <remarks>
+    /// This method returns a <see cref="LauncherBackgroundFlag"/> value via <paramref name="result"/> which representing the type (image, image sequence, video) and source (file, zip) of the background.
+    /// </remarks>
+    void GetBackgroundFlag(out LauncherBackgroundFlag result);
 
     /// <summary>
-    /// Gets the current logo flag, which indicates the type and source of the launcher background.
+    /// Gets the current logo flag, which indicates the type and source of the logo.
     /// </summary>
-    /// <returns>
-    /// A <see cref="LauncherBackgroundFlag"/> value representing the type (image, image sequence, video) and source (file, zip) of the background.
-    /// </returns>
-    [PreserveSig]
-    LauncherBackgroundFlag GetLogoFlag();
+    /// <param name="result">A <see cref="LauncherBackgroundFlag"/> value which representing the type (image, image sequence, video) and source (file, zip) of the logo.</param>
+    /// <remarks>
+    /// This method returns a <see cref="LauncherBackgroundFlag"/> value via <paramref name="result"/>which representing the type (image, image sequence, video) and source (file, zip) of the logo.
+    /// </remarks>
+    void GetLogoFlag(out LauncherBackgroundFlag result);
 
     /// <summary>
     /// Gets the background sprite FPS (frames per second) for the launcher background image sequence.
     /// </summary>
-    /// <returns>Frames per second for the sprites to cycle. Returns 0 if the background image is static.</returns>
-    [PreserveSig]
-    float GetBackgroundSpriteFps();
+    /// <param name="result">Frames per second for the sprites to cycle. Returns 0 if the background image is static.</param>
+    void GetBackgroundSpriteFps(out float result);
 }

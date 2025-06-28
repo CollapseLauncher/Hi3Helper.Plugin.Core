@@ -6,13 +6,13 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 [GeneratedComClass]
 public abstract partial class LauncherApiMediaBase : LauncherApiBase, ILauncherApiMedia
 {
-    public abstract LauncherBackgroundFlag GetBackgroundFlag();
+    public abstract void GetBackgroundFlag(out LauncherBackgroundFlag result);
 
-    public abstract LauncherBackgroundFlag GetLogoFlag();
+    public abstract void GetLogoFlag(out LauncherBackgroundFlag result);
 
-    public abstract bool GetBackgroundEntries(out nint handle, out int count, out bool isDisposable);
+    public abstract void GetBackgroundEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
 
-    public abstract bool GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable);
+    public abstract void GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
 
-    public virtual float GetBackgroundSpriteFps() => 0f;
+    public virtual void GetBackgroundSpriteFps(out float result) => result = 0f;
 }

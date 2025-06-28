@@ -61,10 +61,11 @@ internal static partial class Test
             Directory.CreateDirectory(thisLocalPath);
 
             await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
+            apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
             {
                 Console.Write($"Downloaded: {current} / {total}...\r");
-            }, in CancelToken).WaitFromHandle();
+            }, in CancelToken, out nint asyncResult);
+            await asyncResult.WaitFromHandle();
         }
 
         using PluginDisposableMemory<LauncherPathEntry> logoPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetLogoOverlayEntries);
@@ -87,10 +88,11 @@ internal static partial class Test
             Directory.CreateDirectory(thisLocalPath);
 
             await using FileStream fileStream = new(thisFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            await apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
+            apiMedia.DownloadAssetAsync(entry, fileStream.SafeFileHandle.DangerousGetHandle(), (_, current, total) =>
             {
                 Console.Write($"Downloaded: {current} / {total}...\r");
-            }, in CancelToken).WaitFromHandle();
+            }, in CancelToken, out nint asyncResult);
+            await asyncResult.WaitFromHandle();
         }
     }
 
