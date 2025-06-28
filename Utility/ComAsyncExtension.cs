@@ -103,7 +103,7 @@ public static partial class ComAsyncExtension
             if (exception != null)
             {
                 exception.SetExceptionRemoteStackTrace() += Environment.NewLine;
-                exception.SetExceptionStackTrace() = currentStackTrace;
+                exception.SetExceptionStackTrace() = currentStackTrace.ToString();
                 throw exception;
             }
 

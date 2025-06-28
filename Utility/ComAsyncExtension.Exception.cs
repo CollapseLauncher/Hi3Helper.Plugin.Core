@@ -18,8 +18,8 @@ public static partial class ComAsyncExtension
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_message")]
     private static extern ref string SetExceptionMessage(this Exception exception);
 
-    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_stackTrace")]
-    private static extern ref object SetExceptionStackTrace(this Exception exception);
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_stackTraceString")]
+    private static extern ref string SetExceptionStackTrace(this Exception exception);
 
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_remoteStackTraceString")]
     private static extern ref string? SetExceptionRemoteStackTrace(this Exception exception);
