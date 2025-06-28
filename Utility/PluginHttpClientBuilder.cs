@@ -42,7 +42,11 @@ public class PluginHttpClientBuilder
 
     private int MaxConnections { get; set; } = ExMaxConnectionsDefault;
     private DecompressionMethods DecompressionMethod { get; set; } = DecompressionMethods.All;
+#if MANUALCOM
+    private Version HttpProtocolVersion { get; set; } = HttpVersion.Version20;
+#else
     private Version HttpProtocolVersion { get; set; } = HttpVersion.Version30;
+#endif
     private string? HttpUserAgent { get; set; } = GetDefaultUserAgent();
     private string? HttpAuthHeader { get; set; }
     private HttpVersionPolicy HttpProtocolVersionPolicy { get; set; } = HttpVersionPolicy.RequestVersionOrLower;
