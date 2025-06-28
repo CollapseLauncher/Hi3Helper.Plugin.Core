@@ -3,7 +3,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using static System.Runtime.InteropServices.ComWrappers;
 
 namespace Hi3Helper.Plugin.Core.ABI;

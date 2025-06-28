@@ -6,7 +6,6 @@ using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using static System.Runtime.InteropServices.ComWrappers;
 
 namespace Hi3Helper.Plugin.Core.ABI;
@@ -208,7 +207,7 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            resultNative = ComInterfaceMarshaller<IGameInstaller>.ConvertToUnmanaged(result);
+            resultNative = ABIExtension<GameInstallerWrappers>.GetComInterfacePtrFromWrappers(result);
         }
         catch (Exception exception)
         {

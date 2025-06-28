@@ -1,6 +1,5 @@
 ﻿#if MANUALCOM
 
-using Hi3Helper.Plugin.Core.Update;
 using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.CompilerServices;
@@ -184,7 +183,7 @@ internal sealed unsafe class ABI_IPluginWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            selfUpdateNative = ComInterfaceMarshaller<IPluginSelfUpdate>.ConvertToUnmanaged(selfUpdate);
+            selfUpdateNative = ABIExtension<PluginSelfUpdateWrappers>.GetComInterfacePtrFromWrappers(selfUpdate);
         }
         catch (Exception exception)
         {
