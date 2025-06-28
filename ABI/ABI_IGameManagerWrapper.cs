@@ -1,6 +1,7 @@
 ﻿#if MANUALCOM
 
 using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,26 +15,7 @@ internal sealed unsafe class ABI_IGameManagerWrapper
 {
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
     internal static int ABI_GetGamePath(ComInterfaceDispatch* thisNative, ushort** resultNativeParam)
-    {
-        ref ushort* resultNative = ref *resultNativeParam;
-        int retVal;
-        try
-        {
-            // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.GetGamePath(out var result);
-            // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
-            retVal = 0; // S_OK
-            // Marshal - Convert managed data to native data.
-            resultNative = Utf16StringMarshaller.ConvertToUnmanaged(result);
-        }
-        catch (Exception exception)
-        {
-            retVal = ExceptionAsHResultMarshaller<int>.ConvertToUnmanaged(exception);
-        }
-
-        return retVal;
-    }
+        => ABIExtension.AllocUtf16StringFromFunc(ComInterfaceDispatch.GetInstance<IGameManager>(thisNative).GetGamePath, resultNativeParam);
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
     internal static int ABI_SetGamePath(ComInterfaceDispatch* thisNative, ushort* gamePathNative)
