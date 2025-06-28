@@ -20,9 +20,8 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// <summary>
     /// Gets the current path where the game is installed.
     /// </summary>
-    /// <returns>The file system path to the game installation directory.</returns>
-    [return: MarshalAs(UnmanagedType.LPWStr)]
-    string? GetGamePath();
+    /// <param name="result">The file system path to the game installation directory.</param>
+    void GetGamePath([MarshalAs(UnmanagedType.LPWStr)] out string? result);
 
     /// <summary>
     /// Set-only or Set-Save the path of the game installation.
@@ -57,26 +56,20 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// <summary>
     /// Determines whether the game is currently installed.
     /// </summary>
-    /// <returns><c>true</c> if the game is installed; otherwise, <c>false</c>.</returns>
-    [PreserveSig]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    bool IsGameInstalled();
+    /// <param name="result"><c>true</c> if the game is installed; otherwise, <c>false</c>.</param>
+    void IsGameInstalled([MarshalAs(UnmanagedType.Bool)] out bool result);
 
     /// <summary>
     /// Determines whether an update is available for the game.
     /// </summary>
-    /// <returns><c>true</c> if an update is available; otherwise, <c>false</c>.</returns>
-    [PreserveSig]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    bool IsGameHasUpdate();
+    /// <param name="result"><c>true</c> if an update is available; otherwise, <c>false</c>.</param>
+    void IsGameHasUpdate([MarshalAs(UnmanagedType.Bool)] out bool result);
 
     /// <summary>
     /// Determines whether a preload version is available for the game.
     /// </summary>
-    /// <returns><c>true</c> if a preload version is available; otherwise, <c>false</c>.</returns>
-    [PreserveSig]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    bool IsGameHasPreload();
+    /// <param name="result"><c>true</c> if a preload version is available; otherwise, <c>false</c>.</param>
+    void IsGameHasPreload([MarshalAs(UnmanagedType.Bool)] out bool result);
 
     /// <summary>
     /// Perform config loading mechanism. Before calling this method, ensure that you have set the game path using <see cref="SetGamePath(string)"/>.
@@ -91,9 +84,11 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// <summary>
     /// Finds the existing installation path of the game asynchronously.
     /// </summary>
-    /// <returns>
-    /// A safe pointer to the <see cref="ComAsyncResult"/>.<br/>
+    /// <param name="result">A safe pointer to the <see cref="ComAsyncResult"/>.</param>
+    /// <param name="cancelToken">A <see cref="Guid"/> value token for the cancelling asynchronous operation.</param>
+    /// <remarks>
+    /// This method returns a safe pointer to the <see cref="ComAsyncResult"/> via <paramref name="result"/>.<br/>
     /// The pointer needs to be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and the generic type must be <see cref="PluginDisposableMemoryMarshal"/> of <see cref="byte"/>
-    /// </returns>
-    nint FindExistingInstallPathAsync(in Guid cancelToken);
+    /// </remarks>
+    void FindExistingInstallPathAsync(in Guid cancelToken, out nint result);
 }

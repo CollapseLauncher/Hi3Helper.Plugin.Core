@@ -62,7 +62,7 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
 
     protected string EnsureAndGetGamePath()
     {
-        string? gamePath = GameManager.GetGamePath();
+        GameManager.GetGamePath(out string? gamePath);
         if (string.IsNullOrEmpty(gamePath))
         {
             throw new InvalidOperationException("To Developer: Please set the game path using IGameManager.SetGamePath(gamePath, false) before starting StartInstallAsync!");

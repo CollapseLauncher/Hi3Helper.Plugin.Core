@@ -31,7 +31,7 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     }
     protected abstract void SetCurrentGameVersionInner(in GameVersion gameVersion);
 
-    public string? GetGamePath() => CurrentGameInstallPath;
+    public void GetGamePath(out string? result) => result = CurrentGameInstallPath;
     public void SetGamePath(string gamePath)
     {
         CurrentGameInstallPath = gamePath;
@@ -42,15 +42,17 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     public abstract void LoadConfig();
     public abstract void SaveConfig();
 
-    public bool IsGameHasPreload() => HasPreload;
-    public bool IsGameHasUpdate()  => HasUpdate;
-    public bool IsGameInstalled()  => IsInstalled;
+    public void IsGameHasPreload(out bool result) => result = HasPreload;
+    public void IsGameHasUpdate(out bool result) => result = HasUpdate;
+    public void IsGameInstalled(out bool result) => result = IsInstalled;
 
-    public nint FindExistingInstallPathAsync(in Guid cancelToken)
+    public void FindExistingInstallPathAsync(in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return Impl(token).AsResult();
+        result = Impl(token).AsResult();
+
+        return;
 
         async Task<PluginDisposableMemoryMarshal> Impl(CancellationToken innerToken)
         {
