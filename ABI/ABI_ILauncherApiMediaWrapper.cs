@@ -33,7 +33,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         }
         catch (Exception exception)
         {
-            retVal = ExceptionAsHResultMarshaller<int>.ConvertToUnmanaged(exception);
+            retVal = Marshal.GetHRForException(exception);
         }
 
         return retVal;
@@ -62,7 +62,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         }
         catch (Exception exception)
         {
-            retVal = ExceptionAsHResultMarshaller<int>.ConvertToUnmanaged(exception);
+            retVal = Marshal.GetHRForException(exception);
         }
 
         return retVal;
@@ -85,7 +85,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         }
         catch (Exception exception)
         {
-            retVal = ExceptionAsHResultMarshaller<int>.ConvertToUnmanaged(exception);
+            retVal = Marshal.GetHRForException(exception);
         }
 
         return retVal;
@@ -108,7 +108,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         }
         catch (Exception exception)
         {
-            retVal = ExceptionAsHResultMarshaller<int>.ConvertToUnmanaged(exception);
+            retVal = Marshal.GetHRForException(exception);
         }
 
         return retVal;
@@ -131,7 +131,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         }
         catch (Exception exception)
         {
-            retVal = ExceptionAsHResultMarshaller<int>.ConvertToUnmanaged(exception);
+            retVal = Marshal.GetHRForException(exception);
         }
 
         return retVal;
