@@ -18,8 +18,8 @@ public sealed unsafe class GameInstallerWrappers : ComWrappers
 {
     public static readonly ComInterfaceEntry* InterfaceDefinitions_IGameInstaller;
     public static readonly ComInterfaceEntry* InterfaceDefinitions_IGameUninstaller;
-    private const int ExInterfaceDefinitionsLen_IGameInstaller = 3; // IGameInstaller, IGameUninstaller, IFree.
-    private const int ExInterfaceDefinitionsLen_IGameUninstaller = 2; // IGameUninstaller, IFree.
+    private const int ExInterfaceDefinitionsLen_IGameInstaller = 4; // IGameInstaller, IGameUninstaller, IInitializable, IFree.
+    private const int ExInterfaceDefinitionsLen_IGameUninstaller = 3; // IGameUninstaller, IInitializable, IFree.
 
     static GameInstallerWrappers()
     {
@@ -33,8 +33,10 @@ public sealed unsafe class GameInstallerWrappers : ComWrappers
             p_IGameInstaller[0].Vtable = (nint)ABI_VTables.IGameInstaller;
             p_IGameInstaller[1].IID = new Guid(ComInterfaceId.ExGameUninstaller);
             p_IGameInstaller[1].Vtable = (nint)ABI_VTables.IGameUninstaller;
-            p_IGameInstaller[2].IID = new Guid(ComInterfaceId.ExFree);
-            p_IGameInstaller[2].Vtable = (nint)ABI_VTables.IFree;
+            p_IGameInstaller[2].IID = new Guid(ComInterfaceId.ExInitializable);
+            p_IGameInstaller[2].Vtable = (nint)ABI_VTables.IInitializableTask;
+            p_IGameInstaller[3].IID = new Guid(ComInterfaceId.ExFree);
+            p_IGameInstaller[3].Vtable = (nint)ABI_VTables.IFree;
 
             InterfaceDefinitions_IGameInstaller = p_IGameInstaller;
         }
@@ -44,11 +46,13 @@ public sealed unsafe class GameInstallerWrappers : ComWrappers
                 typeof(GameInstallerWrappers),
                 sizeof(ComInterfaceEntry) * ExInterfaceDefinitionsLen_IGameUninstaller);
 
-            // ILauncherApiNews
+            // IGameUninstaller
             p_IGameUninstaller[0].IID = new Guid(ComInterfaceId.ExGameUninstaller);
             p_IGameUninstaller[0].Vtable = (nint)ABI_VTables.IGameUninstaller;
-            p_IGameUninstaller[1].IID = new Guid(ComInterfaceId.ExFree);
-            p_IGameUninstaller[1].Vtable = (nint)ABI_VTables.IFree;
+            p_IGameUninstaller[1].IID = new Guid(ComInterfaceId.ExInitializable);
+            p_IGameUninstaller[1].Vtable = (nint)ABI_VTables.IInitializableTask;
+            p_IGameUninstaller[2].IID = new Guid(ComInterfaceId.ExFree);
+            p_IGameUninstaller[2].Vtable = (nint)ABI_VTables.IFree;
 
             InterfaceDefinitions_IGameUninstaller = p_IGameUninstaller;
         }
