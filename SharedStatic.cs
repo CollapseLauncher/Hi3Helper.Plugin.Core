@@ -154,9 +154,14 @@ public class SharedStatic
     /// Specify which <see cref="IPlugin"/> instance to load and use in this plugin.
     /// </summary>
     /// <typeparam name="TPlugin">A member of COM Interface of <see cref="IPlugin"/>.</typeparam>
-    protected static void Load<TPlugin>()
+    protected static void Load<TPlugin>(GameVersion interceptDllVersionTo = default)
         where TPlugin : class, IPlugin, new()
     {
+        if (interceptDllVersionTo != GameVersion.Empty)
+        {
+            _currentDllVersion = interceptDllVersionTo;
+        }
+
         if (_thisPluginInstance != null)
         {
             return;
