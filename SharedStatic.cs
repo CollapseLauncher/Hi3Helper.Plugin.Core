@@ -14,7 +14,14 @@ using Hi3Helper.Plugin.Core.ABI;
 namespace Hi3Helper.Plugin.Core;
 
 public delegate void SharedLoggerCallback(LogLevel logLevel, EventId eventId, string message);
-public delegate void SharedDnsResolverCallback(string hostname, out string[] ipAddresses);
+
+/// <summary>
+/// A delegate to a callback which returns the list of IP addresses resolved from the <paramref name="hostname"/>.
+/// </summary>
+/// <param name="hostname">A hostname to resolve to.</param>
+/// <param name="ipAddresses">An out argument which returns an array of <see cref="ushort"/> pointers of resolved IP addresses.</param>
+/// <param name="ipAddressesCount">How many IP addresses included in <paramref name="ipAddresses"/>.</param>
+public delegate void SharedDnsResolverCallback(ref ushort hostname, out nint ipAddresses, out int ipAddressesCount);
 
 public class SharedStatic
 {

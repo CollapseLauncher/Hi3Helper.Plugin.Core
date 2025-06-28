@@ -16,6 +16,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Runtime.InteropServices.Marshalling;
+using System.Runtime.CompilerServices;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StringLiteralTypo
 
@@ -225,6 +227,38 @@ public class PluginHttpClientBuilder
         return client;
     }
 
+    private static unsafe void GetDnsResolverArrayFromCallback(string host, out string[] ipAddresses)
+    {
+        Unsafe.SkipInit(out ipAddresses);
+        int      count          = 0;
+        ushort** ipAddressOut   = null;
+        ushort*  unmanagedHostP = null;
+
+        try
+        {
+            unmanagedHostP = Utf16StringMarshaller.ConvertToUnmanaged(host);
+            SharedStatic.InstanceDnsResolverCallback!(ref Unsafe.AsRef<ushort>(unmanagedHostP), out nint ipAddressP, out count);
+            ipAddressOut = (ushort**)ipAddressP;
+
+            ipAddresses = new string[count];
+            for (int i = 0; i < count; i++)
+            {
+                ipAddresses[i] = Utf16StringMarshaller.ConvertToManaged(ipAddressOut[i])!;
+            }
+        }
+        finally
+        {
+            Utf16StringMarshaller.Free(unmanagedHostP);
+            if (ipAddressOut != null)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    Utf16StringMarshaller.Free(ipAddressOut[i]);
+                }
+            }
+        }
+    }
+
     private static async ValueTask<Stream> ExternalDnsConnectCallback(SocketsHttpConnectionContext context, CancellationToken token)
     {
         Socket socket = new(SocketType.Stream, ProtocolType.Tcp)
@@ -236,7 +270,7 @@ public class PluginHttpClientBuilder
         {
             if (SharedStatic.InstanceDnsResolverCallback != null)
             {
-                SharedStatic.InstanceDnsResolverCallback(context.DnsEndPoint.Host, out string[] ipAddresses);
+                GetDnsResolverArrayFromCallback(context.DnsEndPoint.Host, out string[] ipAddresses);
                 IPAddress[] addresses = new IPAddress[ipAddresses.Length];
                 for (int i = 0; i < ipAddresses.Length; i++)
                 {
