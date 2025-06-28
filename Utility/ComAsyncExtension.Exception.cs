@@ -179,7 +179,7 @@ public static partial class ComAsyncExtension
 
         private static ReadOnlySpan<char> GetExceptionInfo(ReadOnlySpan<char> typeExceptionInfoBuffer, out int readOffset)
         {
-            if (typeExceptionInfoBuffer[0] != ComAsyncException.ExExceptionInfoSeparator)
+            if (typeExceptionInfoBuffer.IsEmpty || typeExceptionInfoBuffer[0] != ComAsyncException.ExExceptionInfoSeparator)
             {
                 readOffset = 0;
                 return [];
