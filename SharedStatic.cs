@@ -5,7 +5,10 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
+#if !MANUALCOM
 using System.Runtime.InteropServices.Marshalling;
+#endif
 
 namespace Hi3Helper.Plugin.Core;
 
