@@ -166,23 +166,23 @@ internal static unsafe class ABI_VTables
         }
 
         // IGameUninstaller
-        IGameUninstaller = (void**)RuntimeHelpers.AllocateTypeAssociatedMemory(typeof(IGameUninstaller), sizeof(void*) * 5);
+        IGameUninstaller = (void**)RuntimeHelpers.AllocateTypeAssociatedMemory(typeof(IGameUninstaller), sizeof(void*) * 6);
         {
-            // Inherit IFree by copying its VTable
-            NativeMemory.Copy(IFree, IGameUninstaller, (nuint)(sizeof(void*) * 4));
-            IGameUninstaller[4] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, Guid*, nint*, int>)&ABI_IGameUninstallerWrapper.ABI_UninstallAsync;
+            // Inherit IInitializableTask by copying its VTable
+            NativeMemory.Copy(IInitializableTask, IGameUninstaller, (nuint)(sizeof(void*) * 5));
+            IGameUninstaller[5] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, Guid*, nint*, int>)&ABI_IGameUninstallerWrapper.ABI_UninstallAsync;
         }
 
         // IGameInstaller
-        IGameInstaller = (void**)RuntimeHelpers.AllocateTypeAssociatedMemory(typeof(IGameInstaller), sizeof(void*) * 10);
+        IGameInstaller = (void**)RuntimeHelpers.AllocateTypeAssociatedMemory(typeof(IGameInstaller), sizeof(void*) * 11);
         {
             // Inherit IGameUninstaller by copying its VTable
-            NativeMemory.Copy(IGameUninstaller, IGameInstaller, (nuint)(sizeof(void*) * 5));
-            IGameInstaller[5] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, GameInstallerKind, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_GetGameSizeAsync;
-            IGameInstaller[6] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, GameInstallerKind, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_GetGameDownloadedSizeAsync;
-            IGameInstaller[7] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, nint, nint, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_StartInstallAsync;
-            IGameInstaller[8] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, nint, nint, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_StartUpdateAsync;
-            IGameInstaller[9] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, nint, nint, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_StartPreloadAsync;
+            NativeMemory.Copy(IGameUninstaller, IGameInstaller, (nuint)(sizeof(void*) * 6));
+            IGameInstaller[6] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, GameInstallerKind, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_GetGameSizeAsync;
+            IGameInstaller[7] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, GameInstallerKind, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_GetGameDownloadedSizeAsync;
+            IGameInstaller[8] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, nint, nint, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_StartInstallAsync;
+            IGameInstaller[9] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, nint, nint, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_StartUpdateAsync;
+            IGameInstaller[10] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, nint, nint, Guid*, nint*, int>)&ABI_IGameInstallerWrapper.ABI_StartPreloadAsync;
         }
     }
 }
