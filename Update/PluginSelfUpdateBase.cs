@@ -16,11 +16,11 @@ public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
     protected abstract ReadOnlySpan<string> BaseCdnUrlSpan { get; }
     protected abstract HttpClient UpdateHttpClient { get; }
 
-    nint IPluginSelfUpdate.TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, in Guid cancelToken)
+    public void TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return TryPerformUpdateAsync(outputDir, checkForUpdatesOnly, progressDelegate, token).AsResult();
+        result = TryPerformUpdateAsync(outputDir, checkForUpdatesOnly, progressDelegate, token).AsResult();
     }
 
     public void Free() => Dispose();
