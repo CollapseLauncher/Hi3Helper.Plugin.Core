@@ -109,9 +109,40 @@ public static partial class ComAsyncExtension
         }
     }
 
+    internal static string TryGetExceptionNameFromMessage(string? message)
+    {
+        const string DefaultName = "Exception";
+
+        if (string.IsNullOrEmpty(message))
+        {
+            return DefaultName;
+        }
+
+        Span<Range> range = stackalloc Range[4];
+        int len = message.AsSpan().Split(range, '_', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (len <= 0)
+        {
+            return DefaultName;
+        }
+
+        string tryExceptionName = message[range[0]] + DefaultName;
+        if (ExceptionNames.ExceptionCreateDelegateLookup.ContainsKey(tryExceptionName))
+        {
+            return tryExceptionName;
+        }
+
+        return DefaultName;
+    }
+
     internal static void WriteExceptionInfo(Exception exception, ref ComAsyncException result)
     {
-        string  exceptionName       = exception.GetType().Name;
+        string exceptionName =
+#if MANUALCOM
+            TryGetExceptionNameFromMessage(exception.Message);
+#else
+            exception.GetType().Name;
+#endif
         string  exceptionMessage    = exception.Message;
         string? exceptionStackTrace = exception.StackTrace;
         string? exceptionInfo       = null;

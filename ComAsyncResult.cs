@@ -205,8 +205,13 @@ public struct ComAsyncResult() : IDisposable
         }
 
 #if DEBUG
+#if MANUALCOM
+        const string exceptionName = "<unknown>";
+#else
+        string exceptionName = typeof(T).Name;
+#endif
         // Log the exception info
-        SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing parent exception: {ExceptionName}", exception.GetType().Name);
+        SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing parent exception: {ExceptionName}", exceptionName);
 #endif
 
         // Write parent exception
@@ -224,7 +229,7 @@ public struct ComAsyncResult() : IDisposable
         {
 #if DEBUG
             // Log the exception info
-            SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing inner exception: {ExceptionName}", exception.GetType().Name);
+            SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing inner exception: {ExceptionName}", exceptionName);
 #endif
 
             // Write current inner exception
