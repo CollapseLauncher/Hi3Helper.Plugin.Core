@@ -11,7 +11,7 @@ using static System.Runtime.InteropServices.ComWrappers;
 namespace Hi3Helper.Plugin.Core.ABI;
 
 // ReSharper disable once InconsistentNaming
-internal unsafe class ABI_IPluginWrapper
+internal sealed unsafe class ABI_IPluginWrapper
 {
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
     internal static int ABI_GetPluginName(ComInterfaceDispatch* thisNative, ushort** resultNativeParam)

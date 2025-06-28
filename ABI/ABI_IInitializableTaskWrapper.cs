@@ -9,7 +9,7 @@ namespace Hi3Helper.Plugin.Core.ABI;
 
 // ReSharper disable once InconsistentNaming
 // ReSharper disable once IdentifierTypo
-internal unsafe class ABI_IInitializableTask
+internal sealed unsafe class ABI_IInitializableTaskWrapper
 {
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
     internal static int ABI_InitAsync(ComInterfaceDispatch* thisNative, Guid* cancelTokenNativeParam, nint* resultNativeParam)

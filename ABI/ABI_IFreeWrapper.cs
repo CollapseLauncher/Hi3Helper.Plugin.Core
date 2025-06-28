@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace Hi3Helper.Plugin.Core.ABI;
 
 // ReSharper disable once InconsistentNaming
-internal unsafe class ABI_IFreeWrapper
+internal sealed unsafe class ABI_IFreeWrapper
 {
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
     internal static int ABI_Free(ComWrappers.ComInterfaceDispatch* thisNative)
