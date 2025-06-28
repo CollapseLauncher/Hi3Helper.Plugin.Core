@@ -34,24 +34,26 @@ public partial interface IGameInstaller : IGameUninstaller
     /// </summary>
     /// <param name="gameInstallerKind">Kind of game state of the size to retrieve.</param>
     /// <param name="cancelToken">Cancel token for the async operation.</param>
-    /// <returns>
-    /// A pointer to the <see cref="ComAsyncResult"/> instance.<br/>
+    /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
+    /// <remarks>
+    /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
     /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and set the generic<br/>
     /// result to <see cref="long"/> in order to await and get the result from this async function.
-    /// </returns>
-    nint GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken);
+    /// </remarks>
+    void GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result);
 
     /// <summary>
     /// Gets the size of existing/downloaded assets depends on the current state.
     /// </summary>
     /// <param name="gameInstallerKind">Kind of game state of the size to retrieve.</param>
     /// <param name="cancelToken">Cancel token for the async operation.</param>
-    /// <returns>
-    /// A pointer to the <see cref="ComAsyncResult"/> instance.<br/>
+    /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
+    /// <remarks>
+    /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
     /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and set the generic<br/>
     /// result to <see cref="long"/> in order to await and get the result from this async function.
-    /// </returns>
-    nint GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken);
+    /// </remarks>
+    void GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result);
 
     /// <summary>
     /// Perform installation routine asynchronously.
@@ -59,12 +61,13 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="progressDelegate">A delegate to get the progress of the routine.</param>
     /// <param name="progressStateDelegate">A delegate to get the state of the progress of the routine.</param>
     /// <param name="cancelToken">A cancel token for cancelling the async operation.</param>
-    /// <returns>
-    /// A pointer to the <see cref="ComAsyncResult"/> instance.<br/>
+    /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
+    /// <remarks>
+    /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
     /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
-    /// </returns>
-    nint StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken);
+    /// </remarks>
+    void StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result);
 
     /// <summary>
     /// Perform update routine asynchronously. Returns immediately if no update is available.
@@ -72,12 +75,13 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="progressDelegate">A delegate to get the progress of the routine.</param>
     /// <param name="progressStateDelegate">A delegate to get the state of the progress of the routine.</param>
     /// <param name="cancelToken">A cancel token for cancelling the async operation.</param>
-    /// <returns>
-    /// A pointer to the <see cref="ComAsyncResult"/> instance.<br/>
+    /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
+    /// <remarks>
+    /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
     /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
-    /// </returns>
-    nint StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken);
+    /// </remarks>
+    void StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result);
 
     /// <summary>
     /// Perform preload routine asynchronously. Returns immediately if no preload is available.
@@ -85,10 +89,11 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="progressDelegate">A delegate to get the progress of the routine.</param>
     /// <param name="progressStateDelegate">A delegate to get the state of the progress of the routine.</param>
     /// <param name="cancelToken">A cancel token for cancelling the async operation.</param>
-    /// <returns>
-    /// A pointer to the <see cref="ComAsyncResult"/> instance.<br/>
+    /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
+    /// <remarks>
+    /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
     /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
-    /// </returns>
-    nint StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken);
+    /// </remarks>
+    void StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result);
 }

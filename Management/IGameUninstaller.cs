@@ -21,10 +21,11 @@ public partial interface IGameUninstaller : IFree, IDisposable
     /// Perform uninstallation routine asynchronously.
     /// </summary>
     /// <param name="cancelToken">Cancel token for the async operation.</param>
-    /// <returns>
-    /// A pointer to the <see cref="ComAsyncResult"/> instance.<br/>
+    /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
+    /// <remarks>
+    /// A pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
     /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
-    /// </returns>
-    nint UninstallAsync(in Guid cancelToken);
+    /// </remarks>
+    void UninstallAsync(in Guid cancelToken, out nint result);
 }

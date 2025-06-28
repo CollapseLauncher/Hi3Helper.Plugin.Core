@@ -7,50 +7,50 @@ using System.Threading.Tasks;
 namespace Hi3Helper.Plugin.Core.Management;
 
 [GeneratedComClass]
-public abstract partial class GameInstallerBase(IGameManager? gameManager) : InitializableTask, IGameInstaller, IGameUninstaller
+public abstract partial class GameInstallerBase(IGameManager? gameManager) : InitializableTask, IGameInstaller
 {
     protected readonly IGameManager GameManager = gameManager ?? throw new NullReferenceException("Game Manager is null!");
 
-    public nint GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken)
+    public void GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return GetGameSizeAsyncInner(gameInstallerKind, token).AsResult();
+        result = GetGameSizeAsyncInner(gameInstallerKind, token).AsResult();
     }
 
-    public nint GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken)
+    public void GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return GetGameDownloadedSizeAsyncInner(gameInstallerKind, token).AsResult();
+        result = GetGameDownloadedSizeAsyncInner(gameInstallerKind, token).AsResult();
     }
 
-    public nint StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
+    public void StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return StartInstallAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
+        result = StartInstallAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
     }
 
-    public nint StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
+    public void StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return StartUpdateAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
+        result = StartUpdateAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
     }
 
-    public nint StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken)
+    public void StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return StartPreloadAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
+        result = StartPreloadAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
     }
 
-    public nint UninstallAsync(in Guid cancelToken)
+    public void UninstallAsync(in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
-        return UninstallAsyncInner(token).AsResult();
+        result = UninstallAsyncInner(token).AsResult();
     }
 
     protected abstract Task<long> GetGameSizeAsyncInner(GameInstallerKind gameInstallerKind, CancellationToken token);
