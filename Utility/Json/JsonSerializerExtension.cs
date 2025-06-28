@@ -1,9 +1,10 @@
-﻿using System;
+﻿#if !USELIGHTWEIGHTJSONPARSER
+
+using System;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
-#if !USELIGHTWEIGHTJSONPARSER
 using System.Text.Json.Serialization.Metadata;
-#endif
 
 namespace Hi3Helper.Plugin.Core.Utility.Json;
 
@@ -25,11 +26,7 @@ public static class JsonSerializerExtension
         return default;
     }
 
-    public static void SetConfigValue<T>(this JsonObject obj, string propertyName, T? value
-#if !USELIGHTWEIGHTJSONPARSER
-        , JsonTypeInfo<T>? typeInfo = null
-#endif
-        )
+    public static void SetConfigValue<T>(this JsonObject obj, string propertyName, T? value, JsonTypeInfo<T>? typeInfo = null)
     {
         obj[propertyName] = value switch
         {
@@ -58,7 +55,7 @@ public static class JsonSerializerExtension
 
             Guid valueAsGuid => JsonValue.Create(valueAsGuid),
 
-#if !USELIGHTWEIGHTJSONPARSER
+#if !MANUALCOM
             not null => typeInfo != null
                 ? JsonValue.Create(value, typeInfo)
                 : throw new NotSupportedException(
@@ -70,19 +67,13 @@ public static class JsonSerializerExtension
         };
     }
 
-    public static void SetConfigValueIfEmpty<T>(this JsonObject obj, string propertyName, T? value
-#if !USELIGHTWEIGHTJSONPARSER
-        , JsonTypeInfo<T>? typeInfo = null
-#endif
-        )
+    public static void SetConfigValueIfEmpty<T>(this JsonObject obj, string propertyName, T? value, JsonTypeInfo<T>? typeInfo = null)
     {
         if (!obj.ContainsKey(propertyName))
         {
-            obj.SetConfigValue(propertyName, value
-#if !USELIGHTWEIGHTJSONPARSER
-                , typeInfo
-#endif
-                );
+            obj.SetConfigValue(propertyName, value, typeInfo);
         }
     }
 }
+
+#endif
