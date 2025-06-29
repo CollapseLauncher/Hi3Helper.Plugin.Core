@@ -16,8 +16,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
-using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.CompilerServices;
+using System.Buffers;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StringLiteralTypo
 
@@ -230,38 +230,62 @@ public class PluginHttpClientBuilder
     private static unsafe void GetDnsResolverArrayFromCallback(string host, out string[] ipAddresses)
     {
         Unsafe.SkipInit(out ipAddresses);
-        int      count          = 0;
-        ushort** ipAddressOut   = null;
-        ushort*  unmanagedHostP = null;
-        nint ipAddressP = nint.Zero;
+
+        // Throw if the callback is null
+        ArgumentNullException.ThrowIfNull(SharedStatic.InstanceDnsResolverCallback, nameof(SharedStatic.InstanceDnsResolverCallback));
+
+        const int dnsResolverWriteBufferLen = 512;
+        char[] dnsResolverWriteBuffer  = ArrayPool<char>.Shared.Rent(dnsResolverWriteBufferLen);
+        char*  dnsResolverWriteBufferP = (char*)Unsafe.AsPointer(ref dnsResolverWriteBuffer[0]);
 
         try
         {
-            unmanagedHostP = Utf16StringMarshaller.ConvertToUnmanaged(host);
-            SharedStatic.InstanceDnsResolverCallback!(ref Unsafe.AsRef<ushort>(unmanagedHostP), out ipAddressP, out count);
-            ipAddressOut = (ushort**)ipAddressP;
+            // Copy the host string to temporary buffer first.
+            int hostPLen = host.Length + 1;
+            char* hostPAlloc = stackalloc char[hostPLen];
+            host.CopyTo(new Span<char>(hostPAlloc, hostPLen));
+            hostPAlloc[hostPLen] = '\0';
 
-            ipAddresses = new string[count];
-            for (int i = 0; i < count; i++)
+            // Call the callback from main application to write the IP address into the buffer.
+            int ipAddressWrittenCount = 0;
+            SharedStatic.InstanceDnsResolverCallback(hostPAlloc, dnsResolverWriteBufferP, dnsResolverWriteBufferLen, &ipAddressWrittenCount);
+
+            // SANITY
+            if (ipAddressWrittenCount == 0)
             {
-                ipAddresses[i] = Utf16StringMarshaller.ConvertToManaged(ipAddressOut[i])!;
+                throw new InvalidOperationException("DnsResolverCallback doesn't return any IP addresses!");
+            }
+
+            // Now we write the goods >:)
+            ipAddresses = new string[ipAddressWrittenCount];
+            int offset = 0;
+            int index  = 0;
+            while (offset < hostPLen && *(dnsResolverWriteBufferP + offset) != '\0')
+            {
+                // Use SIMD to get the index of null char as its length.
+                int len = SpanHelpers.IndexOfNullCharacter(dnsResolverWriteBufferP);
+                if (len < 0)
+                {
+                    break;
+                }
+
+                ReadOnlySpan<char> currentCharEntry = new(dnsResolverWriteBufferP + offset, len);
+                ipAddresses[index++] = new string(currentCharEntry);
+
+                // Advance to the next entry
+                offset += len + 1;
+            }
+
+            // SAFETY CHECK:
+            // If the processed string is less than what it reports by the main application, resize the ipAddresses array.
+            if (index < ipAddressWrittenCount)
+            {
+                Array.Resize(ref ipAddresses, index);
             }
         }
         finally
         {
-            Utf16StringMarshaller.Free(unmanagedHostP);
-            if (ipAddressOut != null)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    Utf16StringMarshaller.Free(ipAddressOut[i]);
-                }
-            }
-
-            if (ipAddressP != nint.Zero)
-            {
-                NativeMemory.Free((void*)ipAddressP);
-            }
+            ArrayPool<char>.Shared.Return(dnsResolverWriteBuffer);
         }
     }
 

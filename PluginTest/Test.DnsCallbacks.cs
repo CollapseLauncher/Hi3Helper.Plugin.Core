@@ -6,7 +6,7 @@ namespace PluginTest;
 
 internal static partial class Test
 {
-    internal static void TestSetDnsResolverCallback(PluginSetDnsResolverCallback delegateIn, ILogger logger)
+    internal static unsafe void TestSetDnsResolverCallback(PluginSetDnsResolverCallback delegateIn, ILogger logger)
     {
         nint pointerToCallback = Marshal.GetFunctionPointerForDelegate<SharedDnsResolverCallback>(PluginDnsResolverCallback);
         delegateIn(pointerToCallback);
@@ -19,8 +19,7 @@ internal static partial class Test
         logger.LogInformation("DNS Resolver has been detached!");
     }
 
-    private static void PluginDnsResolverCallback(string host, out string[] ipAddresses)
+    private static unsafe void PluginDnsResolverCallback(char* hostname, char* ipResolvedWriteBuffer, int ipResolvedWriteBufferLen, int* ipResolvedWriteCount)
     {
-        ipAddresses = ["127.0.0.1"];
     }
 }

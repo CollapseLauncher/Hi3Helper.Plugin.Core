@@ -11,17 +11,29 @@ using System.Runtime.InteropServices.Marshalling;
 using Hi3Helper.Plugin.Core.ABI;
 #endif
 
+#pragma warning disable CS8500
 namespace Hi3Helper.Plugin.Core;
 
-public delegate void SharedLoggerCallback(LogLevel logLevel, EventId eventId, string message);
+/// <summary>
+/// A delegate to a callback which prints the log from this plugin.
+/// </summary>
+/// <param name="logLevel">The <see cref="LogLevel"/> provided by the plugin.</param>
+/// <param name="eventId">The information <see cref="EventId"/> provided by the plugin.</param>
+/// <param name="messageBuffer">The pointer of the message's UTF-16 unsigned string (without null terminator).</param>
+/// <param name="messageLength"></param>
+public unsafe delegate void SharedLoggerCallback(LogLevel* logLevel, EventId* eventId, char* messageBuffer, int messageLength);
 
 /// <summary>
-/// A delegate to a callback which returns the list of IP addresses resolved from the <paramref name="hostname"/>.
+/// A delegate to a callback which returns a list of IP addresses resolved from the <paramref name="hostname"/>.
 /// </summary>
+/// <remarks>
+/// DO NOT FREE THE POINTER GIVEN BY THIS DELEGATE! The pointers are borrowed and will be automatically cleared by the plugin.
+/// </remarks>
 /// <param name="hostname">A hostname to resolve to.</param>
-/// <param name="ipAddresses">An out argument which returns an array of <see cref="ushort"/> pointers of resolved IP addresses.</param>
-/// <param name="ipAddressesCount">How many IP addresses included in <paramref name="ipAddresses"/>.</param>
-public delegate void SharedDnsResolverCallback(ref ushort hostname, out nint ipAddresses, out int ipAddressesCount);
+/// <param name="ipResolvedWriteBuffer">A pointer to the buffer in which the main application will write the UTF-16 unsigned string (with null terminator) to.</param>
+/// <param name="ipResolvedWriteBufferLength">The length of the buffer that the main application able to write.</param>
+/// <param name="ipResolvedWriteCount">How many IP address strings (with null terminator) are written into the buffer.</param>
+public unsafe delegate void SharedDnsResolverCallback(char* hostname, char* ipResolvedWriteBuffer, int ipResolvedWriteBufferLength, int* ipResolvedWriteCount);
 
 public class SharedStatic
 {

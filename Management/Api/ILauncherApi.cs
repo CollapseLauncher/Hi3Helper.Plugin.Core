@@ -48,9 +48,9 @@ public partial interface ILauncherApi : IInitializableTask, IDisposable
     /// <remarks>
     /// A native pointer (<see cref="nint"/>) to a <see cref="ComAsyncResult"/> representing the asynchronous operation.
     /// </remarks>
-    void DownloadAssetAsync([MarshalAs(UnmanagedType.LPWStr)] [NotNull] string? fileUrl,
-                            nint                                        outputStreamHandle,
-                            PluginFiles.FileReadProgressDelegate?       downloadProgress,
-                            in Guid                                     cancelToken,
-                            out nint                                    result);
+    void DownloadAssetAsync([MarshalAs(UnmanagedType.LPWStr)]     string fileUrl,
+                            nint                                  outputStreamHandle,
+                            PluginFiles.FileReadProgressDelegate? downloadProgress,
+                            in Guid                               cancelToken,
+                            out nint                              result);
 }
