@@ -213,14 +213,18 @@ public partial class PluginSelfUpdateBase
 
 #if USELIGHTWEIGHTJSONPARSER
                 await using Stream networkStream = await jsonMessage.Content.ReadAsStreamAsync(token);
-                SelfUpdateReferenceInfo? info = await SelfUpdateReferenceInfo.ParseFromAsync(networkStream, token: token);
+                SelfUpdateReferenceInfo info = await SelfUpdateReferenceInfo.ParseFromAsync(networkStream, token: token);
+                if (info.Assets.Count == 0)
+                {
+                    continue;
+                }
 #else
                 SelfUpdateReferenceInfo? info = await jsonMessage.Content.ReadFromJsonAsync(SelfUpdateReferenceInfoContext.Default.SelfUpdateReferenceInfo, token);
-#endif
                 if (info == null || info.Assets.Count == 0)
                 {
                     continue;
                 }
+#endif
 
                 return (info, BaseCdnUrlSpan[i]);
             }
