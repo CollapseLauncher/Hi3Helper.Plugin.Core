@@ -4,21 +4,13 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Hi3Helper.Plugin.Core.Utility.Windows;
 
 // ReSharper disable AccessToModifiedClosure
 namespace Hi3Helper.Plugin.Core.Utility;
 
 public static partial class ComAsyncExtension
 {
-    [LibraryImport("kernel32.dll", EntryPoint = "SetEvent", SetLastError = true)]
-    public static partial int SetEvent(nint hEvent);
-    
-    [LibraryImport("kernel32.dll", EntryPoint = "CreateEventW", SetLastError = true)]
-    public static unsafe partial nint CreateEvent(nint lpEventAttributes, int bManualReset, int bInitialState, ushort* lpName);
-
-    [LibraryImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true)]
-    public static partial int CloseHandle(nint hObject);
-
     private static readonly Lock CurrentThreadLock = new();
 
     public static nint AsResult(this Task task)
@@ -53,7 +45,7 @@ public static partial class ComAsyncExtension
 
             if (waitHandleP != nint.Zero)
             {
-                CloseHandle(waitHandleP);
+                PInvoke.CloseHandle(waitHandleP);
             }
         }
     }
@@ -84,7 +76,7 @@ public static partial class ComAsyncExtension
 
             if (waitHandleP != nint.Zero)
             {
-                CloseHandle(waitHandleP);
+                PInvoke.CloseHandle(waitHandleP);
             }
         }
     }

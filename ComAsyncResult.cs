@@ -1,4 +1,5 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
+using Hi3Helper.Plugin.Core.Utility.Windows;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices;
@@ -94,7 +95,7 @@ public struct ComAsyncResult() : IDisposable
             }
             finally
             {
-                ComAsyncExtension.SetEvent(Handle);
+                PInvoke.SetEvent(Handle);
             }
         }
     }
@@ -152,7 +153,7 @@ public struct ComAsyncResult() : IDisposable
             }
             finally
             {
-                ComAsyncExtension.SetEvent(Handle);
+                PInvoke.SetEvent(Handle);
             }
         }
     }
@@ -260,7 +261,7 @@ public struct ComAsyncResult() : IDisposable
             ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
 
             // Allocate wait handle
-            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, 1, 0, null);
+            resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
             // Set the "attach status" callback to the task completion, then return the async result handle
             task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
@@ -284,7 +285,7 @@ public struct ComAsyncResult() : IDisposable
             ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
 
             // Allocate wait handle
-            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, 1, 0, null);
+            resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
             // Set the "attach status" callback to the task completion, then return the async result handle
             task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
