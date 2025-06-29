@@ -205,21 +205,29 @@ public partial class PluginSelfUpdateBase
         for (int i = 0; i < BaseCdnUrlSpan.Length; i++)
         {
             string manifestUrl = BaseCdnUrlSpan[i].CombineUrlFromString("manifest.json");
-            using HttpResponseMessage jsonMessage = await UpdateHttpClient.GetAsync(manifestUrl, HttpCompletionOption.ResponseHeadersRead, token);
-            jsonMessage.EnsureSuccessStatusCode();
+
+            try
+            {
+                using HttpResponseMessage jsonMessage = await UpdateHttpClient.GetAsync(manifestUrl, HttpCompletionOption.ResponseHeadersRead, token);
+                jsonMessage.EnsureSuccessStatusCode();
 
 #if USELIGHTWEIGHTJSONPARSER
-            await using Stream networkStream = await jsonMessage.Content.ReadAsStreamAsync(token);
-            SelfUpdateReferenceInfo? info = await SelfUpdateReferenceInfo.ParseFromAsync(networkStream, token: token);
+                await using Stream networkStream = await jsonMessage.Content.ReadAsStreamAsync(token);
+                SelfUpdateReferenceInfo? info = await SelfUpdateReferenceInfo.ParseFromAsync(networkStream, token: token);
 #else
-            SelfUpdateReferenceInfo? info = await jsonMessage.Content.ReadFromJsonAsync(SelfUpdateReferenceInfoContext.Default.SelfUpdateReferenceInfo, token);
+                SelfUpdateReferenceInfo? info = await jsonMessage.Content.ReadFromJsonAsync(SelfUpdateReferenceInfoContext.Default.SelfUpdateReferenceInfo, token);
 #endif
-            if (info == null || info.Assets.Count == 0)
-            {
-                continue;
-            }
+                if (info == null || info.Assets.Count == 0)
+                {
+                    continue;
+                }
 
-            return (info, BaseCdnUrlSpan[i]);
+                return (info, BaseCdnUrlSpan[i]);
+            }
+            catch (Exception ex)
+            {
+                SharedStatic.InstanceLogger.LogError(ex, "An error has occurred while trying to get CDN details from: {}", manifestUrl);
+            }
         }
 
         return (null, null);
