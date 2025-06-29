@@ -7,20 +7,21 @@
  */
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Security;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
-using System.Buffers;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
+using System.Threading.Tasks;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StringLiteralTypo
-
 // ReSharper disable StaticMemberInGenericType
 
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -227,6 +228,9 @@ public class PluginHttpClientBuilder
         return client;
     }
 
+    private const int ExDnsResolverWriteBufferLen = 512;
+    private static readonly ArrayPool<char> DnsResolverWriteBufferPool = ArrayPool<char>.Shared;
+
     private static unsafe void GetDnsResolverArrayFromCallback(string host, out string[] ipAddresses)
     {
         Unsafe.SkipInit(out ipAddresses);
@@ -234,21 +238,14 @@ public class PluginHttpClientBuilder
         // Throw if the callback is null
         ArgumentNullException.ThrowIfNull(SharedStatic.InstanceDnsResolverCallback, nameof(SharedStatic.InstanceDnsResolverCallback));
 
-        const int dnsResolverWriteBufferLen = 512;
-        char[] dnsResolverWriteBuffer  = ArrayPool<char>.Shared.Rent(dnsResolverWriteBufferLen);
-        char*  dnsResolverWriteBufferP = (char*)Unsafe.AsPointer(ref dnsResolverWriteBuffer[0]);
-
+        char[] dnsResolverWriteBuffer = DnsResolverWriteBufferPool.Rent(ExDnsResolverWriteBufferLen);
+        char* dnsResolverWriteBufferP = (char*)Marshal.UnsafeAddrOfPinnedArrayElement(dnsResolverWriteBuffer, 0);
+        char* hostPAlloc = (char*)Utf16StringMarshaller.ConvertToUnmanaged(host);
         try
         {
-            // Copy the host string to temporary buffer first.
-            int hostPLen = host.Length + 1;
-            char* hostPAlloc = stackalloc char[hostPLen];
-            host.CopyTo(new Span<char>(hostPAlloc, hostPLen));
-            hostPAlloc[hostPLen] = '\0';
-
             // Call the callback from main application to write the IP address into the buffer.
             int ipAddressWrittenCount = 0;
-            SharedStatic.InstanceDnsResolverCallback(hostPAlloc, dnsResolverWriteBufferP, dnsResolverWriteBufferLen, &ipAddressWrittenCount);
+            SharedStatic.InstanceDnsResolverCallback(hostPAlloc, dnsResolverWriteBufferP, ExDnsResolverWriteBufferLen, &ipAddressWrittenCount);
 
             // SANITY
             if (ipAddressWrittenCount == 0)
@@ -259,8 +256,8 @@ public class PluginHttpClientBuilder
             // Now we write the goods >:)
             ipAddresses = new string[ipAddressWrittenCount];
             int offset = 0;
-            int index  = 0;
-            while (offset < dnsResolverWriteBufferLen && index < ipAddressWrittenCount && *(dnsResolverWriteBufferP + offset) != '\0')
+            int index = 0;
+            while (offset < ExDnsResolverWriteBufferLen && index < ipAddressWrittenCount && *(dnsResolverWriteBufferP + offset) != '\0')
             {
                 // Use SIMD to get the index of null char as its length.
                 char* currentOffset = dnsResolverWriteBufferP + offset;
@@ -286,7 +283,8 @@ public class PluginHttpClientBuilder
         }
         finally
         {
-            ArrayPool<char>.Shared.Return(dnsResolverWriteBuffer);
+            Utf16StringMarshaller.Free((ushort*)hostPAlloc);
+            DnsResolverWriteBufferPool.Return(dnsResolverWriteBuffer);
         }
     }
 
