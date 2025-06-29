@@ -260,7 +260,7 @@ public class PluginHttpClientBuilder
             ipAddresses = new string[ipAddressWrittenCount];
             int offset = 0;
             int index  = 0;
-            while (offset < dnsResolverWriteBufferLen && *(dnsResolverWriteBufferP + offset) != '\0')
+            while (offset < dnsResolverWriteBufferLen && index < ipAddressWrittenCount && *(dnsResolverWriteBufferP + offset) != '\0')
             {
                 // Use SIMD to get the index of null char as its length.
                 char* currentOffset = dnsResolverWriteBufferP + offset;
