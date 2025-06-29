@@ -260,16 +260,17 @@ public class PluginHttpClientBuilder
             ipAddresses = new string[ipAddressWrittenCount];
             int offset = 0;
             int index  = 0;
-            while (offset < hostPLen && *(dnsResolverWriteBufferP + offset) != '\0')
+            while (offset < dnsResolverWriteBufferLen && *(dnsResolverWriteBufferP + offset) != '\0')
             {
                 // Use SIMD to get the index of null char as its length.
-                int len = SpanHelpers.IndexOfNullCharacter(dnsResolverWriteBufferP);
+                char* currentOffset = dnsResolverWriteBufferP + offset;
+                int len = SpanHelpers.IndexOfNullCharacter(currentOffset);
                 if (len < 0)
                 {
                     break;
                 }
 
-                ReadOnlySpan<char> currentCharEntry = new(dnsResolverWriteBufferP + offset, len);
+                ReadOnlySpan<char> currentCharEntry = new(currentOffset, len);
                 ipAddresses[index++] = new string(currentCharEntry);
 
                 // Advance to the next entry
