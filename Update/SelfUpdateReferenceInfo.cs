@@ -81,7 +81,7 @@ public class SelfUpdateReferenceInfo
         List<SelfUpdateAssetInfo> assetList = [];
         foreach (JsonElement asset in assetsArray.EnumerateArray())
         {
-            string filePathValueAsString = rootElement.GetStringNonNullOrEmpty(nameof(SelfUpdateAssetInfo.FilePath));
+            string filePathValueAsString = asset.GetStringNonNullOrEmpty(nameof(SelfUpdateAssetInfo.FilePath));
 
             if (!asset.TryGetValue(nameof(SelfUpdateAssetInfo.Size), out long sizeAsLong))
             {
