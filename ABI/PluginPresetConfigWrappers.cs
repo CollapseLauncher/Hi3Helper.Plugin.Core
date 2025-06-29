@@ -1,6 +1,5 @@
 ﻿#if MANUALCOM
 
-using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using System;
 using System.Collections;

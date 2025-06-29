@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices;
 using Hi3Helper.Plugin.Core.Utility;
-using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Management.Api;

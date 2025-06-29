@@ -18,7 +18,7 @@ internal sealed unsafe class ABI_ILauncherApiWrapper
     {
         ref Guid cancelTokenNative = ref *cancelTokenNativeParam;
         ref nint resultNative = ref *resultNativeParam;
-        int retVal = 0;
+        int retVal;
         try
         {
             // Unmarshal - Convert native data to managed data.
@@ -44,13 +44,13 @@ internal sealed unsafe class ABI_ILauncherApiWrapper
     {
         ref Guid cancelTokenNative = ref *cancelTokenNativeParam;
         ref nint resultNative = ref *resultNativeParam;
-        int retVal = 0;
+        int retVal;
         try
         {
             // Unmarshal - Convert native data to managed data.
             var cancelToken = cancelTokenNative;
             var downloadProgress = downloadProgressNative != 0 ? Marshal.GetDelegateForFunctionPointer<PluginFiles.FileReadProgressDelegate>(downloadProgressNative) : null;
-            var fileUrl = Utf16StringMarshaller.ConvertToManaged(fileUrlNative);
+            var fileUrl = Utf16StringMarshaller.ConvertToManaged(fileUrlNative) ?? "";
             var @this = ComInterfaceDispatch.GetInstance<ILauncherApi>(thisNative);
             @this.DownloadAssetAsync(fileUrl, outputStreamHandle, downloadProgress, in cancelToken, out var result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
