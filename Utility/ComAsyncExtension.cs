@@ -11,15 +11,13 @@ namespace Hi3Helper.Plugin.Core.Utility;
 public static partial class ComAsyncExtension
 {
     [LibraryImport("kernel32.dll", EntryPoint = "SetEvent", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    public static partial bool SetEvent(nint hEvent);
+    public static partial int SetEvent(nint hEvent);
     
-    [LibraryImport("kernel32.dll", EntryPoint = "CreateEventW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
-    public static partial nint CreateEvent(nint lpEventAttributes, [MarshalAs(UnmanagedType.Bool)] bool bManualReset, [MarshalAs(UnmanagedType.Bool)] bool bInitialState, string? lpName);
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateEventW", SetLastError = true)]
+    public static unsafe partial nint CreateEvent(nint lpEventAttributes, int bManualReset, int bInitialState, ushort* lpName);
 
     [LibraryImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    public static partial bool CloseHandle(nint hObject);
+    public static partial int CloseHandle(nint hObject);
 
     private static readonly Lock CurrentThreadLock = new();
 

@@ -260,7 +260,7 @@ public struct ComAsyncResult() : IDisposable
             ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
 
             // Allocate wait handle
-            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, true, false, null);
+            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, 1, 0, null);
 
             // Set the "attach status" callback to the task completion, then return the async result handle
             task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
@@ -284,7 +284,7 @@ public struct ComAsyncResult() : IDisposable
             ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
 
             // Allocate wait handle
-            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, true, false, null);
+            resultP->Handle = ComAsyncExtension.CreateEvent(nint.Zero, 1, 0, null);
 
             // Set the "attach status" callback to the task completion, then return the async result handle
             task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
