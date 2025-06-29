@@ -155,7 +155,7 @@ public partial class PluginSelfUpdateBase
                 totalRead += read;
                 readStatusCallback(read);
             }
-            hasher.TransformBlock(buffer, 0, read, buffer, 0);
+            hasher.TransformFinalBlock(buffer, 0, read);
 
             byte[]? hashResult = hasher.Hash;
             if (hashResult == null)
