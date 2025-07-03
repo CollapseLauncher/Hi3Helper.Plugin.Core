@@ -17,7 +17,7 @@ namespace Hi3Helper.Plugin.Core.ABI;
 public sealed unsafe class PluginPresetConfigWrappers : ComWrappers
 {
     public static readonly ComInterfaceEntry* InterfaceDefinitions;
-    private const int ExInterfaceDefinitionsLen = 3; // Only count IPlugin and IFree for now.
+    private const int ExInterfaceDefinitionsLen = 3; // IPluginPresetConfig, IInitializableTask, IFree.
 
     static PluginPresetConfigWrappers()
     {
