@@ -33,6 +33,11 @@ public class SelfUpdateReferenceInfo
     public GameVersion PluginVersion { get; set; }
 
 #if !USELIGHTWEIGHTJSONPARSER
+    [JsonConverter(typeof(Utf8SpanParsableJsonConverter<GameVersion>))]
+#endif
+    public GameVersion PluginStandardVersion { get; set; }
+
+#if !USELIGHTWEIGHTJSONPARSER
     [JsonConverter(typeof(Utf16SpanParsableJsonConverter<DateTimeOffset>))]
 #endif
     public DateTimeOffset PluginCreationDate { get; set; }
@@ -43,6 +48,12 @@ public class SelfUpdateReferenceInfo
     public DateTimeOffset ManifestDate { get; set; }
 
     public required string MainLibraryName { get; set; }
+
+    public string? MainPluginName { get; set; }
+
+    public string? MainPluginAuthor { get; set; }
+
+    public string? MainPluginDescription { get; set; }
 
     public required List<SelfUpdateAssetInfo> Assets { get; set; }
 
@@ -69,7 +80,11 @@ public class SelfUpdateReferenceInfo
     public static SelfUpdateReferenceInfo ParseFrom(JsonElement rootElement)
     {
         string mainLibraryNameValue = rootElement.GetStringNonNullOrEmpty(nameof(MainLibraryName)); // Parse MainLibraryName
+        string? mainPluginNameValue = rootElement.GetString(nameof(MainPluginName)); // Parse MainPluginName
+        string? mainPluginAuthorValue = rootElement.GetString(nameof(MainPluginAuthor)); // Parse MainPluginAuthor
+        string? mainPluginDescriptionValue = rootElement.GetString(nameof(MainPluginDescription)); // Parse MainPluginDescription
         GameVersion pluginVersionValue = rootElement.GetValue<GameVersion>(nameof(PluginVersion)); // Parse PluginVersion
+        GameVersion pluginStandardVersionValue = rootElement.GetValue<GameVersion>(nameof(PluginStandardVersion)); // Parse PluginStandardVersion
         DateTimeOffset pluginCreationDateValue = rootElement.GetValue<DateTimeOffset>(nameof(PluginCreationDate)); // Parse PluginCreationDate
         DateTimeOffset manifestDateValue = rootElement.GetValue<DateTimeOffset>(nameof(ManifestDate)); // Parse ManifestDate
 
@@ -109,8 +124,12 @@ public class SelfUpdateReferenceInfo
         SelfUpdateReferenceInfo refInfoRet = new SelfUpdateReferenceInfo
         {
             MainLibraryName = mainLibraryNameValue,
+            MainPluginName = mainPluginNameValue,
+            MainPluginAuthor = mainPluginAuthorValue,
+            MainPluginDescription = mainPluginDescriptionValue,
             Assets = assetList,
             PluginVersion = pluginVersionValue,
+            PluginStandardVersion = pluginStandardVersionValue,
             PluginCreationDate = pluginCreationDateValue,
             ManifestDate = manifestDateValue
         };

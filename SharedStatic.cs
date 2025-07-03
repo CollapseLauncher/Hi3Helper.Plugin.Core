@@ -206,7 +206,7 @@ public class SharedStatic
     /// </summary>
     /// <param name="apiExportName">The name of the key for the delegate pointer.</param>
     /// <param name="delegateP">The pointer to the delegated function.</param>
-    /// <returns><c>0</c> if it's been registered. Otherwise, <see cref="int.MinValue"/> if not registered or if <see cref="apiExportName"/> is undefined/null.</returns>
+    /// <returns><c>0</c> if it's been registered. Otherwise, <see cref="int.MinValue"/> if not registered or if <paramref name="apiExportName"/> is undefined/null.</returns>
     public static unsafe int TryGetApiExportPointer(char* apiExportName, void** delegateP)
     {
         *delegateP = null;

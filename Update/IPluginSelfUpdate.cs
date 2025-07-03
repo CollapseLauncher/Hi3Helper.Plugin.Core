@@ -24,10 +24,10 @@ public partial interface IPluginSelfUpdate : IFree, IDisposable
     /// <param name="cancelToken"><see cref="Guid"/> instance for cancellation token.</param>
     /// <param name="result">A pointer to <see cref="ComAsyncResult"/>.</param>
     /// <remarks>
-    /// This method returns a pointer to <see cref="ComAsyncResult"/> via <paramref name="result"/>. This method has Return value of <see cref="SelfUpdateReturnCode"/>.<br/>
+    /// This method returns a pointer to <see cref="ComAsyncResult"/> via <paramref name="result"/>. This method has a return value of the pointer of <see cref="SelfUpdateReturnInfo"/>.<br/>
     /// Please use <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> to get the return value.<br/><br/>
     /// 
-    /// While <paramref name="checkForUpdatesOnly"/> is set to <c>true</c>, the status will only return <see cref="SelfUpdateReturnCode.UpdateIsAvailable"/> or <see cref="SelfUpdateReturnCode.NoAvailableUpdate"/> and the update won't be performed.
+    /// While <paramref name="checkForUpdatesOnly"/> is set to <c>true</c>, the status will only contain <see cref="SelfUpdateReturnCode.UpdateIsAvailable"/> or <see cref="SelfUpdateReturnCode.NoAvailableUpdate"/> inside of <see cref="SelfUpdateReturnInfo.ReturnCode"/> and the update won't be performed.
     /// </remarks>
     void TryPerformUpdateAsync([MarshalAs(UnmanagedType.LPWStr)] string? outputDir, [MarshalAs(UnmanagedType.Bool)] bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, in Guid cancelToken, out nint result);
 }

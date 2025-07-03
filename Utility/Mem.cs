@@ -78,4 +78,19 @@ public static partial class Mem
     public static unsafe ref T AsRef<T>(void* ptr)
         where T : unmanaged
         => ref Unsafe.AsRef<T>(ptr);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe T* CopyStructToUnmanaged<T>(this scoped ref T source)
+        where T : unmanaged
+    {
+        int sizeOf = sizeof(T);
+        T* ptrTo = Alloc<T>();
+
+        fixed (T* ptrFrom = &source)
+        {
+            NativeMemory.Copy(ptrFrom, ptrTo, (nuint)sizeOf);
+        }
+
+        return ptrTo;
+    }
 }

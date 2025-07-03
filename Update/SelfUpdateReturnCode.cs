@@ -1,7 +1,14 @@
-﻿using System;
+﻿using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Utility;
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Update;
 
+/// <summary>
+/// This struct contains a return code which is used to indicate a status of the plugin self-update operation.
+/// </summary>
 [Flags]
 public enum SelfUpdateReturnCode : uint
 {

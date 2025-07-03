@@ -19,11 +19,11 @@ namespace Hi3Helper.Plugin.Core.Update;
 
 public partial class PluginSelfUpdateBase
 {
-    protected virtual async Task<SelfUpdateReturnCode> TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, CancellationToken token)
+    protected virtual async Task<nint> TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, CancellationToken token)
     {
         if (BaseCdnUrlSpan.IsEmpty)
         {
-            return SelfUpdateReturnCode.NoAvailableUpdate;
+            return SelfUpdateReturnInfo.CreateToNativeMemory(SelfUpdateReturnCode.NoAvailableUpdate);
         }
 
         try
@@ -33,25 +33,34 @@ public partial class PluginSelfUpdateBase
             var updateInfo = await TryGetAvailableCdn(token);
             if (updateInfo.Info == null || updateInfo.BaseUrl == null)
             {
-                return SelfUpdateReturnCode.NoReachableCdn;
+                return SelfUpdateReturnInfo.CreateToNativeMemory(SelfUpdateReturnCode.NoReachableCdn);
             }
 
             GameVersion currentPluginVersion = SharedStatic.CurrentPluginVersion;
             GameVersion cdnPluginVersion     = updateInfo.Info.PluginVersion;
             if (cdnPluginVersion == currentPluginVersion)
             {
-                return SelfUpdateReturnCode.NoAvailableUpdate;
+                return SelfUpdateReturnInfo.CreateToNativeMemory(SelfUpdateReturnCode.NoAvailableUpdate);
             }
 
-            if (checkForUpdatesOnly)
+            SelfUpdateReturnCode successReturnCode = SelfUpdateReturnCode.UpdateIsAvailable;
+            if (!checkForUpdatesOnly)
             {
-                return SelfUpdateReturnCode.UpdateIsAvailable;
+                bool isRollback = cdnPluginVersion < currentPluginVersion;
+                await StartUpdateRoutineAsync(outputDir, updateInfo.Info, updateInfo.BaseUrl, progressDelegate, token);
+                successReturnCode = isRollback ? SelfUpdateReturnCode.RollingBackSuccess : SelfUpdateReturnCode.UpdateSuccess;
             }
 
-            bool isRollback = cdnPluginVersion < currentPluginVersion;
-            await StartUpdateRoutineAsync(outputDir, updateInfo.Info, updateInfo.BaseUrl, progressDelegate, token);
-
-            return isRollback ? SelfUpdateReturnCode.RollingBackSuccess : SelfUpdateReturnCode.UpdateSuccess;
+            return SelfUpdateReturnInfo.CreateToNativeMemory(
+                successReturnCode,
+                updateInfo.Info.MainPluginName,
+                updateInfo.Info.MainPluginAuthor,
+                updateInfo.Info.MainPluginDescription,
+                updateInfo.Info.PluginVersion,
+                updateInfo.Info.PluginStandardVersion,
+                updateInfo.Info.PluginCreationDate,
+                updateInfo.Info.ManifestDate
+                );
         }
         catch (Exception ex)
         {
@@ -237,15 +246,15 @@ public partial class PluginSelfUpdateBase
         return (null, null);
     }
 
-    private static SelfUpdateReturnCode GetReturnCodeFromException(Exception ex, CancellationToken token)
-        => ex switch
+    private static nint GetReturnCodeFromException(Exception ex, CancellationToken token)
+        => SelfUpdateReturnInfo.CreateToNativeMemory(ex switch
         {
             OperationCanceledException when token.IsCancellationRequested => SelfUpdateReturnCode.UpdateCancelled,
             IOException asIoException => MapIoExceptionToCode(asIoException),
             HttpRequestException asHttpRequestException => MapHttpRequestExceptionToCode(asHttpRequestException),
             JsonException or InvalidDataException => SelfUpdateReturnCode.JsonParsingError,
             _ => SelfUpdateReturnCode.UnknownError
-        };
+        });
 
     private static SelfUpdateReturnCode MapHttpRequestExceptionToCode(HttpRequestException httpRequestEx)
     {
