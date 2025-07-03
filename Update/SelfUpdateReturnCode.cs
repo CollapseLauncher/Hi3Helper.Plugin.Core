@@ -1,8 +1,4 @@
-﻿using Hi3Helper.Plugin.Core.Management;
-using Hi3Helper.Plugin.Core.Utility;
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
+﻿using System;
 
 namespace Hi3Helper.Plugin.Core.Update;
 

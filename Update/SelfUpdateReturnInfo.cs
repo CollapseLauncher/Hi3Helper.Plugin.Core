@@ -140,10 +140,5 @@ public unsafe struct SelfUpdateReturnInfo : IDisposable
             Mem.Free(_infoPluginCompiledDate);
             _infoPluginCompiledDate = null;
         }
-
-        fixed (void* thisPtr = &this)
-        {
-            Mem.Free(thisPtr);
-        }
     }
 }
