@@ -2,10 +2,10 @@
 using Hi3Helper.Plugin.Core.Utility.Windows;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 
 namespace Hi3Helper.Plugin.Core;
 
@@ -19,8 +19,9 @@ public struct ComAsyncResult() : IDisposable
     private byte _isFreed = 0;
     [FieldOffset(1)]
     private byte _statusFlags;
+
     [FieldOffset(8)]
-    private int  _exceptionCount;
+    private int _exceptionCount;
 
     /// <summary>
     /// The handle to the <see cref="Microsoft.Win32.SafeHandles.SafeWaitHandle"/>.
@@ -182,6 +183,7 @@ public struct ComAsyncResult() : IDisposable
         WriteExceptionRecursive(exception, ExceptionMemory);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetExceptionCount(Exception? exception)
     {
         if (exception == null)
@@ -298,6 +300,8 @@ public struct ComAsyncResult() : IDisposable
     /// </summary>
     /// <param name="handle">A handle of the <see cref="ComAsyncResult"/> struct.</param>
     /// <returns>A <see cref="Microsoft.Win32.SafeHandles.SafeWaitHandle"/> handle.</returns>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe nint GetWaitHandle(nint handle)
     {
         ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
@@ -308,6 +312,8 @@ public struct ComAsyncResult() : IDisposable
     /// Dispose/Free the handle of the <see cref="ComAsyncResult"/> struct.
     /// </summary>
     /// <param name="handle">A handle of the <see cref="ComAsyncResult"/> struct.</param>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void DisposeHandle(nint handle)
     {
         ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
