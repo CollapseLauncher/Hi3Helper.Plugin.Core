@@ -14,7 +14,7 @@ namespace Hi3Helper.Plugin.Core.ABI;
 internal sealed unsafe class ABI_ILauncherApiWrapper
 {
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
-    internal static int ABI_DownloadAssetAsync(ComInterfaceDispatch* thisNative, LauncherPathEntry entry, nint outputStreamHandle, nint downloadProgressNative, Guid* cancelTokenNativeParam, nint* resultNativeParam)
+    internal static int ABI_DownloadAssetAsync(ComInterfaceDispatch* thisNative, LauncherPathEntry entry, FileHandle outputStreamHandle, nint downloadProgressNative, Guid* cancelTokenNativeParam, nint* resultNativeParam)
     {
         ref Guid cancelTokenNative = ref *cancelTokenNativeParam;
         ref nint resultNative = ref *resultNativeParam;
@@ -40,7 +40,7 @@ internal sealed unsafe class ABI_ILauncherApiWrapper
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
-    internal static int ABI_DownloadAssetAsync(ComInterfaceDispatch* thisNative, ushort* fileUrlNative, nint outputStreamHandle, nint downloadProgressNative, Guid* cancelTokenNativeParam, nint* resultNativeParam)
+    internal static int ABI_DownloadAssetAsync(ComInterfaceDispatch* thisNative, ushort* fileUrlNative, FileHandle outputStreamHandle, nint downloadProgressNative, Guid* cancelTokenNativeParam, nint* resultNativeParam)
     {
         ref Guid cancelTokenNative = ref *cancelTokenNativeParam;
         ref nint resultNative = ref *resultNativeParam;

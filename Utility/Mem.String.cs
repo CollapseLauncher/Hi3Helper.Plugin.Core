@@ -10,11 +10,23 @@ namespace Hi3Helper.Plugin.Core.Utility;
 
 public static partial class Mem
 {
+    /// <summary>
+    /// Creates a modifiable <see cref="Span{T}"/> by scanning the end of the null character of either <see cref="char"/> (UTF-16) or <see cref="byte"/> (UTF-8/ANSI) string from <see cref="PluginDisposableMemory{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of character (either <see cref="char"/> (UTF-16) or <see cref="byte"/> (UTF-8/ANSI) string)</typeparam>
+    /// <param name="memory">A plugin memory to be converted from.</param>
+    /// <returns>A modifiable span of the string.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe Span<T> CreateSpanFromNullTerminated<T>(this PluginDisposableMemory<T> memory)
         where T : unmanaged
         => CreateSpanFromNullTerminated<T>(memory.AsPointer());
 
+    /// <summary>
+    /// Creates a modifiable <see cref="Span{T}"/> by scanning the end of the null character of either <see cref="char"/> (UTF-16) or <see cref="byte"/> (UTF-8/ANSI) string from a pointer of unmanaged native memory.
+    /// </summary>
+    /// <typeparam name="T">The type of character (either <see cref="char"/> (UTF-16) or <see cref="byte"/> (UTF-8/ANSI) string)</typeparam>
+    /// <param name="ptr">A pointer of the unmanaged native memory.</param>
+    /// <returns>A modifiable span of the string.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe Span<T> CreateSpanFromNullTerminated<T>(void* ptr)
         where T : unmanaged
@@ -31,11 +43,23 @@ public static partial class Mem
             new Span<T>(ptr, SpanHelpers.IndexOfNullByte((byte*)ptr));
     }
 
+    /// <summary>
+    /// Creates a managed <see cref="string"/> from <see cref="PluginDisposableMemory{T}"/>
+    /// </summary>
+    /// <typeparam name="T">The type of character (either <see cref="char"/> (UTF-16) or <see cref="byte"/> (UTF-8/ANSI) string)</typeparam>
+    /// <param name="memory">A struct of <see cref="PluginDisposableMemory{T}"/>.</param>
+    /// <returns>A managed .NET <see cref="string"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe string? CreateStringFromNullTerminated<T>(this PluginDisposableMemory<T> memory)
+    public static unsafe string? CreateStringFromNullTerminated<T>(this ref PluginDisposableMemory<T> memory)
         where T : unmanaged
         => memory.IsEmpty ? null : CreateStringFromNullTerminated(memory.AsPointer());
 
+    /// <summary>
+    /// Creates a managed <see cref="string"/> from the pointer of unmanaged native memory of <typeparamref name="T"/> type.
+    /// </summary>
+    /// <typeparam name="T">The type of character (either <see cref="char"/> (UTF-16) or <see cref="byte"/> (UTF-8/ANSI) string)</typeparam>
+    /// <param name="source">An unmanaged native memory pointer of <typeparamref name="T"/> type.</param>
+    /// <returns>A managed .NET <see cref="string"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe string CreateStringFromNullTerminated<T>(T* source)
         where T : unmanaged
@@ -53,21 +77,11 @@ public static partial class Mem
         return Encoding.UTF8.GetString((byte*)source, len);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void CopyToUtf8(this ReadOnlySpan<char> source, PluginDisposableMemory<byte> destination)
-        => source.CopyToUtf8(destination.AsSpan());
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void CopyToUtf8(this ReadOnlySpan<char> source, Span<byte> destination)
-    {
-        if (destination.Length < Encoding.UTF8.GetByteCount(source))
-        {
-            throw new ArgumentException("Destination span is not large enough to hold the UTF-8 encoded string.", nameof(destination));
-        }
-
-        _ = Encoding.UTF8.GetBytes(source, destination);
-    }
-
+    /// <summary>
+    /// Creates an unmanaged UTF-8 (null-terminated) string from .NET Managed <see cref="ReadOnlySpan{T}"/> of <see cref="char"/> (or <see cref="string"/>)
+    /// </summary>
+    /// <param name="span">A Span of char to create the string from.</param>
+    /// <returns>An unmanaged UTF-8 (null-terminated) string stored into native memory.</returns>
     public static unsafe byte* Utf16SpanToUtf8Unmanaged(this ReadOnlySpan<char> span)
     {
         if (span.IsEmpty)
@@ -82,6 +96,12 @@ public static partial class Mem
         return mem;
     }
 
+    /// <summary>
+    /// Throws if either the size of <typeparamref name="T"/> is not 1 (<see cref="byte"/>) or 2 (<see cref="char"/>)
+    /// </summary>
+    /// <typeparam name="T">The type of character type to check.</typeparam>
+    /// <param name="isChar">Outputs whether the character is <see cref="char"/> type.</param>
+    /// <exception cref="InvalidOperationException">If the size of <typeparamref name="T"/> is not 1 (<see cref="byte"/>) or 2 (<see cref="char"/>)</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe void ThrowIfNotByteOrChar<T>(out bool isChar)
         where T : unmanaged
@@ -98,9 +118,21 @@ public static partial class Mem
         if (sizeofT != 1) throw new InvalidOperationException("Type must be a char or byte!");
     }
 
+    /// <summary>
+    /// Combines string of URL and path into one combined <see cref="string"/>.
+    /// </summary>
+    /// <param name="baseUrl">The base of the URL string.</param>
+    /// <param name="segments">Segments of path to combine with.</param>
+    /// <returns>Combined URL string.</returns>
     public static string CombineUrlFromString(this string? baseUrl, params ReadOnlySpan<string?> segments)
         => CombineUrlFromString(baseUrl.AsSpan(), segments);
 
+    /// <summary>
+    /// Combines string of URL and path into one combined <see cref="string"/>.
+    /// </summary>
+    /// <param name="baseUrl">The base of the URL string.</param>
+    /// <param name="segments">Segments of path to combine with.</param>
+    /// <returns>Combined URL string.</returns>
     public static unsafe string CombineUrlFromString(ReadOnlySpan<char> baseUrl, params ReadOnlySpan<string?> segments)
     {
         // Assign the size of a char as constant

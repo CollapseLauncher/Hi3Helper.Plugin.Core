@@ -21,7 +21,7 @@ public partial interface IInitializableTask : IFree
     /// <param name="result">A pointer to <see cref="ComAsyncResult"/>.</param>
     /// <remarks>
     /// This method returns a pointer to <see cref="ComAsyncResult"/> via <c>out</c> <paramref name="result"/>. This method has Return value of <see cref="int"/>.<br/>
-    /// Please use <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> to get the return value.
+    /// Please use <see cref="ComAsyncExtension.AsTask{T}(nint)"/> to get the return value.
     /// </remarks>
     void InitAsync(in Guid cancelToken, out nint result);
 }

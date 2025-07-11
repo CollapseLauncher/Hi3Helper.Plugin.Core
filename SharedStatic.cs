@@ -117,7 +117,7 @@ public class SharedStatic
 #if !MANUALCOM
         => ComInterfaceMarshaller<IPlugin>.ConvertToUnmanaged(_thisPluginInstance);
 #else
-        => ABIExtension<PluginWrappers>.GetComInterfacePtrFromWrappers(_thisPluginInstance);
+        => ComWrappersExtension<PluginWrappers>.GetComInterfacePtrFromWrappers(_thisPluginInstance);
 #endif
 
     private static void SetLoggerCallback(nint loggerCallback)

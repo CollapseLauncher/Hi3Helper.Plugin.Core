@@ -13,8 +13,8 @@ public static partial class PInvoke
     [LibraryImport("kernel32.dll", EntryPoint = "SetEvent", SetLastError = true)]
     public static partial int SetEvent(nint hEvent);
 
-    [LibraryImport("kernel32.dll", EntryPoint = "CreateEventW", SetLastError = true)]
-    public static unsafe partial nint CreateEvent(nint lpEventAttributes, int bManualReset, int bInitialState, ushort* lpName);
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateEventW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    public static unsafe partial nint CreateEvent(nint lpEventAttributes, int bManualReset, int bInitialState, string? lpName);
 
     [LibraryImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true)]
     public static partial int CloseHandle(nint hObject);
@@ -196,7 +196,7 @@ public static partial class PInvoke
         }
 
         Guid folderId = new Guid(folderGuid);
-        int hr = SHGetKnownFolderPath(in folderId, (uint)option, IntPtr.Zero, out string? path);
+        int  hr       = SHGetKnownFolderPath(in folderId, (uint)option, IntPtr.Zero, out string? path);
         if (hr == 0 && !string.IsNullOrEmpty(path))
             return path;
 

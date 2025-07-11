@@ -148,13 +148,13 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
                 int bufferLen = buffer.Length;
 
                 while ((read = await _sourceStream
-                    .ReadAsync(new Memory<byte>(buffer, 0, bufferLen), coopCts.Token)
+                    .ReadAsync(buffer, coopCts.Token)
                     .ConfigureAwait(false)) > 0)
                 {
                     lastBytesPosition += read;
                     readDelegate?.Invoke(read);
                     await _targetStream
-                        .WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, read), coopCts.Token)
+                        .WriteAsync(buffer.AsMemory(0, read), coopCts.Token)
                         .ConfigureAwait(false);
 
                     // Both timedOutCts and coopCts required to be disposed before renewal to avoid memory leaks.

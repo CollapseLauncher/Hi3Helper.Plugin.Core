@@ -124,8 +124,8 @@ public static partial class ComAsyncExtension
                 hResultInt = unchecked((int)0x8000FFFF);
             }
 
-            string exceptionMessage = message.ToString();
-            IOException exception = new(exceptionMessage, hResultInt);
+            string      exceptionMessage = message.ToString();
+            IOException exception        = new(exceptionMessage, hResultInt);
             return exception;
         }
 

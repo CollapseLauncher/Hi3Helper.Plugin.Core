@@ -25,7 +25,7 @@ public partial interface IPluginSelfUpdate : IFree, IDisposable
     /// <param name="result">A pointer to <see cref="ComAsyncResult"/>.</param>
     /// <remarks>
     /// This method returns a pointer to <see cref="ComAsyncResult"/> via <paramref name="result"/>. This method has a return value of the pointer of <see cref="SelfUpdateReturnInfo"/>.<br/>
-    /// Please use <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> to get the return value.<br/><br/>
+    /// Please use <see cref="ComAsyncExtension.AsTask{T}(nint)"/> to get the return value.<br/><br/>
     /// 
     /// While <paramref name="checkForUpdatesOnly"/> is set to <c>true</c>, the status will only contain <see cref="SelfUpdateReturnCode.UpdateIsAvailable"/> or <see cref="SelfUpdateReturnCode.NoAvailableUpdate"/> inside of <see cref="SelfUpdateReturnInfo.ReturnCode"/> and the update won't be performed.
     /// </remarks>

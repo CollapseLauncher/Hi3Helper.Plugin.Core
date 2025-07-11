@@ -4,6 +4,7 @@ using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Management.Api;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Update;
+using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -120,8 +121,8 @@ internal static unsafe class ABI_VTables
         {
             // Inherit IInitializableTask by copying its VTable
             NativeMemory.Copy(IInitializableTask, ILauncherApi, (nuint)(sizeof(void*) * 5));
-            ILauncherApi[5] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, LauncherPathEntry, nint, nint, Guid*, nint*, int>)&ABI_ILauncherApiWrapper.ABI_DownloadAssetAsync;
-            ILauncherApi[6] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, ushort*, nint, nint, Guid*, nint*, int>)&ABI_ILauncherApiWrapper.ABI_DownloadAssetAsync;
+            ILauncherApi[5] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, LauncherPathEntry, FileHandle, nint, Guid*, nint*, int>)&ABI_ILauncherApiWrapper.ABI_DownloadAssetAsync;
+            ILauncherApi[6] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, ushort*, FileHandle, nint, Guid*, nint*, int>)&ABI_ILauncherApiWrapper.ABI_DownloadAssetAsync;
         }
 
         // ILauncherApiMedia

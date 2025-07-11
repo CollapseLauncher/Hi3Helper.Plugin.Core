@@ -24,7 +24,7 @@ public partial interface IGameUninstaller : IInitializableTask, IDisposable
     /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
     /// <remarks>
     /// A pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
-    /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
+    /// The pointer must be passed to <see cref="ComAsyncExtension.AsTask(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
     /// </remarks>
     void UninstallAsync(in Guid cancelToken, out nint result);

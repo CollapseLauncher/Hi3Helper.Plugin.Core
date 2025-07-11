@@ -17,22 +17,41 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComClass]
 public abstract partial class PluginBase : IPlugin
 {
+    /// <inheritdoc/>
     public abstract void GetPluginName(out string? result);
+
+    /// <inheritdoc/>
     public abstract void GetPluginDescription(out string? result);
+
+    /// <inheritdoc/>
     public abstract void GetPluginAuthor(out string? result);
+
+    /// <inheritdoc/>
     public abstract unsafe void GetPluginCreationDate(out DateTime* result);
+
+    /// <inheritdoc/>
     public abstract void GetPresetConfigCount(out int count);
+
+    /// <inheritdoc/>
     public abstract void GetPresetConfig(int index, out IPluginPresetConfig result);
+
+    /// <inheritdoc/>
     public virtual void GetPluginSelfUpdater(out IPluginSelfUpdate? selfUpdate) => Unsafe.SkipInit(out selfUpdate);
+
+    /// <inheritdoc/>
     public virtual void GetPluginAppIconUrl(out string result) => Unsafe.SkipInit(out result);
+
+    /// <inheritdoc/>
     public virtual void GetNotificationPosterUrl(out string result) => Unsafe.SkipInit(out result);
 
+    /// <inheritdoc/>
     public void CancelAsync(in Guid cancelToken)
     {
         // Cancel the async operation using the provided cancel token
         ComCancellationTokenVault.CancelToken(in cancelToken);
     }
 
+    /// <inheritdoc/>
     public void SetPluginProxySettings(string? hostUri, string? username, string? password, out bool isSuccess)
     {
         // If all nulls or empty, assume as it resets the configuration, then return true.
@@ -66,8 +85,10 @@ public abstract partial class PluginBase : IPlugin
         isSuccess = true;
     }
 
+    /// <inheritdoc/>
     public void SetPluginLocaleId(string? localeId) => SharedStatic.SetPluginCurrentLocale(localeId);
 
+    /// <inheritdoc cref="IFree.Free"/>
     public void Free() => Dispose();
 
     public virtual void Dispose()

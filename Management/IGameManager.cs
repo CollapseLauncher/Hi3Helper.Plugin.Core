@@ -88,7 +88,7 @@ public partial interface IGameManager : IInitializableTask, IDisposable
     /// <param name="cancelToken">A <see cref="Guid"/> value token for the cancelling asynchronous operation.</param>
     /// <remarks>
     /// This method returns a safe pointer to the <see cref="ComAsyncResult"/> via <paramref name="result"/>.<br/>
-    /// The pointer needs to be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and the generic type must be <see cref="PluginDisposableMemoryMarshal"/> of <see cref="byte"/>
+    /// The pointer needs to be passed to <see cref="ComAsyncExtension.AsTask{T}(nint)"/> and the generic type must be <see cref="PluginDisposableMemoryMarshal"/> of <see cref="byte"/>
     /// </remarks>
     void FindExistingInstallPathAsync(in Guid cancelToken, out nint result);
 }

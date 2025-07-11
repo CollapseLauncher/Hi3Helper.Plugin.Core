@@ -138,7 +138,7 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            resultNative = ABIExtension<LauncherApiWrappers>.GetComInterfacePtrFromWrappers(result);
+            resultNative = ComWrappersExtension<LauncherApiWrappers>.GetComInterfacePtrFromWrappers(result);
         }
         catch (Exception exception)
         {
@@ -161,7 +161,7 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            resultNative = ABIExtension<LauncherApiWrappers>.GetComInterfacePtrFromWrappers(result);
+            resultNative = ComWrappersExtension<LauncherApiWrappers>.GetComInterfacePtrFromWrappers(result);
         }
         catch (Exception exception)
         {
@@ -184,7 +184,7 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            resultNative = ABIExtension<GameManagerWrappers>.GetComInterfacePtrFromWrappers(result);
+            resultNative = ComWrappersExtension<GameManagerWrappers>.GetComInterfacePtrFromWrappers(result);
         }
         catch (Exception exception)
         {
@@ -207,7 +207,7 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            resultNative = ABIExtension<GameInstallerWrappers>.GetComInterfacePtrFromWrappers(result);
+            resultNative = ComWrappersExtension<GameInstallerWrappers>.GetComInterfacePtrFromWrappers(result);
         }
         catch (Exception exception)
         {

@@ -37,7 +37,7 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
     /// <remarks>
     /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
-    /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and set the generic<br/>
+    /// The pointer must be passed to <see cref="ComAsyncExtension.AsTask{T}(nint)"/> and set the generic<br/>
     /// result to <see cref="long"/> in order to await and get the result from this async function.
     /// </remarks>
     void GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result);
@@ -50,7 +50,7 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
     /// <remarks>
     /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
-    /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle{T}(nint)"/> and set the generic<br/>
+    /// The pointer must be passed to <see cref="ComAsyncExtension.AsTask{T}(nint)"/> and set the generic<br/>
     /// result to <see cref="long"/> in order to await and get the result from this async function.
     /// </remarks>
     void GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result);
@@ -64,7 +64,7 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
     /// <remarks>
     /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
-    /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
+    /// The pointer must be passed to <see cref="ComAsyncExtension.AsTask(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
     /// </remarks>
     void StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result);
@@ -78,7 +78,7 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
     /// <remarks>
     /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
-    /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
+    /// The pointer must be passed to <see cref="ComAsyncExtension.AsTask(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
     /// </remarks>
     void StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result);
@@ -92,7 +92,7 @@ public partial interface IGameInstaller : IGameUninstaller
     /// <param name="result">A pointer to the <see cref="ComAsyncResult"/> instance.</param>
     /// <remarks>
     /// This method returns a pointer to the <see cref="ComAsyncResult"/> instance via <paramref name="result"/>.<br/>
-    /// The pointer must be passed to <see cref="ComAsyncExtension.WaitFromHandle(nint)"/> in order to await the async function.<br/>
+    /// The pointer must be passed to <see cref="ComAsyncExtension.AsTask(nint)"/> in order to await the async function.<br/>
     /// The function, however is not-returnable.
     /// </remarks>
     void StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result);

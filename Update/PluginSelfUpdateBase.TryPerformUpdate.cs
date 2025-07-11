@@ -130,7 +130,7 @@ public partial class PluginSelfUpdateBase
 
             RetryableCopyToStreamTask downloadTask = RetryableCopyToStreamTask
                 .CreateTask(
-                    async (pos, ctx) => await BridgedNetworkStream.CreateStream(UpdateHttpClient, fileUrl, pos, null, ctx),
+                    async (pos, ctx) => await UpdateHttpClient.CreateHttpBridgedStream(fileUrl, pos, null, ctx),
                     fileStream,
                     taskOptions);
 
@@ -158,7 +158,7 @@ public partial class PluginSelfUpdateBase
         try
         {
             int read;
-            while ((read = await fileStream.ReadAtLeastAsync(new Memory<byte>(buffer, 0, bufferSize), bufferSize, false, token)) > 0)
+            while ((read = await fileStream.ReadAtLeastAsync(buffer, bufferSize, false, token)) > 0)
             {
                 hasher.TransformBlock(buffer, 0, read, buffer, 0);
                 totalRead += read;

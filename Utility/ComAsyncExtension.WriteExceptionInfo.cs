@@ -35,14 +35,14 @@ public static partial class ComAsyncExtension
             if (exception is not HttpRequestException httpRequestEx) return 0;
 
             HttpStatusCode statusCode = httpRequestEx.StatusCode ?? HttpStatusCode.NotAcceptable;
-            int hResult = httpRequestEx.HResult;
+            int            hResult    = httpRequestEx.HResult;
             if (hResult == 0)
             {
                 hResult = Marshal.GetHRForLastWin32Error();
             }
 
             int written = WriteAppendInfo(((int)statusCode).ToString(), buffer);
-            buffer = buffer[written..];
+            buffer  =  buffer[written..];
             written += WriteAppendInfo(hResult.ToString(), buffer);
 
             return written;
@@ -62,11 +62,7 @@ public static partial class ComAsyncExtension
         }
 
         private static int WriteObjectDisposedExceptionInfo(Exception exception, Span<byte> buffer)
-        {
-            if (exception is not ObjectDisposedException objectDisposedEx) return 0;
-
-            return WriteAppendInfo(objectDisposedEx.ObjectName, buffer);
-        }
+            => exception is not ObjectDisposedException objectDisposedEx ? 0 : WriteAppendInfo(objectDisposedEx.ObjectName, buffer);
 
         private static int WriteSocketExceptionInfo(Exception exception, Span<byte> buffer)
         {
@@ -81,18 +77,14 @@ public static partial class ComAsyncExtension
             }
 
             int written = WriteAppendInfo(nativeErrorCode.ToString(), buffer);
-            buffer = buffer[written..];
+            buffer  =  buffer[written..];
             written += WriteAppendInfo(hResult.ToString(), buffer);
 
             return written;
         }
 
         private static int WriteTypeInitializationExceptionInfo(Exception exception, Span<byte> buffer)
-        {
-            if (exception is not TypeInitializationException typeInitEx) return 0;
-
-            return WriteAppendInfo(typeInitEx.TypeName, buffer);
-        }
+            => exception is not TypeInitializationException typeInitEx ? 0 : WriteAppendInfo(typeInitEx.TypeName, buffer);
 
         private static int WriteAppendInfo(string info, Span<byte> buffer)
         {
@@ -102,7 +94,7 @@ public static partial class ComAsyncExtension
             }
 
             buffer[0] = (byte)ComAsyncException.ExExceptionInfoSeparator;
-            buffer = buffer[1..];
+            buffer    = buffer[1..];
 
             Encoding.UTF8.TryGetBytes(info, buffer, out int bytesWritten);
             return bytesWritten;
@@ -127,12 +119,7 @@ public static partial class ComAsyncExtension
         }
 
         string tryExceptionName = message[range[0]] + DefaultName;
-        if (ExceptionNames.ExceptionCreateDelegateLookup.ContainsKey(tryExceptionName))
-        {
-            return tryExceptionName;
-        }
-
-        return DefaultName;
+        return ExceptionNames.ExceptionCreateDelegateLookup.ContainsKey(tryExceptionName) ? tryExceptionName : DefaultName;
     }
 
     internal static void WriteExceptionInfo(Exception exception, ref ComAsyncException result)

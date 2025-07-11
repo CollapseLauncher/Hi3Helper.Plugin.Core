@@ -91,7 +91,7 @@ internal sealed unsafe class ABI_IPluginWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            presetConfigNative = ABIExtension<PluginPresetConfigWrappers>.GetComInterfacePtrFromWrappers(presetConfig);
+            presetConfigNative = ComWrappersExtension<PluginPresetConfigWrappers>.GetComInterfacePtrFromWrappers(presetConfig);
         }
         catch (Exception exception)
         {
@@ -183,7 +183,7 @@ internal sealed unsafe class ABI_IPluginWrapper
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
-            selfUpdateNative = ABIExtension<PluginSelfUpdateWrappers>.GetComInterfacePtrFromWrappers(selfUpdate);
+            selfUpdateNative = ComWrappersExtension<PluginSelfUpdateWrappers>.GetComInterfacePtrFromWrappers(selfUpdate);
         }
         catch (Exception exception)
         {

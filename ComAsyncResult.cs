@@ -303,25 +303,19 @@ public struct ComAsyncResult() : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe nint GetWaitHandle(nint handle)
-    {
-        ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
-        return asyncResult.Handle;
-    }
+        => ((ComAsyncResult*)handle)->Handle;
 
     /// <summary>
-    /// Dispose/Free the handle of the <see cref="ComAsyncResult"/> struct.
+    /// Dispose/Free the <see cref="ComAsyncResult"/> struct from its pointer.
     /// </summary>
-    /// <param name="handle">A handle of the <see cref="ComAsyncResult"/> struct.</param>
+    /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void DisposeHandle(nint handle)
-    {
-        ref ComAsyncResult asyncResult = ref Unsafe.AsRef<ComAsyncResult>((void*)handle);
-        asyncResult.Dispose();
-    }
+    public static unsafe void FreeResult(nint resultP)
+        => ((ComAsyncResult*)resultP)->Dispose();
 
     /// <summary>
-    /// Dispose this instance of <see cref="ComAsyncResult"/> struct.
+    /// Dispose this instance of the current <see cref="ComAsyncResult"/> struct.
     /// </summary>
     public unsafe void Dispose()
     {
