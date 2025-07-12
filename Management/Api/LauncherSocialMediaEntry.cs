@@ -44,7 +44,7 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     private byte* _socialMediaClickUrl = null;
 
     [FieldOffset(56)]
-    private LauncherSocialMediaEntry* _childEntryHandle = null;
+    private readonly LauncherSocialMediaEntry* _childEntryHandle = null;
 
     /// <summary>
     /// The handle of the child entry. The type is <see cref="LauncherSocialMediaEntry"/>

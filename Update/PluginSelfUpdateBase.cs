@@ -13,9 +13,17 @@ namespace Hi3Helper.Plugin.Core.Update;
 [GeneratedComClass]
 public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
 {
+    /// <summary>
+    /// A Span/Array of the CDN URL to use for getting the update.
+    /// </summary>
     protected abstract ReadOnlySpan<string> BaseCdnUrlSpan { get; }
+
+    /// <summary>
+    /// An <see cref="HttpClient"/> client to be used to perform download for update operations.
+    /// </summary>
     protected abstract HttpClient UpdateHttpClient { get; }
 
+    /// <inheritdoc/>
     public void TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, in Guid cancelToken, out nint result)
     {
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
@@ -23,6 +31,7 @@ public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
         result = TryPerformUpdateAsync(outputDir, checkForUpdatesOnly, progressDelegate, token).AsResult();
     }
 
+    /// <inheritdoc cref="IFree.Free"/>
     public void Free() => Dispose();
 
     public void Dispose()

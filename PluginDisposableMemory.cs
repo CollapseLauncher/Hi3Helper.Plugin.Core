@@ -94,7 +94,7 @@ public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisp
     {
         if (memory.IsEmpty)
         {
-            return string.Empty;
+            return null;
         }
 
         int sizeofT = sizeof(T);

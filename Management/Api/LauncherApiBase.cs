@@ -92,6 +92,7 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
         await client.DownloadFilesAsync(fileUrl, outputStream, downloadProgress, token: token).ConfigureAwait(false);
     }
 
+    /// <inheritdoc cref="IFree.Free"/>
     public override void Free() => Dispose();
 
     public virtual void Dispose()

@@ -151,7 +151,7 @@ public struct GameVersion :
     public readonly bool Equals(IVersion? other) =>
         EqualsInner(this, other);
 
-    public bool Equals(GameVersion other) => this == other;
+    public readonly bool Equals(GameVersion other) => this == other;
 
     public readonly override bool Equals([NotNullWhen(true)] object? obj) =>
         EqualsInner(this, obj);
@@ -258,7 +258,7 @@ public struct GameVersion :
         charsWritten += offsetWritten;
         return true;
 
-        bool TryWriteAppend(int cur, Span<char> dest, out int outWritten, bool isFinal = false)
+        static bool TryWriteAppend(int cur, Span<char> dest, out int outWritten, bool isFinal = false)
         {
             if (!cur.TryFormat(dest, out outWritten))
             {
@@ -340,7 +340,7 @@ public struct GameVersion :
         bytesWritten += offsetWritten;
         return true;
 
-        bool TryWriteAppend(int cur, Span<byte> dest, out int outWritten, bool isFinal = false)
+        static bool TryWriteAppend(int cur, Span<byte> dest, out int outWritten, bool isFinal = false)
         {
             if (!cur.TryFormat(dest, out outWritten))
             {

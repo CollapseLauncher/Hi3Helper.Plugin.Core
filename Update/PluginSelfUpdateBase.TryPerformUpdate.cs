@@ -19,6 +19,13 @@ namespace Hi3Helper.Plugin.Core.Update;
 
 public partial class PluginSelfUpdateBase
 {
+    /// <summary>
+    /// Asynchronously perform update on the plugin.
+    /// </summary>
+    /// <param name="outputDir">An output directory which the new version of library will be downloaded to.</param>
+    /// <param name="checkForUpdatesOnly">Whether to perform the check only or also to perform the update at the same time.</param>
+    /// <param name="progressDelegate">A delegate which pass <see cref="InstallProgress"/> to indicate update progress into the callback.</param>
+    /// <param name="token">A token for cancelling asynchronous update operation</param>
     protected virtual async Task<nint> TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, CancellationToken token)
     {
         if (BaseCdnUrlSpan.IsEmpty)
@@ -30,37 +37,48 @@ public partial class PluginSelfUpdateBase
         {
             ArgumentException.ThrowIfNullOrEmpty(outputDir, nameof(outputDir));
 
-            var updateInfo = await TryGetAvailableCdn(token);
-            if (updateInfo.Info == null || updateInfo.BaseUrl == null)
+            (SelfUpdateReferenceInfo? info, string? baseUrl) = await TryGetAvailableCdn(token);
+            if (info == null || baseUrl == null)
             {
                 return SelfUpdateReturnInfo.CreateToNativeMemory(SelfUpdateReturnCode.NoReachableCdn);
             }
 
             GameVersion currentPluginVersion = SharedStatic.CurrentPluginVersion;
-            GameVersion cdnPluginVersion     = updateInfo.Info.PluginVersion;
+            GameVersion cdnPluginVersion     = info.PluginVersion;
             if (cdnPluginVersion == currentPluginVersion)
             {
                 return SelfUpdateReturnInfo.CreateToNativeMemory(SelfUpdateReturnCode.NoAvailableUpdate);
             }
 
             SelfUpdateReturnCode successReturnCode = SelfUpdateReturnCode.UpdateIsAvailable;
-            if (!checkForUpdatesOnly)
+            if (checkForUpdatesOnly)
             {
-                bool isRollback = cdnPluginVersion < currentPluginVersion;
-                await StartUpdateRoutineAsync(outputDir, updateInfo.Info, updateInfo.BaseUrl, progressDelegate, token);
-                successReturnCode = isRollback ? SelfUpdateReturnCode.RollingBackSuccess : SelfUpdateReturnCode.UpdateSuccess;
+                return SelfUpdateReturnInfo.CreateToNativeMemory(
+                                                                 successReturnCode,
+                                                                 info.MainPluginName,
+                                                                 info.MainPluginAuthor,
+                                                                 info.MainPluginDescription,
+                                                                 info.PluginVersion,
+                                                                 info.PluginStandardVersion,
+                                                                 info.PluginCreationDate,
+                                                                 info.ManifestDate
+                                                                );
             }
 
+            bool isRollback = cdnPluginVersion < currentPluginVersion;
+            await StartUpdateRoutineAsync(outputDir, info, baseUrl, progressDelegate, token);
+            successReturnCode = isRollback ? SelfUpdateReturnCode.RollingBackSuccess : SelfUpdateReturnCode.UpdateSuccess;
+
             return SelfUpdateReturnInfo.CreateToNativeMemory(
-                successReturnCode,
-                updateInfo.Info.MainPluginName,
-                updateInfo.Info.MainPluginAuthor,
-                updateInfo.Info.MainPluginDescription,
-                updateInfo.Info.PluginVersion,
-                updateInfo.Info.PluginStandardVersion,
-                updateInfo.Info.PluginCreationDate,
-                updateInfo.Info.ManifestDate
-                );
+                                                             successReturnCode,
+                                                             info.MainPluginName,
+                                                             info.MainPluginAuthor,
+                                                             info.MainPluginDescription,
+                                                             info.PluginVersion,
+                                                             info.PluginStandardVersion,
+                                                             info.PluginCreationDate,
+                                                             info.ManifestDate
+                                                            );
         }
         catch (Exception ex)
         {
@@ -73,13 +91,13 @@ public partial class PluginSelfUpdateBase
     {
         Directory.CreateDirectory(outputDir);
 
-        InstallProgress progress = new InstallProgress
+        InstallProgress progress = new()
         {
             TotalBytesToDownload = info.Assets.Sum(x => x.Size),
             TotalCountToDownload = info.Assets.Count
         };
 
-        RetryableCopyToStreamTaskOptions taskOptions = new RetryableCopyToStreamTaskOptions
+        RetryableCopyToStreamTaskOptions taskOptions = new()
         {
             IsDisposeTargetStream = true,
             MaxBufferSize = 8 << 10
@@ -99,7 +117,7 @@ public partial class PluginSelfUpdateBase
         {
             string fileUrl = baseUrl.CombineUrlFromString(assetInfo.FilePath);
             string filePath = Path.Combine(outputDir, assetInfo.FilePath.TrimStart("/\\").ToString());
-            FileInfo fileInfo = new FileInfo(filePath);
+            FileInfo fileInfo = new(filePath);
 
             if (fileInfo.Exists)
             {
@@ -208,6 +226,14 @@ public partial class PluginSelfUpdateBase
         }
     }
 
+    /// <summary>
+    /// Try to get the available CDN for the update routine to use.
+    /// </summary>
+    /// <param name="token">The cancellation token for the asynchronous operation.</param>
+    /// <returns>A <see cref="ValueTuple"/> of Info <see cref="SelfUpdateReferenceInfo"/> and BaseUrl <see cref="string"/></returns>
+    /// <remarks>
+    /// Both Info <see cref="SelfUpdateReferenceInfo"/> and BaseUrl <see cref="string"/> will return <c>null</c> if no CDN is available.
+    /// </remarks>
     protected virtual async Task<(SelfUpdateReferenceInfo? Info, string? BaseUrl)>
         TryGetAvailableCdn(CancellationToken token)
     {

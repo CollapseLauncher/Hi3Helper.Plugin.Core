@@ -6,7 +6,18 @@ namespace Hi3Helper.Plugin.Core.Management;
 /// </summary>
 public enum GameReleaseChannel
 {
+    /// <summary>
+    /// The game is currently Globally released.
+    /// </summary>
     Public,
+
+    /// <summary>
+    /// The game is currently in Open-beta release. 
+    /// </summary>
     OpenBeta,
+
+    /// <summary>
+    /// The game is currently in Closed-beta/Non-disclosure release/Development release.
+    /// </summary>
     ClosedBeta
 }

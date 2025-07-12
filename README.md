@@ -9,7 +9,7 @@ Keep in mind that the code included in this repository are mainly unsafe due to 
 Make sure that your code is **reflection-free** as possible as the code are entirely purposed to work with NativeAOT Compilation. A minimal reflection features (``GetType`` and such) are still supported, but ensure that you set the ``IlcDisableReflection`` on your ``.csproj`` project file (or ``.pubxml`` publish profile) to ``false``. If you need to perform JSON Serialization/Deserialization, please ensure that your code uses source-generated ``JsonSerializerContext`` or use Lightweight/No-Reflection (manually deserialize the JSON with some interface implementation ([See below](http://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/README.md#:~:text=Lightweight/No%2DReflection%20Supported%20JSON%20Serializer/Deserializer))) via ``JsonDocument``, ``Utf8JsonReader`` and ``Utf8JsonWriter``.
 
 # What's Included?
-This Core Library includes few core implmentation to support the plugin development faster without need to implement the entire functions from scratch. These are including:
+This Core Library includes few core implementation to support the plugin development faster without need to implement the entire functions from scratch. These are including:
 
 ### V1 (v0.1.0.0) Implementation Standard
 * Base/Abstract API Classes

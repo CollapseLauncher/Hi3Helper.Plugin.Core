@@ -21,7 +21,7 @@ public unsafe struct LauncherPathEntry()
     /// <summary>
     /// The local path of where the asset is stored.
     /// </summary>
-    public string? Path => Utf8StringMarshaller.ConvertToManaged(_path);
+    public readonly string? Path => Utf8StringMarshaller.ConvertToManaged(_path);
 
     /// <summary>
     /// The hash of the file. This is used to verify the integrity of the file.

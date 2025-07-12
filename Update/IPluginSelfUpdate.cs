@@ -4,7 +4,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
-#pragma warning disable CA1816
 namespace Hi3Helper.Plugin.Core.Update;
 
 /// <summary>

@@ -12,7 +12,10 @@ namespace Hi3Helper.Plugin.Core.Update;
 [StructLayout(LayoutKind.Sequential, Pack = 8, Size = 64)]
 public unsafe struct SelfUpdateReturnInfo : IDisposable
 {
-    public SelfUpdateReturnCode _retCode; // Offset: 0
+    // ReSharper disable once ConvertToPrimaryConstructor
+    public SelfUpdateReturnInfo(SelfUpdateReturnCode returnCode) => _retCode = returnCode;
+
+    private SelfUpdateReturnCode _retCode; // Offset: 0
     private byte* _infoPluginName; // Offset: 8
     private byte* _infoPluginAuthor; // Offset: 16
     private byte* _infoPluginDescription; // Offset: 24
@@ -26,6 +29,7 @@ public unsafe struct SelfUpdateReturnInfo : IDisposable
     /// <summary>
     /// Gets the return code of the self-update operation.
     /// </summary>
+    // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
     public readonly SelfUpdateReturnCode ReturnCode => _retCode;
 
     /// <summary>
