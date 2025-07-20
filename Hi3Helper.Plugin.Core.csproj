@@ -12,6 +12,7 @@
     <DebugType>embedded</DebugType>
     <Deterministic>true</Deterministic>
     <DefineConstants>USELIGHTWEIGHTJSONPARSER;MANUALCOM</DefineConstants>
+    <NoWarn>$(NoWarn);CA2256</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

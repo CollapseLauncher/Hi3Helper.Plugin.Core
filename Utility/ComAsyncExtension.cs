@@ -188,8 +188,11 @@ public static partial class ComAsyncExtension
         StackTrace currentStackTrace = new(true);
         Exception? exception         = ComAsyncException.GetExceptionFromHandle(asyncResult->ExceptionMemory);
 
+        #if DEBUG
         Debug.Assert(exception != null, $"Exception shouldn't be null! Result address is: 0x{(nint)asyncResult:x8}");
+        #endif
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (exception == null)
         {
             actionSetExc(new COMException());

@@ -145,7 +145,6 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
             try
             {
                 int read;
-                int bufferLen = buffer.Length;
 
                 while ((read = await _sourceStream
                     .ReadAsync(buffer, coopCts.Token)
