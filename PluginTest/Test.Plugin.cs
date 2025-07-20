@@ -102,7 +102,7 @@ internal static partial class Test
             logger.LogInformation("    IPlugin->GetPresetConfig({PresetConfigIndex})->InitAsync(): Invoking Asynchronously...", i);
 
             presetConfig.InitAsync(in CancelToken, out nint initAsync);
-            int value = await initAsync.WaitFromHandle<int>();
+            int value = await initAsync.AsTask<int>();
             logger.LogInformation("Return value: {Value}", value);
         }
     }

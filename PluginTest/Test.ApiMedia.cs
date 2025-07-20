@@ -35,7 +35,7 @@ internal static partial class Test
 
         logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherApiMedia()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
         apiMedia.InitAsync(in CancelToken, out nint asyncP);
-        int value = await asyncP.WaitFromHandle<int>();
+        int value = await asyncP.AsTask<int>();
         logger.LogInformation("Return value: {ReturnValue}", value);
 
         using PluginDisposableMemory<LauncherPathEntry> backgroundPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetBackgroundEntries);
@@ -65,7 +65,7 @@ internal static partial class Test
             {
                 Console.Write($"Downloaded: {current} / {total}...\r");
             }, in CancelToken, out nint asyncResult);
-            await asyncResult.WaitFromHandle();
+            await asyncResult.AsTask();
         }
 
         using PluginDisposableMemory<LauncherPathEntry> logoPathMemory = PluginDisposableMemoryExtension.ToManagedSpan<LauncherPathEntry>(apiMedia.GetLogoOverlayEntries);
@@ -92,7 +92,7 @@ internal static partial class Test
             {
                 Console.Write($"Downloaded: {current} / {total}...\r");
             }, in CancelToken, out nint asyncResult);
-            await asyncResult.WaitFromHandle();
+            await asyncResult.AsTask();
         }
     }
 
@@ -104,7 +104,7 @@ internal static partial class Test
 
         logger.LogInformation("IPlugin->GetPresetConfig({PresetConfigIndex})->comGet_LauncherApiNews()->InitAsync(): Invoking Asynchronously...", presetConfigIndex);
         apiNews.InitAsync(in CancelToken, out nint asyncP);
-        int value = await asyncP.WaitFromHandle<int>();
+        int value = await asyncP.AsTask<int>();
         logger.LogInformation("Return value: {ReturnValue}", value);
 
         using PluginDisposableMemory<LauncherSocialMediaEntry> socialMediaSpan = PluginDisposableMemoryExtension.ToManagedSpan<LauncherSocialMediaEntry>(apiNews.GetSocialMediaEntries);
