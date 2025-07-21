@@ -18,6 +18,7 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 {
     protected readonly Lock       ThisInstanceLock      = new();
     protected abstract HttpClient ApiResponseHttpClient { get; set; }
+    protected virtual  string?    ApiResponseBaseUrl    => null;
 
     protected bool IsDisposed;
 
