@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Update;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
-
-#if MANUALCOM
-using Hi3Helper.Plugin.Core.ABI;
-#endif
 
 namespace Hi3Helper.Plugin.Core;
 
@@ -96,7 +91,7 @@ public abstract partial class PluginBase : IPlugin
     /// <inheritdoc cref="IFree.Free"/>
     public void Free() => Dispose();
 
-    public virtual unsafe void Dispose()
+    public virtual void Dispose()
     {
         // Cancel all the cancellable async operations first before disposing all plugin instance
         ComCancellationTokenVault.DangerousCancelAndUnregisterAllToken();
@@ -106,26 +101,7 @@ public abstract partial class PluginBase : IPlugin
         for (int i = 0; i < presetConfigCount; i++)
         {
             GetPresetConfig(i, out IPluginPresetConfig presetConfig);
-#if MANUALCOM
-            nint ptr = (nint)ComWrappersExtension<PluginPresetConfigWrappers>.GetComInterfacePtrFromWrappers(presetConfig);
-
-            Guid freeGuid = new(ComInterfaceId.ExFree);
-            Marshal.QueryInterface(ptr, in freeGuid, out nint ppv);
-
-            object? objFree = ComWrappersExtension<PluginPresetConfigWrappers>.GetComInterfaceObjFromWrappers(ppv);
-            if (objFree is IFree disposablePresetConfig)
-            {
-                disposablePresetConfig.Free();
-            }
-#else
-            nint ptr = (nint)ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(presetConfig);
-
-            Guid freeGuid = new(ComInterfaceId.ExFree);
-            Marshal.QueryInterface(ptr, in freeGuid, out nint ppv);
-
-            IFree? objFree = ComInterfaceMarshaller<IFree>.ConvertToManaged((void*)ppv);
-            objFree?.Free();
-#endif
+            presetConfig.Free();
         }
 
         GC.SuppressFinalize(this);
