@@ -33,7 +33,7 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='ReleaseNoReflection'">
     <DefineConstants>$(DefineConstants);USELIGHTWEIGHTJSONPARSER;MANUALCOM</DefineConstants>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
 </Project>
