@@ -12,7 +12,7 @@ namespace Hi3Helper.Plugin.Core.Update;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExPluginSelfUpdate)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IPluginSelfUpdate : IFree, IDisposable
+public partial interface IPluginSelfUpdate : IFree
 {
     /// <summary>
     /// Asynchronously perform update on the plugin.
