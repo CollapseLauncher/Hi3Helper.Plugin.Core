@@ -58,6 +58,7 @@ internal class Program
 
             (bool isGetPlugin, _) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
             (bool isTestApiMedia, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestApiMedia);
+            (bool isTestSelfUpdate, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestSelfUpdate);
 
             FreeLibrary(libraryHandle);
 
@@ -67,7 +68,8 @@ internal class Program
                 isGetPluginStandardVersion &&
                 isGetPluginVersion &&
                 isGetPlugin &&
-                isTestApiMedia,
+                isTestApiMedia &&
+                isTestSelfUpdate,
                 errorCode);
         }
         finally
