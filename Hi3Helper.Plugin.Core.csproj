@@ -11,8 +11,8 @@
     <LangVersion>preview</LangVersion>
     <DebugType>embedded</DebugType>
     <Deterministic>true</Deterministic>
-    <DefineConstants>USELIGHTWEIGHTJSONPARSER;MANUALCOM</DefineConstants>
     <NoWarn>$(NoWarn);CA2256</NoWarn>
+    <Configurations>Debug;Release;DebugNoReflection;ReleaseNoReflection</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,5 +25,15 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.7" />
     <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.7" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='DebugNoReflection'">
+    <DefineConstants>$(DefineConstants);DEBUG;USELIGHTWEIGHTJSONPARSER;MANUALCOM</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='ReleaseNoReflection'">
+    <DefineConstants>$(DefineConstants);USELIGHTWEIGHTJSONPARSER;MANUALCOM</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
 
 </Project>

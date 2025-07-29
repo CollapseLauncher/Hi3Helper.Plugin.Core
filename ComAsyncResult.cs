@@ -211,7 +211,7 @@ public struct ComAsyncResult() : IDisposable
 #if MANUALCOM
         const string exceptionName = "<unknown>";
 #else
-        string exceptionName = typeof(T).Name;
+        string exceptionName = exception.GetType().Name;
 #endif
         // Log the exception info
         SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::WriteExceptionRecursive]: Writing parent exception: {ExceptionName}", exceptionName);
