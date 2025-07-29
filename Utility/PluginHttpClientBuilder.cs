@@ -69,7 +69,7 @@ public class PluginHttpClientBuilder
 
         return $"Mozilla/5.0 (Windows NT {operatingSystemVer}; Win64; x64) "
             + $"{RuntimeInformation.FrameworkDescription.Replace(' ', '/')} (KHTML, like Gecko) "
-            + $"CollapsePlugin/{SharedStatic.CurrentPluginVersion}/{SharedStatic.LibraryStandardVersion}-{(SharedStatic.IsDebug ? "Debug" : "Release")}";
+            + $"CollapsePlugin/{SharedStatic.CurrentPluginVersion} PluginCore-{(SharedStatic.IsDebug ? "Debug" : "Release")}/{SharedStatic.LibraryStandardVersion}";
     }
 
     /// <summary>
