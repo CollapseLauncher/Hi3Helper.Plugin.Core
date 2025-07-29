@@ -23,6 +23,15 @@ public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
     /// </summary>
     protected abstract HttpClient UpdateHttpClient { get; }
 
+    /// <summary>
+    /// HACK: This is a workaround to allow the core plugin library to access the base CDN URL. This way, there will be no breaking changes on the plugin interface.<br/>
+    /// The return is the same as <see cref="BaseCdnUrlSpan"/>.<br/>
+    /// <br/>
+    /// FOR PLUGIN DEVELOPERS:<br/>
+    /// Please use <see cref="BaseCdnUrlSpan"/> instead of this property. This is for Core Plugin's purpose only.
+    /// </summary>
+    internal ReadOnlySpan<string> BaseCdnUrl => BaseCdnUrlSpan;
+
     /// <inheritdoc/>
     public void TryPerformUpdateAsync(string? outputDir, bool checkForUpdatesOnly, InstallProgressDelegate? progressDelegate, in Guid cancelToken, out nint result)
     {

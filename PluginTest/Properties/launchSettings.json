@@ -7,7 +7,7 @@
     },
     "PluginTest - HBR": {
       "commandName": "Project",
-      "commandLineArgs": "NoWait \"E:\\myGit\\Hi3Helper.Plugin.HBR\\Hi3Helper.Plugin.HBR\\publish\\Debug\\main.dll\"",
+      "commandLineArgs": "NoWait \"H:\\myGit\\Hi3Helper.Plugin.HBR\\Hi3Helper.Plugin.HBR\\publish\\Debug\\main.dll\"",
       "nativeDebugging": true
     }
   }

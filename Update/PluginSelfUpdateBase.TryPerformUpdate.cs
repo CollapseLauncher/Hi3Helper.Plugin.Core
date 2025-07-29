@@ -105,6 +105,13 @@ public partial class PluginSelfUpdateBase
 
         try
         {
+            // Additionally downloads manifest.json file too.
+            await Impl(new SelfUpdateAssetInfo
+            {
+                FileHash = [],
+                FilePath = "manifest.json",
+                Size = 0
+            }, token);
             await Parallel.ForEachAsync(info.Assets, token, Impl);
         }
         catch (AggregateException ex)

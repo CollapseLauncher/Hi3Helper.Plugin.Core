@@ -3,11 +3,48 @@ using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices.Marshalling;
+using Hi3Helper.Plugin.Core.Utility;
 
 namespace PluginTest;
 
 internal static partial class Test
 {
+    internal static unsafe string[] GetUpdateCdnUrlList(PluginGetUpdateCdnListDelegate delegateIn, ILogger logger)
+    {
+        ushort** urlsPtr = null;
+        int count = 0;
+
+        try
+        {
+            delegateIn(&count, &urlsPtr);
+
+            if (count == 0 || urlsPtr == null)
+            {
+                return [];
+            }
+
+            string[] urlList = new string[count];
+            for (int i = 0; i < count; i++)
+            {
+                ushort* ptr = urlsPtr[i];
+                urlList[i] = Utf16StringMarshaller.ConvertToManaged(ptr) ?? "";
+                Utf16StringMarshaller.Free(ptr);
+            }
+
+            return urlList;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "GetPluginUpdateCdnList(): Error while retrieving plugin update CDN list!");
+            if (urlsPtr != null)
+            {
+                Mem.Free(urlsPtr);
+            }
+
+            return [];
+        }
+    }
+
     internal static unsafe IPlugin? GetPlugin(PluginGetPlugin delegateIn, out nint address)
     {
         void* pluginInterfaceAddress = delegateIn();

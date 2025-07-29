@@ -58,6 +58,7 @@ internal class Program
 
             (bool isGetPlugin, _) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
             (bool isTestApiMedia, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestApiMedia);
+            (bool isTestManagedUpdate, errorCode) = await LogInvokeTestAsync<PluginGetUpdateCdnListDelegate>(libraryHandle, "GetPluginUpdateCdnList", Test.TestManagedUpdate, true);
             (bool isTestSelfUpdate, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestSelfUpdate);
 
             FreeLibrary(libraryHandle);
@@ -69,6 +70,7 @@ internal class Program
                 isGetPluginVersion &&
                 isGetPlugin &&
                 isTestApiMedia &&
+                isTestManagedUpdate &&
                 isTestSelfUpdate,
                 errorCode);
         }
@@ -115,13 +117,18 @@ internal class Program
         }
     }
 
-    private static async ValueTask<(bool IsSuccess, int ErrorCode)> LogInvokeTestAsync<T>(nint libraryHandle, string entryPointName, Func<T, ILogger, Task> resultDelegate)
+    private static async ValueTask<(bool IsSuccess, int ErrorCode)> LogInvokeTestAsync<T>(nint libraryHandle, string entryPointName, Func<T, ILogger, Task> resultDelegate, bool ignoreIfNoExportFound = false)
     {
         Console.WriteLine($"  [InvokeTest] {entryPointName}()");
         try
         {
             if (!PInvoke.TryGetProcAddress(libraryHandle, entryPointName, out int errorCode, out T delegateOut))
             {
+                if (ignoreIfNoExportFound)
+                {
+                    Console.WriteLine($"    Export for: {entryPointName} is not found. Ignoring!");
+                    return (true, 0);
+                }
                 return (false, errorCode);
             }
             await resultDelegate(delegateOut, InvokeLogger);

@@ -4,10 +4,10 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
-#if !MANUALCOM
 using System.Runtime.InteropServices.Marshalling;
-#else
+using Hi3Helper.Plugin.Core.Update;
+
+#if MANUALCOM
 using Hi3Helper.Plugin.Core.ABI;
 #endif
 
@@ -39,12 +39,13 @@ public class SharedStatic
 {
     static unsafe SharedStatic()
     {
-        TryRegisterApiExport<GetVersionPointerDelegate> ("GetPluginStandardVersion", GetPluginStandardVersion);
-        TryRegisterApiExport<GetVersionPointerDelegate> ("GetPluginVersion",         GetPluginVersion);
-        TryRegisterApiExport<GetUnknownPointerDelegate> ("GetPlugin",                GetPlugin);
-        TryRegisterApiExport<SetCallbackPointerDelegate>("SetLoggerCallback",        SetLoggerCallback);
-        TryRegisterApiExport<SetCallbackPointerDelegate>("SetDnsResolverCallback",   SetDnsResolverCallback);
-        TryRegisterApiExport<VoidDelegate>              ("FreePlugin",               DisposePlugin);
+        TryRegisterApiExport<GetVersionPointerDelegate>     ("GetPluginStandardVersion", GetPluginStandardVersion);
+        TryRegisterApiExport<GetVersionPointerDelegate>     ("GetPluginVersion",         GetPluginVersion);
+        TryRegisterApiExport<GetUnknownPointerDelegate>     ("GetPlugin",                GetPlugin);
+        TryRegisterApiExport<GetPluginUpdateCdnListDelegate>("GetPluginUpdateCdnList",   GetPluginUpdateCdnList);
+        TryRegisterApiExport<SetCallbackPointerDelegate>    ("SetLoggerCallback",        SetLoggerCallback);
+        TryRegisterApiExport<SetCallbackPointerDelegate>    ("SetDnsResolverCallback",   SetDnsResolverCallback);
+        TryRegisterApiExport<VoidDelegate>                  ("FreePlugin",               DisposePlugin);
     }
 
     #region Private Static Fields
@@ -77,8 +78,50 @@ public class SharedStatic
 
     protected unsafe delegate GameVersion* GetVersionPointerDelegate();
     protected unsafe delegate void*        GetUnknownPointerDelegate();
+    protected unsafe delegate void         GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
     protected        delegate void         SetCallbackPointerDelegate(nint callbackP);
     protected        delegate void         VoidDelegate();
+
+    private static unsafe void GetPluginUpdateCdnList(int* count, ushort*** ptr)
+    {
+        try
+        {
+            IPluginSelfUpdate? selfUpdateManager = null;
+            _thisPluginInstance?.GetPluginSelfUpdater(out selfUpdateManager);
+
+            if (selfUpdateManager is not PluginSelfUpdateBase asManagerBase)
+            {
+                *count = 0;
+                *ptr = null;
+                return;
+            }
+
+            ReadOnlySpan<string> urlSpan = asManagerBase.BaseCdnUrl;
+            if (urlSpan.IsEmpty)
+            {
+                *count = 0;
+                *ptr = null;
+                return;
+            }
+
+            *count = urlSpan.Length;
+            ushort** alloc = (ushort**)Mem.Alloc<nint>(urlSpan.Length);
+
+            for (int i = 0; i < urlSpan.Length; i++)
+            {
+                string url = urlSpan[i];
+                alloc[i] = Utf16StringMarshaller.ConvertToUnmanaged(url);
+            }
+
+            *ptr = alloc;
+        }
+        catch (Exception e)
+        {
+            *count = 0;
+            *ptr = null;
+            InstanceLogger.LogError(e, "Cannot obtain CDN List due to error: {ex}", e);
+        }
+    }
 
     private static unsafe GameVersion* GetPluginStandardVersion()
     {

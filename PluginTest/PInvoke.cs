@@ -9,6 +9,7 @@ namespace PluginTest
     internal        delegate void         PluginSetDnsResolverCallback(nint callback);
     internal unsafe delegate GameVersion* PluginGetPluginVersion();
     internal unsafe delegate void*        PluginGetPlugin();
+    internal unsafe delegate void         PluginGetUpdateCdnListDelegate(int* count, ushort*** ptr);
 
     internal static partial class PInvoke
     {
