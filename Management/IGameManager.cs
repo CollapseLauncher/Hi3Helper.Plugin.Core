@@ -15,7 +15,7 @@ namespace Hi3Helper.Plugin.Core.Management;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameManager)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IGameManager : IInitializableTask, IDisposable
+public partial interface IGameManager : IInitializableTask
 {
     /// <summary>
     /// Gets the current path where the game is installed.

@@ -16,7 +16,7 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExPlugin)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IPlugin : IFree, IDisposable
+public partial interface IPlugin : IFree
 {
     /// <summary>
     /// Gets the name of the plugin or the game it represents.

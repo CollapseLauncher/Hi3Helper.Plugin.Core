@@ -16,7 +16,7 @@ namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExPluginPresetConfig)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IPluginPresetConfig : IInitializableTask, IDisposable
+public partial interface IPluginPresetConfig : IInitializableTask
 {
     #region Generic Read-only Properties
     /// <summary>

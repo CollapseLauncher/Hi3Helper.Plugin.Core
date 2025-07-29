@@ -31,6 +31,23 @@ internal static unsafe class ComWrappersExtension<T>
         _cachedWrappers ??= new T();
         return (void*)_cachedWrappers.GetOrCreateComInterfaceForObject(obj, flags);
     }
+
+    /// <summary>
+    /// Gets a member of <see cref="ComObject"/> implementation from pointer.
+    /// </summary>
+    /// <param name="ptr">A pointer which contains a member of <see cref="ComObject"/>.</param>
+    /// <param name="flags">Flags used to configure the generated interface.</param>
+    /// <returns>A pointer to the representation of IUnknown of the current object.</returns>
+    internal static object? GetComInterfaceObjFromWrappers(nint ptr, CreateObjectFlags flags = CreateObjectFlags.None)
+    {
+        if (ptr == nint.Zero)
+        {
+            return null;
+        }
+
+        _cachedWrappers ??= new T();
+        return _cachedWrappers.GetOrCreateObjectForComInstance(ptr, flags);
+    }
 }
 
 /// <summary>

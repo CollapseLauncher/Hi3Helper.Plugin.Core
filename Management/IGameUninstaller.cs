@@ -15,7 +15,7 @@ namespace Hi3Helper.Plugin.Core.Management;
 [GeneratedComInterface]
 [Guid(ComInterfaceId.ExGameUninstaller)]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public partial interface IGameUninstaller : IInitializableTask, IDisposable
+public partial interface IGameUninstaller : IInitializableTask
 {
     /// <summary>
     /// Perform uninstallation routine asynchronously.

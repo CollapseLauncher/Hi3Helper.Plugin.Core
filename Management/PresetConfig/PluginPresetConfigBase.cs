@@ -164,9 +164,9 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
     {
         if (_isDisposed) return;
 
-        LauncherApiMedia?.Dispose();
-        LauncherApiNews?.Dispose();
-        GameManager?.Dispose();
+        LauncherApiMedia?.Free();
+        LauncherApiNews?.Free();
+        GameManager?.Free();
 
         LauncherApiMedia = null;
         LauncherApiNews = null;

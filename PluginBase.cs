@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using Hi3Helper.Plugin.Core.ABI;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Update;
 using Hi3Helper.Plugin.Core.Utility;
@@ -91,7 +93,7 @@ public abstract partial class PluginBase : IPlugin
     /// <inheritdoc cref="IFree.Free"/>
     public void Free() => Dispose();
 
-    public virtual void Dispose()
+    public virtual unsafe void Dispose()
     {
         // Cancel all the cancellable async operations first before disposing all plugin instance
         ComCancellationTokenVault.DangerousCancelAndUnregisterAllToken();
@@ -101,9 +103,15 @@ public abstract partial class PluginBase : IPlugin
         for (int i = 0; i < presetConfigCount; i++)
         {
             GetPresetConfig(i, out IPluginPresetConfig presetConfig);
-            if (presetConfig is IDisposable disposablePresetConfig)
+            nint ptr = (nint)ComWrappersExtension<PluginPresetConfigWrappers>.GetComInterfacePtrFromWrappers(presetConfig);
+
+            Guid freeGuid = new(ComInterfaceId.ExFree);
+            Marshal.QueryInterface(ptr, in freeGuid, out nint ppv);
+
+            object? objFree = ComWrappersExtension<PluginPresetConfigWrappers>.GetComInterfaceObjFromWrappers(ppv);
+            if (objFree is IFree disposablePresetConfig)
             {
-                disposablePresetConfig.Dispose();
+                disposablePresetConfig.Free();
             }
         }
 

@@ -146,7 +146,7 @@ public class SharedStatic
         InstanceDnsResolverCallback = Marshal.GetDelegateForFunctionPointer<SharedDnsResolverCallback>(dnsResolverCallback);
     }
 
-    private static void DisposePlugin() => _thisPluginInstance?.Dispose();
+    private static void DisposePlugin() => _thisPluginInstance?.Free();
 
     internal static void SetPluginCurrentLocale(ReadOnlySpan<char> currentLocale)
     {
