@@ -56,6 +56,11 @@ public class SelfUpdateReferenceInfo
     public DateTimeOffset PluginCreationDate { get; set; }
 
     /// <summary>
+    /// The alternative icon to be displayed on the main (plugin loader) application (if available).
+    /// </summary>
+    public byte[]? PluginAlternativeIcon { get; set; }
+
+    /// <summary>
     /// Gets the compilation date of the plugin.
     /// </summary>
 #if !USELIGHTWEIGHTJSONPARSER
