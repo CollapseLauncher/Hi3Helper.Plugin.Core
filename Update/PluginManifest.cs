@@ -17,18 +17,18 @@ using System.Threading.Tasks;
 namespace Hi3Helper.Plugin.Core.Update;
 
 #if !USELIGHTWEIGHTJSONPARSER
-[JsonSerializable(typeof(SelfUpdateReferenceInfo))]
+[JsonSerializable(typeof(PluginManifest))]
 [JsonSourceGenerationOptions(IndentSize = 2, NewLine = "\n", WriteIndented = true, IndentCharacter = ' ')]
-public partial class SelfUpdateReferenceInfoContext : JsonSerializerContext;
+public partial class PluginManifestContext : JsonSerializerContext;
 #endif
 
 /// <summary>
-/// Contains information about the update data reference for the plugin.
+/// Contains information about the manifest for the plugin.
 /// </summary>
-public class SelfUpdateReferenceInfo
+public class PluginManifest
 #if USELIGHTWEIGHTJSONPARSER
-    : IJsonElementParsable<SelfUpdateReferenceInfo>,
-      IJsonStreamParsable<SelfUpdateReferenceInfo>
+    : IJsonElementParsable<PluginManifest>,
+      IJsonStreamParsable<PluginManifest>
 #endif
 {
     /// <summary>
@@ -91,13 +91,13 @@ public class SelfUpdateReferenceInfo
     /// <summary>
     /// Gets the list of the plugin files.
     /// </summary>
-    public required List<SelfUpdateAssetInfo> Assets { get; set; }
+    public required List<PluginManifestAssetInfo> Assets { get; set; }
 
 #if USELIGHTWEIGHTJSONPARSER
-    public static SelfUpdateReferenceInfo ParseFrom(Stream stream, bool isDisposeStream = false, JsonDocumentOptions options = default)
+    public static PluginManifest ParseFrom(Stream stream, bool isDisposeStream = false, JsonDocumentOptions options = default)
         => ParseFromAsync(stream, isDisposeStream, options, CancellationToken.None).Result;
 
-    public static async Task<SelfUpdateReferenceInfo> ParseFromAsync(Stream stream, bool isDisposeStream = false, JsonDocumentOptions options = default, CancellationToken token = default)
+    public static async Task<PluginManifest> ParseFromAsync(Stream stream, bool isDisposeStream = false, JsonDocumentOptions options = default, CancellationToken token = default)
     {
         try
         {
@@ -113,7 +113,7 @@ public class SelfUpdateReferenceInfo
         }
     }
 
-    public static SelfUpdateReferenceInfo ParseFrom(JsonElement rootElement)
+    public static PluginManifest ParseFrom(JsonElement rootElement)
     {
         string mainLibraryNameValue = rootElement.GetStringNonNullOrEmpty(nameof(MainLibraryName)); // Parse MainLibraryName
         string? mainPluginNameValue = rootElement.GetString(nameof(MainPluginName)); // Parse MainPluginName
@@ -129,22 +129,22 @@ public class SelfUpdateReferenceInfo
             throw new JsonException("Assets property cannot be undefined!");
         }
 
-        List<SelfUpdateAssetInfo> assetList = [];
+        List<PluginManifestAssetInfo> assetList = [];
         foreach (JsonElement asset in assetsArray.EnumerateArray())
         {
-            string filePathValueAsString = asset.GetStringNonNullOrEmpty(nameof(SelfUpdateAssetInfo.FilePath));
+            string filePathValueAsString = asset.GetStringNonNullOrEmpty(nameof(PluginManifestAssetInfo.FilePath));
 
-            if (!asset.TryGetValue(nameof(SelfUpdateAssetInfo.Size), out long sizeAsLong))
+            if (!asset.TryGetValue(nameof(PluginManifestAssetInfo.Size), out long sizeAsLong))
             {
                 throw new JsonException("Assets.Size cannot be empty or null!");
             }
 
-            if (!asset.TryGetBytesFromBase64NonNull(nameof(SelfUpdateAssetInfo.FileHash), out byte[] fileHashValueAsBytes))
+            if (!asset.TryGetBytesFromBase64NonNull(nameof(PluginManifestAssetInfo.FileHash), out byte[] fileHashValueAsBytes))
             {
                 throw new JsonException("Assets.FileHash cannot be empty or null!");
             }
 
-            assetList.Add(new SelfUpdateAssetInfo
+            assetList.Add(new PluginManifestAssetInfo
             {
                 FilePath = filePathValueAsString,
                 FileHash = fileHashValueAsBytes,
@@ -157,7 +157,7 @@ public class SelfUpdateReferenceInfo
             throw new JsonException("Assets cannot be empty or null!");
         }
 
-        SelfUpdateReferenceInfo refInfoRet = new SelfUpdateReferenceInfo
+        PluginManifest refInfoRet = new PluginManifest
         {
             MainLibraryName = mainLibraryNameValue,
             MainPluginName = mainPluginNameValue,
@@ -178,7 +178,7 @@ public class SelfUpdateReferenceInfo
 /// <summary>
 /// Contains the information about asset files related with the plugin.
 /// </summary>
-public class SelfUpdateAssetInfo
+public class PluginManifestAssetInfo
 {
     /// <summary>
     /// Relative path of the asset file.

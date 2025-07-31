@@ -37,7 +37,7 @@ public partial class PluginSelfUpdateBase
         {
             ArgumentException.ThrowIfNullOrEmpty(outputDir, nameof(outputDir));
 
-            (SelfUpdateReferenceInfo? info, string? baseUrl) = await TryGetAvailableCdn(token);
+            (PluginManifest? info, string? baseUrl) = await TryGetAvailableCdn(token);
             if (info == null || baseUrl == null)
             {
                 return SelfUpdateReturnInfo.CreateToNativeMemory(SelfUpdateReturnCode.NoReachableCdn);
@@ -87,7 +87,7 @@ public partial class PluginSelfUpdateBase
         }
     }
 
-    private async Task StartUpdateRoutineAsync(string outputDir, SelfUpdateReferenceInfo info, string baseUrl, InstallProgressDelegate? progressDelegate, CancellationToken token)
+    private async Task StartUpdateRoutineAsync(string outputDir, PluginManifest info, string baseUrl, InstallProgressDelegate? progressDelegate, CancellationToken token)
     {
         Directory.CreateDirectory(outputDir);
 
@@ -106,7 +106,7 @@ public partial class PluginSelfUpdateBase
         try
         {
             // Additionally downloads manifest.json file too.
-            await Impl(new SelfUpdateAssetInfo
+            await Impl(new PluginManifestAssetInfo
             {
                 FileHash = [],
                 FilePath = "manifest.json",
@@ -120,7 +120,7 @@ public partial class PluginSelfUpdateBase
         }
         return;
 
-        async ValueTask Impl(SelfUpdateAssetInfo assetInfo, CancellationToken innerToken)
+        async ValueTask Impl(PluginManifestAssetInfo assetInfo, CancellationToken innerToken)
         {
             string fileUrl = baseUrl.CombineUrlFromString(assetInfo.FilePath);
             string filePath = Path.Combine(outputDir, assetInfo.FilePath.TrimStart("/\\").ToString());
@@ -237,11 +237,11 @@ public partial class PluginSelfUpdateBase
     /// Try to get the available CDN for the update routine to use.
     /// </summary>
     /// <param name="token">The cancellation token for the asynchronous operation.</param>
-    /// <returns>A <see cref="ValueTuple"/> of Info <see cref="SelfUpdateReferenceInfo"/> and BaseUrl <see cref="string"/></returns>
+    /// <returns>A <see cref="ValueTuple"/> of Info <see cref="PluginManifest"/> and BaseUrl <see cref="string"/></returns>
     /// <remarks>
-    /// Both Info <see cref="SelfUpdateReferenceInfo"/> and BaseUrl <see cref="string"/> will return <c>null</c> if no CDN is available.
+    /// Both Info <see cref="PluginManifest"/> and BaseUrl <see cref="string"/> will return <c>null</c> if no CDN is available.
     /// </remarks>
-    protected virtual async Task<(SelfUpdateReferenceInfo? Info, string? BaseUrl)>
+    protected virtual async Task<(PluginManifest? Info, string? BaseUrl)>
         TryGetAvailableCdn(CancellationToken token)
     {
         for (int i = 0; i < BaseCdnUrlSpan.Length; i++)
@@ -255,13 +255,13 @@ public partial class PluginSelfUpdateBase
 
 #if USELIGHTWEIGHTJSONPARSER
                 await using Stream networkStream = await jsonMessage.Content.ReadAsStreamAsync(token);
-                SelfUpdateReferenceInfo info = await SelfUpdateReferenceInfo.ParseFromAsync(networkStream, token: token);
+                PluginManifest info = await PluginManifest.ParseFromAsync(networkStream, token: token);
                 if (info.Assets.Count == 0)
                 {
                     continue;
                 }
 #else
-                SelfUpdateReferenceInfo? info = await jsonMessage.Content.ReadFromJsonAsync(SelfUpdateReferenceInfoContext.Default.SelfUpdateReferenceInfo, token);
+                PluginManifest? info = await jsonMessage.Content.ReadFromJsonAsync(PluginManifestContext.Default.PluginManifest, token);
                 if (info == null || info.Assets.Count == 0)
                 {
                     continue;
