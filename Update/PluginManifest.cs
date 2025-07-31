@@ -56,9 +56,10 @@ public class PluginManifest
     public DateTimeOffset PluginCreationDate { get; set; }
 
     /// <summary>
-    /// The alternative icon to be displayed on the main (plugin loader) application (if available).
+    /// The alternative icon to be displayed on the main (plugin loader) application (if available).<br/>
+    /// Value can be a URL, local file path or a Base64 string.<br/>
     /// </summary>
-    public byte[]? PluginAlternativeIcon { get; set; }
+    public string? PluginAlternativeIcon { get; set; }
 
     /// <summary>
     /// Gets the compilation date of the plugin.
