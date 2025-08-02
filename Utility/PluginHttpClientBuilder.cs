@@ -419,73 +419,7 @@ public class PluginHttpClientBuilder
         nint dnsARecordResultP = await comAsyncResultP.AsTask<nint>();
         // Then call this MF to convert DnsARecordResult* (and also freeing the pointer) into IPAddress[],
         // then return the IPAddress[] so the socket callback can use it.
-        return GetIPAddressArray(dnsARecordResultP);
-
-        // ReSharper disable once InconsistentNaming
-        unsafe IPAddress[] GetIPAddressArray(nint dnsARecordP)
-        {
-            // Cast to DnsARecordResult pointer.
-            DnsARecordResult* endResultP = dnsARecordP.AsPointer<DnsARecordResult>();
-            int               count      = 0;
-
-            // Return empty array if the pointer is null.
-            if (endResultP == null)
-            {
-                return [];
-            }
-
-            // Start counting to get the length of IPAddress[]
-            do
-            {
-                ++count;
-                endResultP = endResultP->NextResult;
-            } while (endResultP != null);
-
-            // Allocate the array and reassign the pointer to start converting.
-            IPAddress[] returnIpAddresses = GC.AllocateUninitializedArray<IPAddress>(count);
-            endResultP = dnsARecordP.AsPointer<DnsARecordResult>();
-
-            int offset = 0;
-            do
-            {
-                // Temporarily assign to the next entry.
-                DnsARecordResult* next = endResultP->NextResult;
-
-                // Convert the struct into IPAddress instance.
-                returnIpAddresses[offset++] = GetIPAddressFromResultAndDispose(endResultP);
-                endResultP                  = next;
-            } while (endResultP != null); // Do the loop if the next entry is not null.
-
-            // If done, return the array.
-            return returnIpAddresses;
-        }
-
-        // ReSharper disable once InconsistentNaming
-        unsafe IPAddress GetIPAddressFromResultAndDispose(DnsARecordResult* resultP)
-        {
-            try
-            {
-                // Get the span representing the string.
-                ReadOnlySpan<char> addressStringSpan = Mem.CreateSpanFromNullTerminated<char>(resultP->AddressString);
-
-                // Try to parse it. Output as IPAddress. Throw if the string is malformed.
-                if (!IPAddress.TryParse(addressStringSpan, out IPAddress? value))
-                {
-                    throw new InvalidDataException($"IP Address string is not valid! {addressStringSpan}");
-                }
-
-                return value;
-            }
-            finally
-            {
-                // If the result is not null, free the string and the struct.
-                if (resultP != null)
-                {
-                    Marshal.FreeCoTaskMem((nint)resultP->AddressString); // Equivalent to Utf16StringMarshaller.Free
-                    Mem.Free(resultP);
-                }
-            }
-        }
+        return DnsARecordResult.GetIPAddressArray(dnsARecordResultP);
 
         unsafe nint GetAsyncResultPointer(out VoidCallback cancelTriggerCallback)
         {
