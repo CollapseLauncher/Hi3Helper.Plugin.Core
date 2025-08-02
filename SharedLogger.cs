@@ -14,17 +14,7 @@ internal class SharedLogger : ILogger
             return;
         }
 
-        if (exception != null)
-        {
-            string formattedWithExceptionString = formatter(state, exception) + "\r\n" + exception;
-            fixed (char* formatterStrP = &Utf16StringMarshaller.GetPinnableReference(formattedWithExceptionString))
-            {
-                SharedStatic.InstanceLoggerCallback(&logLevel, &eventId, formatterStrP, formattedWithExceptionString.Length);
-            }
-            return;
-        }
-
-        string formattedString = formatter(state, exception);
+        string formattedString = exception != null ? formatter(state, exception) + "\r\n" + exception : formatter(state, exception);
         fixed (char* formatterStrP = &Utf16StringMarshaller.GetPinnableReference(formattedString))
         {
             SharedStatic.InstanceLoggerCallback(&logLevel, &eventId, formatterStrP, formattedString.Length);
