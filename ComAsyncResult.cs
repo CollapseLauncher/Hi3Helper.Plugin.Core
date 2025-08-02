@@ -265,6 +265,14 @@ public struct ComAsyncResult() : IDisposable
             // Allocate wait handle
             resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
+            // If the task is completed before the OnCompleted was triggered, then set the result earlier
+            // and return the pointer.
+            if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
+            {
+                resultP->SetResult(threadLock, task);
+                return (nint)resultP;
+            }
+
             // Set the "attach status" callback to the task completion, then return the async result handle
             task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
             return (nint)resultP;
@@ -288,6 +296,14 @@ public struct ComAsyncResult() : IDisposable
 
             // Allocate wait handle
             resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
+
+            // If the task is completed before the OnCompleted was triggered, then set the result earlier
+            // and return the pointer.
+            if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
+            {
+                resultP->SetResult(threadLock, task);
+                return (nint)resultP;
+            }
 
             // Set the "attach status" callback to the task completion, then return the async result handle
             task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
