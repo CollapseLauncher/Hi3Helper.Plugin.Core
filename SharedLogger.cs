@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Runtime.InteropServices.Marshalling;
 
 #pragma warning disable CS8500
 namespace Hi3Helper.Plugin.Core;
@@ -16,17 +17,17 @@ internal class SharedLogger : ILogger
         if (exception != null)
         {
             string formattedWithExceptionString = formatter(state, exception) + "\r\n" + exception;
-            fixed (char* formatterStrP = formattedWithExceptionString)
+            fixed (char* formatterStrP = &Utf16StringMarshaller.GetPinnableReference(formattedWithExceptionString))
             {
-                SharedStatic.InstanceLoggerCallback.Invoke(&logLevel, &eventId, formatterStrP, formattedWithExceptionString.Length);
+                SharedStatic.InstanceLoggerCallback(&logLevel, &eventId, formatterStrP, formattedWithExceptionString.Length);
             }
             return;
         }
 
         string formattedString = formatter(state, exception);
-        fixed (char* formatterStrP = formattedString)
+        fixed (char* formatterStrP = &Utf16StringMarshaller.GetPinnableReference(formattedString))
         {
-            SharedStatic.InstanceLoggerCallback.Invoke(&logLevel, &eventId, formatterStrP, formattedString.Length);
+            SharedStatic.InstanceLoggerCallback(&logLevel, &eventId, formatterStrP, formattedString.Length);
         }
     }
 
