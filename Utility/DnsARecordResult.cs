@@ -124,6 +124,18 @@ public unsafe struct DnsARecordResult
     /// </remarks>
     /// <param name="addressSpan">A span/array of addresses to be converted.</param>
     /// <returns>A pointer to a struct of <see cref="DnsARecordResult"/></returns>
+    public static nint CreateToIntPtr(params ReadOnlySpan<IPAddress> addressSpan)
+        => (nint)Create(addressSpan);
+
+    /// <summary>
+    /// Creates a single or multiple entries of <see cref="DnsARecordResult"/> from an array of <see cref="IPAddress"/>.
+    /// </summary>
+    /// <remarks>
+    /// The field of <see cref="DnsARecordResult.NextResult"/> will contain a pointer of the next <see cref="DnsARecordResult"/> entry if the array of <see cref="IPAddress"/> is used.<br/>
+    /// When the array is empty, a null pointer will be returned instead.
+    /// </remarks>
+    /// <param name="addressSpan">A span/array of addresses to be converted.</param>
+    /// <returns>A pointer to a struct of <see cref="DnsARecordResult"/></returns>
     public static DnsARecordResult* Create(params ReadOnlySpan<IPAddress> addressSpan)
     {
         if (addressSpan.IsEmpty)
