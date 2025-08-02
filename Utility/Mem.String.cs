@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable GrammarMistakeInComment
@@ -87,9 +88,9 @@ public static partial class Mem
         if (span.IsEmpty)
             return null;
 
-        int exactByteCount = checked(Encoding.UTF8.GetByteCount(span) + 1); // + 1 for null terminator
-        byte* mem = (byte*)Marshal.AllocCoTaskMem(exactByteCount);
-        Span<byte> buffer = new(mem, exactByteCount);
+        int        exactByteCount = checked(Encoding.UTF8.GetByteCount(span) + 1); // + 1 for null terminator
+        byte*      mem            = (byte*)Marshal.AllocCoTaskMem(exactByteCount);
+        Span<byte> buffer         = new(mem, exactByteCount);
 
         int byteCount = Encoding.UTF8.GetBytes(span, buffer);
         buffer[byteCount] = 0; // null-terminate
@@ -143,8 +144,8 @@ public static partial class Mem
         // 
         // Once we get a length of the base URL, get a sum of all lengths
         // of the segment's span.
-        int baseUrlLen = baseUrl.Length - (baseUrl[^1] == '/' ? 1 : 0);
-        int bufferLen = baseUrlLen + SumSegmentsLength(segments);
+        int  baseUrlLen  = baseUrl.Length - (baseUrl[^1] == '/' ? 1 : 0);
+        int  bufferLen   = baseUrlLen + SumSegmentsLength(segments);
         uint toWriteBase = (uint)baseUrlLen;
 
         // Allocate temporary buffer from the shared ArrayPool<T>
@@ -229,7 +230,7 @@ public static partial class Mem
 
             // Start incrementing sum in backward
             int sum = 0;
-            int i = segmentsInner.Length;
+            int i   = segmentsInner.Length;
 
         // Do the loop.
         LenSum:
@@ -242,6 +243,21 @@ public static partial class Mem
 
             // If no routines left, return the total sum.
             return sum;
+        }
+    }
+
+    // ReSharper disable once IdentifierTypo
+    // ReSharper disable once CommentTypo
+    /// <summary>
+    /// Get pinnable pointer of the string.
+    /// </summary>
+    /// <param name="str">A string to get its pointer from.</param>
+    /// <returns>A pinned pointer of the string.</returns>
+    public static unsafe char* GetPinnableStringPointer(this string str)
+    {
+        fixed (char* ptr = &Utf16StringMarshaller.GetPinnableReference(str))
+        {
+            return ptr;
         }
     }
 }

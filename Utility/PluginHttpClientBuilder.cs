@@ -16,7 +16,6 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -358,9 +357,10 @@ public class PluginHttpClientBuilder
         // Throw if the callback is null
         ArgumentNullException.ThrowIfNull(SharedStatic.InstanceDnsResolverCallback, nameof(SharedStatic.InstanceDnsResolverCallback));
 
-        char[] dnsResolverWriteBuffer = DnsResolverWriteBufferPool.Rent(ExDnsResolverWriteBufferLen);
-        char* dnsResolverWriteBufferP = (char*)Marshal.UnsafeAddrOfPinnedArrayElement(dnsResolverWriteBuffer, 0);
-        char* hostPAlloc = (char*)Utf16StringMarshaller.ConvertToUnmanaged(host);
+        char[] dnsResolverWriteBuffer  = DnsResolverWriteBufferPool.Rent(ExDnsResolverWriteBufferLen);
+        char*  dnsResolverWriteBufferP = (char*)Marshal.UnsafeAddrOfPinnedArrayElement(dnsResolverWriteBuffer, 0);
+        char*  hostPAlloc              = host.GetPinnableStringPointer();
+
         try
         {
             // Call the callback from main application to write the IP address into the buffer.
@@ -403,8 +403,117 @@ public class PluginHttpClientBuilder
         }
         finally
         {
-            Utf16StringMarshaller.Free((ushort*)hostPAlloc);
             DnsResolverWriteBufferPool.Return(dnsResolverWriteBuffer);
+        }
+    }
+
+    private static async Task<IPAddress[]> GetDnsResolverArrayFromCallbackAsync(string host, CancellationToken token)
+    {
+        // We get the cancel callback and the pointer to the ComAsyncResult struct.
+        nint comAsyncResultP = GetAsyncResultPointer(out VoidCallback cancelCallback);
+        // Register the callback so when the cancellation is requested, the async operation inside the main app
+        // will be cancelled as well.
+        token.Register(() => cancelCallback());
+
+        // Cast as ComAsyncResult and wait as Task, grab the pointer to the DnsARecordResult entries.
+        nint dnsARecordResultP = await comAsyncResultP.AsTask<nint>();
+        // Then call this MF to convert DnsARecordResult* (and also freeing the pointer) into IPAddress[],
+        // then return the IPAddress[] so the socket callback can use it.
+        return GetIPAddressArray(dnsARecordResultP);
+
+        // ReSharper disable once InconsistentNaming
+        unsafe IPAddress[] GetIPAddressArray(nint dnsARecordP)
+        {
+            // Cast to DnsARecordResult pointer.
+            DnsARecordResult* endResultP = dnsARecordP.AsPointer<DnsARecordResult>();
+            int               count      = 0;
+
+            // Return empty array if the pointer is null.
+            if (endResultP == null)
+            {
+                return [];
+            }
+
+            // Start counting to get the length of IPAddress[]
+            do
+            {
+                ++count;
+                endResultP = endResultP->NextResult;
+            } while (endResultP != null);
+
+            // Allocate the array and reassign the pointer to start converting.
+            IPAddress[] returnIpAddresses = GC.AllocateUninitializedArray<IPAddress>(count);
+            endResultP = dnsARecordP.AsPointer<DnsARecordResult>();
+
+            int offset = 0;
+            do
+            {
+                // Temporarily assign to the next entry.
+                DnsARecordResult* next = endResultP->NextResult;
+
+                // Convert the struct into IPAddress instance.
+                returnIpAddresses[offset++] = GetIPAddressFromResultAndDispose(endResultP);
+                endResultP                  = next;
+            } while (endResultP != null); // Do the loop if the next entry is not null.
+
+            // If done, return the array.
+            return returnIpAddresses;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        unsafe IPAddress GetIPAddressFromResultAndDispose(DnsARecordResult* resultP)
+        {
+            try
+            {
+                // Get the span representing the string.
+                ReadOnlySpan<char> addressStringSpan = Mem.CreateSpanFromNullTerminated<char>(resultP->AddressString);
+
+                // Try to parse it. Output as IPAddress. Throw if the string is malformed.
+                if (!IPAddress.TryParse(addressStringSpan, out IPAddress? value))
+                {
+                    throw new InvalidDataException($"IP Address string is not valid! {addressStringSpan}");
+                }
+
+                return value;
+            }
+            finally
+            {
+                // If the result is not null, free the string and the struct.
+                if (resultP != null)
+                {
+                    Marshal.FreeCoTaskMem((nint)resultP->AddressString); // Equivalent to Utf16StringMarshaller.Free
+                    Mem.Free(resultP);
+                }
+            }
+        }
+
+        unsafe nint GetAsyncResultPointer(out VoidCallback cancelTriggerCallback)
+        {
+            // Throw if the callback is null while this local function is called.
+            if (SharedStatic.InstanceDnsResolverCallbackAsync == null)
+            {
+                throw new InvalidOperationException("Cannot perform async resolve callback due to callback is set to null");
+            }
+
+            // Get the pointer of the string to pass it into the callback, then get the pointer of the cancel callback.
+            char* hostP           = host.GetPinnableStringPointer();
+            void* cancelCallbackP = null;
+            nint  asyncResultP    = SharedStatic.InstanceDnsResolverCallbackAsync(hostP, &cancelCallbackP);
+
+            // SANITY: Throw if both pointer to ComAsyncResult and cancel callback are null.
+            if (asyncResultP != 0)
+            {
+                throw new NullReferenceException("Async resolve callback returns a null pointer!");
+            }
+
+            if (cancelCallbackP == null)
+            {
+                throw new NullReferenceException("Async resolve cancellation trigger callback returns a null pointer!");
+            }
+
+            // Convert the cancel callback pointer into an actual callback.
+            cancelTriggerCallback = Marshal.GetDelegateForFunctionPointer<VoidCallback>((nint)cancelCallbackP);
+            return asyncResultP;
         }
     }
 
@@ -446,16 +555,23 @@ public class PluginHttpClientBuilder
         }
 
         Task<IPAddress[]> GetCallbackResult()
-            => Task.Factory.StartNew(() =>
-                                     {
-                                         GetDnsResolverArrayFromCallback(context.DnsEndPoint.Host, out string[] ipAddresses);
-                                         IPAddress[] addressReturn = new IPAddress[ipAddresses.Length];
-                                         for (int i = 0; i < ipAddresses.Length; i++)
-                                         {
-                                             addressReturn[i] = IPAddress.Parse(ipAddresses[i]);
-                                         }
+        {
+            if (SharedStatic.InstanceDnsResolverCallbackAsync != null)
+            {
+                return GetDnsResolverArrayFromCallbackAsync(context.DnsEndPoint.Host, token);
+            }
 
-                                         return addressReturn;
-                                     }, token);
+            return Task.Factory.StartNew(() =>
+                                  {
+                                      GetDnsResolverArrayFromCallback(context.DnsEndPoint.Host, out string[] ipAddresses);
+                                      IPAddress[] addressReturn = new IPAddress[ipAddresses.Length];
+                                      for (int i = 0; i < ipAddresses.Length; i++)
+                                      {
+                                          addressReturn[i] = IPAddress.Parse(ipAddresses[i]);
+                                      }
+
+                                      return addressReturn;
+                                  }, token);
+        }
     }
 }
