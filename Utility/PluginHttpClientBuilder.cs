@@ -435,7 +435,7 @@ public class PluginHttpClientBuilder
             nint  asyncResultP    = SharedStatic.InstanceDnsResolverCallbackAsync(hostP, &cancelCallbackP);
 
             // SANITY: Throw if both pointer to ComAsyncResult and cancel callback are null.
-            if (asyncResultP != 0)
+            if (asyncResultP == 0)
             {
                 throw new NullReferenceException("Async resolve callback returns a null pointer!");
             }
@@ -472,7 +472,7 @@ public class PluginHttpClientBuilder
 
         try
         {
-            if (SharedStatic.InstanceDnsResolverCallback != null)
+            if (SharedStatic.InstanceDnsResolverCallback != null || SharedStatic.InstanceDnsResolverCallbackAsync != null)
             {
                 IPAddress[] addresses = await GetCallbackResult();
                 await socket.ConnectAsync(addresses, context.DnsEndPoint.Port, token);
