@@ -53,8 +53,8 @@ public class SharedStatic
 {
     static unsafe SharedStatic()
     {
-        TryRegisterApiExport<GetVersionPointerDelegate>     ("GetPluginStandardVersion",    GetPluginStandardVersion);
-        TryRegisterApiExport<GetVersionPointerDelegate>     ("GetPluginVersion",            GetPluginVersion);
+        TryRegisterApiExport<GetUnknownPointerDelegate>     ("GetPluginStandardVersion",    GetPluginStandardVersion);
+        TryRegisterApiExport<GetUnknownPointerDelegate>     ("GetPluginVersion",            GetPluginVersion);
         TryRegisterApiExport<GetUnknownPointerDelegate>     ("GetPlugin",                   GetPlugin);
         TryRegisterApiExport<GetPluginUpdateCdnListDelegate>("GetPluginUpdateCdnList",      GetPluginUpdateCdnList);
         TryRegisterApiExport<SetCallbackPointerDelegate>    ("SetLoggerCallback",           SetLoggerCallback);
@@ -85,17 +85,16 @@ public class SharedStatic
 #else
     internal static bool IsDebug = false;
 #endif
-    internal static unsafe GameVersion CurrentPluginVersion => *GetPluginVersion();
+    internal static unsafe GameVersion CurrentPluginVersion => *(GameVersion*)GetPluginVersion();
     #endregion
 
     #region API Exports
     private static readonly Dictionary<string, nint>                                     RegisteredApiExports       = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, nint>.AlternateLookup<ReadOnlySpan<char>> RegisteredApiExportsLookup = RegisteredApiExports.GetAlternateLookup<ReadOnlySpan<char>>();
 
-    protected unsafe delegate GameVersion* GetVersionPointerDelegate();
-    protected unsafe delegate void*        GetUnknownPointerDelegate();
-    protected unsafe delegate void         GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
-    protected        delegate void         SetCallbackPointerDelegate(nint callbackP);
+    protected unsafe delegate void* GetUnknownPointerDelegate();
+    protected unsafe delegate void  GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
+    protected delegate        void  SetCallbackPointerDelegate(nint     callbackP);
 
     private static unsafe void GetPluginUpdateCdnList(int* count, ushort*** ptr)
     {
@@ -138,15 +137,15 @@ public class SharedStatic
         }
     }
 
-    private static unsafe GameVersion* GetPluginStandardVersion()
+    private static unsafe void* GetPluginStandardVersion()
     {
-        fixed (GameVersion* ptr = &LibraryStandardVersion)
+        fixed (void* ptr = &LibraryStandardVersion)
         {
             return ptr;
         }
     }
 
-    private static unsafe GameVersion* GetPluginVersion()
+    private static unsafe void* GetPluginVersion()
     {
         if (_currentDllVersion != GameVersion.Empty)
         {
