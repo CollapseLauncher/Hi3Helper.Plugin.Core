@@ -1,33 +1,41 @@
 ﻿// ReSharper disable IdentifierTypo
 
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
 /// <summary>
 /// Unmanaged struct which contains a string which represents both IPv4 or IPv6.
 /// </summary>
+[StructLayout(LayoutKind.Explicit, Size = 32)]
 public unsafe struct DnsARecordResult
 {
     /// <summary>
+    /// Next entry of the record result. This can be null if no any entries left.
+    /// </summary>
+    [FieldOffset(0)]
+    public DnsARecordResult* NextResult;
+
+    /// <summary>
     /// The version of the IP string. The value must be either 4 (for IPv4) or 6 (for IPv6).
     /// </summary>
+    [FieldOffset(8)]
     public int Version;
+
+    /// <summary>
+    /// Represents the length of the address data written in bytes.
+    /// </summary>
+    [FieldOffset(12)]
+    public int AddressDataLength;
 
     /// <summary>
     /// Pointer to a string represents the IP address.
     /// </summary>
-    public char* AddressString;
-
-    /// <summary>
-    /// Next entry of the record result. This can be null if no any entries left.
-    /// </summary>
-    public DnsARecordResult* NextResult;
+    [FieldOffset(16)]
+    public fixed byte AddressData[16];
 
     /// <summary>
     /// Gets an array of <see cref="IPAddress"/> and free the struct data from the pointer.
@@ -93,23 +101,13 @@ public unsafe struct DnsARecordResult
     {
         try
         {
-            // Get the span representing the string.
-            ReadOnlySpan<char> addressStringSpan = Mem.CreateSpanFromNullTerminated<char>(resultP->AddressString);
-
-            // Try to parse it. Output as IPAddress. Throw if the string is malformed.
-            if (!IPAddress.TryParse(addressStringSpan, out IPAddress? value))
-            {
-                throw new InvalidDataException($"IP Address string is not valid! {addressStringSpan}");
-            }
-
-            return value;
+            return new IPAddress(new ReadOnlySpan<byte>(resultP->AddressData, resultP->AddressDataLength));
         }
         finally
         {
             // If the result is not null, free the string and the struct.
             if (resultP != null)
             {
-                Marshal.FreeCoTaskMem((nint)resultP->AddressString); // Equivalent to Utf16StringMarshaller.Free
                 Mem.Free(resultP);
             }
         }
@@ -165,15 +163,13 @@ public unsafe struct DnsARecordResult
                 result = current;
             }
 
-            // Get the current IPAddress instance, convert it to string and determine the version.
-            IPAddress address         = addressSpan[offset++];
-            string    ipAddressString = address.ToString();
-            int       version         = address.AddressFamily == AddressFamily.InterNetworkV6 ? 6 : 4;
+            // Get the current IPAddress instance.
+            IPAddress address = addressSpan[offset++];
 
+            // Write the address data into struct.
             // Allocate the string, copy it into native memory and set the version
-            char* stringP = (char*)Utf16StringMarshaller.ConvertToUnmanaged(ipAddressString);
-            current->Version       = version;
-            current->AddressString = stringP;
+            current->Version = address.AddressFamily == AddressFamily.InterNetworkV6 ? 6 : 4;
+            address.TryWriteBytes(new Span<byte>(current->AddressData, 16), out current->AddressDataLength);
 
             last = current;
         } while (offset < addressSpan.Length); // Repeat the process if there's still another entry
