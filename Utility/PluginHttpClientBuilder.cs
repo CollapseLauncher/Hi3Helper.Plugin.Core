@@ -432,7 +432,7 @@ public class PluginHttpClientBuilder
             // Get the pointer of the string to pass it into the callback, then get the pointer of the cancel callback.
             char* hostP           = host.GetPinnableStringPointer();
             void* cancelCallbackP = null;
-            nint  asyncResultP    = SharedStatic.InstanceDnsResolverCallbackAsync(hostP, &cancelCallbackP);
+            nint  asyncResultP    = SharedStatic.InstanceDnsResolverCallbackAsync(hostP, host.Length, &cancelCallbackP);
 
             // SANITY: Throw if both pointer to ComAsyncResult and cancel callback are null.
             if (asyncResultP == 0)

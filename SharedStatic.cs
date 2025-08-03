@@ -42,7 +42,7 @@ public unsafe delegate void SharedDnsResolverCallback(char* hostname, char* ipRe
 /// <param name="hostname">[In] A hostname to query the A/AAAA record to.</param>
 /// <param name="cancelCallback">[Out] A callback in which invoked, will be cancelling the async operation of the resolver.</param>
 /// <returns>A pointer to <see cref="ComAsyncResult"/> in which returns the pointer (<see cref="nint"/>) of the <see cref="DnsARecordResult"/> struct.</returns>
-public unsafe delegate nint SharedDnsResolverCallbackAsync(char* hostname, void** cancelCallback);
+public unsafe delegate nint SharedDnsResolverCallbackAsync(char* hostname, int hostnameLength, void** cancelCallback);
 
 /// <summary>
 /// An action delegate. This is equivalent to <see cref="Action"/> delegate.
