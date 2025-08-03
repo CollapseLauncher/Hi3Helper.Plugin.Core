@@ -417,9 +417,20 @@ public class PluginHttpClientBuilder
 
         // Cast as ComAsyncResult and wait as Task, grab the pointer to the DnsARecordResult entries.
         nint dnsARecordResultP = await comAsyncResultP.AsTask<nint>();
-        // Then call this MF to convert DnsARecordResult* (and also freeing the pointer) into IPAddress[],
-        // then return the IPAddress[] so the socket callback can use it.
-        return DnsARecordResult.GetIPAddressArray(dnsARecordResultP);
+        try
+        {
+            // Then call this MF to convert DnsARecordResult* (and also freeing the pointer) into IPAddress[],
+            // then return the IPAddress[] so the socket callback can use it.
+            return DnsARecordResult.GetIPAddressArray(dnsARecordResultP);
+        }
+        finally
+        {
+            if (dnsARecordResultP != nint.Zero)
+            {
+                // Free the DnsARecordResult pointer only if it's not null.
+                DnsARecordResult.Free(dnsARecordResultP);
+            }
+        }
 
         unsafe nint GetAsyncResultPointer(out VoidCallback cancelTriggerCallback)
         {

@@ -3,6 +3,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -88,7 +89,7 @@ public unsafe struct DnsARecordResult
             DnsARecordResult* next = endResultP->NextResult;
 
             // Convert the struct into IPAddress instance.
-            returnIpAddresses[offset++] = GetIPAddressFromResultAndDispose(endResultP);
+            returnIpAddresses[offset++] = new IPAddress(new ReadOnlySpan<byte>(endResultP->AddressData, endResultP->AddressDataLength));
             endResultP                  = next;
         } while (endResultP != null); // Do the loop if the next entry is not null.
 
@@ -96,21 +97,30 @@ public unsafe struct DnsARecordResult
         return returnIpAddresses;
     }
 
-    // ReSharper disable once InconsistentNaming
-    private static IPAddress GetIPAddressFromResultAndDispose(DnsARecordResult* resultP)
+    /// <summary>
+    /// Free the instance of <see cref="DnsARecordResult"/> struct and its entries.
+    /// </summary>
+    /// <param name="resultP">The pointer of the current <see cref="DnsARecordResult"/> entry.</param>
+    /// <param name="isFreeAll">If set to true, the current entry and all its next entries will be freed. Otherwise, just free the current one.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Free(nint resultP, bool isFreeAll = true)
+        => Free((DnsARecordResult*)resultP, isFreeAll);
+
+    /// <summary>
+    /// Free the instance of <see cref="DnsARecordResult"/> struct and its entries.
+    /// </summary>
+    /// <param name="resultP">The pointer of the current <see cref="DnsARecordResult"/> entry.</param>
+    /// <param name="isFreeAll">If set to true, the current entry and all its next entries will be freed. Otherwise, just free the current one.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Free(DnsARecordResult* resultP, bool isFreeAll = true)
     {
-        try
+        do
         {
-            return new IPAddress(new ReadOnlySpan<byte>(resultP->AddressData, resultP->AddressDataLength));
-        }
-        finally
-        {
-            // If the result is not null, free the string and the struct.
-            if (resultP != null)
-            {
-                Mem.Free(resultP);
-            }
-        }
+            DnsARecordResult* nextP = resultP->NextResult;
+            Mem.Free(resultP);
+
+            resultP = nextP;
+        } while (resultP != null && isFreeAll);
     }
 
     /// <summary>
