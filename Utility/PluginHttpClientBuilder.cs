@@ -499,24 +499,32 @@ public class PluginHttpClientBuilder
             throw;
         }
 
-        Task<IPAddress[]> GetCallbackResult()
+        async Task<IPAddress[]> GetCallbackResult()
         {
-            if (SharedStatic.InstanceDnsResolverCallbackAsync != null)
+            try
             {
-                return GetDnsResolverArrayFromCallbackAsync(context.DnsEndPoint.Host, token);
+                if (SharedStatic.InstanceDnsResolverCallbackAsync != null)
+                {
+                    return await GetDnsResolverArrayFromCallbackAsync(context.DnsEndPoint.Host, token);
+                }
+            }
+            catch
+            {
+                // Ignored
             }
 
-            return Task.Factory.StartNew(() =>
-                                  {
-                                      GetDnsResolverArrayFromCallback(context.DnsEndPoint.Host, out string[] ipAddresses);
-                                      IPAddress[] addressReturn = new IPAddress[ipAddresses.Length];
-                                      for (int i = 0; i < ipAddresses.Length; i++)
-                                      {
-                                          addressReturn[i] = IPAddress.Parse(ipAddresses[i]);
-                                      }
+            return await Task.Factory
+                             .StartNew(() =>
+                                       {
+                                           GetDnsResolverArrayFromCallback(context.DnsEndPoint.Host, out string[] ipAddresses);
+                                           IPAddress[] addressReturn = new IPAddress[ipAddresses.Length];
+                                           for (int i = 0; i < ipAddresses.Length; i++)
+                                           {
+                                               addressReturn[i] = IPAddress.Parse(ipAddresses[i]);
+                                           }
 
-                                      return addressReturn;
-                                  }, token);
+                                           return addressReturn;
+                                       }, token);
         }
     }
 }
