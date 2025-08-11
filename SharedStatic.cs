@@ -33,7 +33,7 @@ public unsafe delegate void SharedLoggerCallback(LogLevel* logLevel, EventId* ev
 /// <param name="hostname">[In] A hostname to resolve to.</param>
 /// <param name="ipResolvedWriteBuffer">[Ref] A pointer to the buffer in which the main application will write the UTF-16 unsigned string (with null terminator) to.</param>
 /// <param name="ipResolvedWriteBufferLength">[In] The length of the buffer that the main application able to write.</param>
-/// <param name="ipResolvedWriteCount">[Out] How many IP address strings (with null terminator) are written into the buffer.</param>
+/// <param name="ipResolvedWriteCount">[Out] How many IP address strings (with null terminator) are written into the buffer (<paramref name="ipResolvedWriteBuffer"/>).</param>
 public unsafe delegate void SharedDnsResolverCallback(char* hostname, char* ipResolvedWriteBuffer, int ipResolvedWriteBufferLength, int* ipResolvedWriteCount);
 
 /// <summary>
@@ -53,14 +53,35 @@ public class SharedStatic
 {
     static unsafe SharedStatic()
     {
-        TryRegisterApiExport<GetUnknownPointerDelegate>     ("GetPluginStandardVersion",    GetPluginStandardVersion);
-        TryRegisterApiExport<GetUnknownPointerDelegate>     ("GetPluginVersion",            GetPluginVersion);
-        TryRegisterApiExport<GetUnknownPointerDelegate>     ("GetPlugin",                   GetPlugin);
-        TryRegisterApiExport<GetPluginUpdateCdnListDelegate>("GetPluginUpdateCdnList",      GetPluginUpdateCdnList);
-        TryRegisterApiExport<SetCallbackPointerDelegate>    ("SetLoggerCallback",           SetLoggerCallback);
-        TryRegisterApiExport<SetCallbackPointerDelegate>    ("SetDnsResolverCallback",      SetDnsResolverCallback);
-        TryRegisterApiExport<SetCallbackPointerDelegate>    ("SetDnsResolverCallbackAsync", SetDnsResolverCallbackAsync);
-        TryRegisterApiExport<VoidCallback>                  ("FreePlugin",                  DisposePlugin);
+        // Plugin essential exports (based on v0.1 API Standard)
+        // ---------------------------------------------------------------
+        // These exports are required for the minimal plugin
+        // functionalities in order run. Every plugin must have these
+        // exports registered to comply the v0.1 API standard.
+
+        // -> Plugin Versioning export
+        TryRegisterApiExport<GetUnknownPointerDelegate>("GetPluginStandardVersion", GetPluginStandardVersion);
+        TryRegisterApiExport<GetUnknownPointerDelegate>("GetPluginVersion", GetPluginVersion);
+        // -> Plugin IPlugin Instance Getter export
+        TryRegisterApiExport<GetUnknownPointerDelegate>("GetPlugin", GetPlugin);
+        // -> Current's IPlugin Free export
+        TryRegisterApiExport<VoidCallback>("FreePlugin", FreePlugin);
+        // -> Plugin Debug Log Callback Setter export
+        TryRegisterApiExport<SetCallbackPointerDelegate>("SetLoggerCallback", SetLoggerCallback);
+        // -> Plugin DNS Resolver Callback Setter export
+        TryRegisterApiExport<SetCallbackPointerDelegate>("SetDnsResolverCallback", SetDnsResolverCallback);
+
+        // Plugin optional exports (based on v0.1-update1 API Standard)
+        // ---------------------------------------------------------------
+        // These exports are optional and can be removed if it's not
+        // necesarilly used. These optional exports are included under
+        // additional functionalities used as a subset of v0.1, which is
+        // called "update1" feature sets.
+
+        // -> Plugin Update CDN List Getter export
+        TryRegisterApiExport<GetPluginUpdateCdnListDelegate>("GetPluginUpdateCdnList", GetPluginUpdateCdnList);
+        // -> Plugin Async DNS Resolver Callback Setter export
+        TryRegisterApiExport<SetCallbackPointerDelegate>("SetDnsResolverCallbackAsync", SetDnsResolverCallbackAsync);
     }
 
     #region Private Static Fields
@@ -94,8 +115,13 @@ public class SharedStatic
 
     protected unsafe delegate void* GetUnknownPointerDelegate();
     protected unsafe delegate void  GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
-    protected delegate        void  SetCallbackPointerDelegate(nint     callbackP);
+    protected        delegate void  SetCallbackPointerDelegate(nint callbackP);
 
+    /// <summary>
+    /// Gets the array of CDN URLs used by the launcher to perform an update.
+    /// </summary>
+    /// <param name="count">[Out] The pointer to the count of the array.</param>
+    /// <param name="ptr">[Out] The pointer to the array of the CDN URL strings.</param>
     private static unsafe void GetPluginUpdateCdnList(int* count, ushort*** ptr)
     {
         try
@@ -137,6 +163,9 @@ public class SharedStatic
         }
     }
 
+    /// <summary>
+    /// Gets the pointer of the current API Standard version in which the plugin use.
+    /// </summary>
     private static unsafe void* GetPluginStandardVersion()
     {
         fixed (void* ptr = &LibraryStandardVersion)
@@ -145,19 +174,19 @@ public class SharedStatic
         }
     }
 
+    /// <summary>
+    /// Gets the pointer of the current plugin's version.<br/>
+    /// If DebugNoReflection or ReleaseNoReflection build configuration is used, the pointer of <see cref="_currentDllVersion"/> will be returned.
+    /// Otherwise, the plugin will auto-detect the version defined by the .csproj file (via <see cref="System.Reflection.Assembly"/>).
+    /// </summary>
     private static unsafe void* GetPluginVersion()
     {
-        if (_currentDllVersion != GameVersion.Empty)
-        {
-            return _currentDllVersion.AsPointer();
-        }
-
         try
         {
             Version? versionAssembly = _thisPluginInstance?.GetType().Assembly.GetName().Version;
             if (versionAssembly == null)
             {
-                InstanceLogger.LogTrace("versionFromIPluginAssembly is null");
+                InstanceLogger.LogTrace("versionAssembly is null");
                 return _currentDllVersion.AsPointer();
             }
 
@@ -170,6 +199,9 @@ public class SharedStatic
         }
     }
 
+    /// <summary>
+    /// Gets the COM interface pointer of the <see cref="IPlugin"/> instance.
+    /// </summary>
     private static unsafe void* GetPlugin()
 #if !MANUALCOM
         => ComInterfaceMarshaller<IPlugin>.ConvertToUnmanaged(_thisPluginInstance);
@@ -177,6 +209,10 @@ public class SharedStatic
         => ComWrappersExtension<PluginWrappers>.GetComInterfacePtrFromWrappers(_thisPluginInstance);
 #endif
 
+    /// <summary>
+    /// Sets the pointer of the Debug Log callback/<see cref="SharedLoggerCallback"/> from the main application.
+    /// </summary>
+    /// <param name="loggerCallback">[In] A pointer to the Debug Log callback/<see cref="SharedLoggerCallback"/>.</param>
     private static void SetLoggerCallback(nint loggerCallback)
     {
         if (loggerCallback == nint.Zero)
@@ -190,6 +226,10 @@ public class SharedStatic
         InstanceLoggerCallback = Marshal.GetDelegateForFunctionPointer<SharedLoggerCallback>(loggerCallback);
     }
 
+    /// <summary>
+    /// Sets the pointer of the Asynchronous DNS Resolver callback/<see cref="SharedDnsResolverCallbackAsync"/>
+    /// </summary>
+    /// <param name="dnsResolverCallback">[In] A pointer to the Asynchronous DNS Resolver callback/<see cref="SharedDnsResolverCallbackAsync"/>.</param>
     private static void SetDnsResolverCallbackAsync(nint dnsResolverCallback)
     {
         if (dnsResolverCallback == nint.Zero)
@@ -208,6 +248,10 @@ public class SharedStatic
         InstanceDnsResolverCallbackAsync = Marshal.GetDelegateForFunctionPointer<SharedDnsResolverCallbackAsync>(dnsResolverCallback);
     }
 
+    /// <summary>
+    /// Sets the pointer of the DNS Resolver callback/<see cref="SharedDnsResolverCallback"/>
+    /// </summary>
+    /// <param name="dnsResolverCallback">[In] A pointer to the DNS Resolver callback/<see cref="SharedDnsResolverCallback"/>.</param>
     private static void SetDnsResolverCallback(nint dnsResolverCallback)
     {
         if (dnsResolverCallback == nint.Zero)
@@ -221,8 +265,21 @@ public class SharedStatic
         InstanceDnsResolverCallback = Marshal.GetDelegateForFunctionPointer<SharedDnsResolverCallback>(dnsResolverCallback);
     }
 
-    private static void DisposePlugin() => _thisPluginInstance?.Free();
+    /// <summary>
+    /// Free the current instance of this plugin's <see cref="IPlugin"/>.
+    /// </summary>
+    private static void FreePlugin() => _thisPluginInstance?.Free();
 
+    /// <summary>
+    /// Sets the locale ID to use by the launcher. The format must be in IETF BCP-47 format with no region subtag.<br/>
+    /// A valid format example as follows:<br/>
+    ///   br-BR, id-ID, es-419, en-US
+    /// </summary>
+    /// <remarks>
+    /// This method is used to set what language/locale ID is used to perform API request by the <see cref="Hi3Helper.Plugin.Core.Management.Api.ILauncherApi"/> members.<br/>
+    /// The locale ID might be used to grab the data of the game news/launcher content based on user's current language.
+    /// </remarks>
+    /// <param name="currentLocale">The string represents the IETF BCP-47 non-region subtag locale ID.</param>
     internal static void SetPluginCurrentLocale(ReadOnlySpan<char> currentLocale)
     {
         if (currentLocale.IsEmpty)
@@ -279,8 +336,8 @@ public class SharedStatic
     /// <summary>
     /// Retrieve the pointer of the API exports from the lookup table.
     /// </summary>
-    /// <param name="apiExportName">The name of the key for the delegate pointer.</param>
-    /// <param name="delegateP">The pointer to the delegated function.</param>
+    /// <param name="apiExportName">[In] The name of the key for the delegate pointer.</param>
+    /// <param name="delegateP">[Out] The pointer to the delegated function.</param>
     /// <returns><c>0</c> if it's been registered. Otherwise, <see cref="int.MinValue"/> if not registered or if <paramref name="apiExportName"/> is undefined/null.</returns>
     public static unsafe int TryGetApiExportPointer(char* apiExportName, void** delegateP)
     {
