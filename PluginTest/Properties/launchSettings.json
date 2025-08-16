@@ -2,7 +2,7 @@
   "profiles": {
     "PluginTest - WuWa": {
       "commandName": "Project",
-      "commandLineArgs": "NoWait \"E:\\myGit\\Hi3Helper.Plugin.Wuwa\\Hi3Helper.Plugin.Wuwa\\publish\\Debug\\main.dll\"",
+      "commandLineArgs": "NoWait \"W:\\GitHub\\Hi3Helper.Plugin.Wuwa\\Hi3Helper.Plugin.Wuwa\\publish\\Debug\\main.dll\"",
       "nativeDebugging": true
     },
     "PluginTest - HBR": {
