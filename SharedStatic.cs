@@ -1,11 +1,14 @@
 ﻿using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Update;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using Hi3Helper.Plugin.Core.Update;
+using System.Threading;
+using System.Threading.Tasks;
+using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
 // ReSharper disable CommentTypo
 
 #if MANUALCOM
@@ -28,7 +31,7 @@ public unsafe delegate void SharedLoggerCallback(LogLevel* logLevel, EventId* ev
 /// A delegate to a callback which returns a list of IP addresses resolved from the <paramref name="hostname"/>.
 /// </summary>
 /// <remarks>
-/// DO NOT FREE THE POINTER GIVEN BY THIS DELEGATE! The pointers are borrowed and will be automatically cleared by the plugin.
+/// DO NOT FREE THE POINTER GIVEN BY THIS DELEGATE TO AVOID <see cref="ExecutionEngineException"/>! The pointers are borrowed and will be automatically cleared by the plugin.
 /// </remarks>
 /// <param name="hostname">[In] A hostname to resolve to.</param>
 /// <param name="ipResolvedWriteBuffer">[Ref] A pointer to the buffer in which the main application will write the UTF-16 unsigned string (with null terminator) to.</param>
@@ -49,6 +52,10 @@ public unsafe delegate nint SharedDnsResolverCallbackAsync(char* hostname, int h
 /// </summary>
 public delegate void VoidCallback();
 
+/// <summary>
+/// Shared export class for the plugin.<br/>
+/// This shared static class contains necessary methods for the plugin and has been a part of v0.1 API Standard.
+/// </summary>
 public class SharedStatic
 {
     static unsafe SharedStatic()
@@ -71,10 +78,10 @@ public class SharedStatic
         // -> Plugin DNS Resolver Callback Setter export
         TryRegisterApiExport<SetCallbackPointerDelegate>("SetDnsResolverCallback", SetDnsResolverCallback);
 
-        // Plugin optional exports (based on v0.1-update1 API Standard)
+        // Plugin optional exports (based on v0.1-update1 (v0.1.1) API Standard)
         // ---------------------------------------------------------------
         // These exports are optional and can be removed if it's not
-        // necesarilly used. These optional exports are included under
+        // necessarily used. These optional exports are included under
         // additional functionalities used as a subset of v0.1, which is
         // called "update1" feature sets.
 
@@ -116,6 +123,9 @@ public class SharedStatic
     protected unsafe delegate void* GetUnknownPointerDelegate();
     protected unsafe delegate void  GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
     protected        delegate void  SetCallbackPointerDelegate(nint callbackP);
+
+    internal delegate int LaunchGameFromGameManagerDelegate(nint gameManagerP, nint pluginP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult);
+    internal delegate int IsGameRunningDelegate(nint gameManagerP, out int isGameRunning);
 
     /// <summary>
     /// Gets the array of CDN URLs used by the launcher to perform an update.
@@ -306,7 +316,7 @@ public class SharedStatic
     /// Specify which <see cref="IPlugin"/> instance to load and use in this plugin.
     /// </summary>
     /// <typeparam name="TPlugin">A member of COM Interface of <see cref="IPlugin"/>.</typeparam>
-    protected static void Load<TPlugin>(GameVersion interceptDllVersionTo = default)
+    protected static void Load<TPlugin>(SharedStatic thisExportType, GameVersion interceptDllVersionTo = default)
         where TPlugin : class, IPlugin, new()
     {
         if (interceptDllVersionTo != GameVersion.Empty)
@@ -357,5 +367,31 @@ public class SharedStatic
         *delegateP = (void*)delegatePSafe;
         return 0;
     }
-#endregion
+    #endregion
+
+    /// <summary>
+    /// Perform game launch routine from this plugin.
+    /// </summary>
+    /// <param name="manager">Game manager of the current game region to check.</param>
+    /// <param name="plugin">Plugin instance to check.</param>
+    /// <param name="printGameLogCallback">A callback to send the log of the currently running game.</param>
+    /// <param name="token">A cancellation token to cancel or kill the process of the game.</param>
+    /// <returns>
+    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
+    /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
+    /// </returns>
+    public virtual Task<bool> LaunchGameFromGameManagerCoreAsync(IGameManager manager, IPlugin plugin, PrintGameLog printGameLogCallback, CancellationToken token)
+    {
+        return Task.FromResult(false);
+    }
+
+    /// <summary>
+    /// Perform check whether the game is running or not.
+    /// </summary>
+    /// <param name="manager">Game manager of the current game region to check.</param>
+    /// <returns></returns>
+    public virtual bool IsGameRunningCore(IGameManager manager)
+    {
+        return false;
+    }
 }
