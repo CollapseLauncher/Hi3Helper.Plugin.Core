@@ -125,9 +125,9 @@ public static class GameManagerExtension
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0).<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public static bool IsGameRunning(this RunGameFromGameManagerContext context,
-                                     out  bool       isGameRunning,
-                                     [NotNullWhen(false)] out Exception? errorException)
+    public static bool IsGameRunning(this                     RunGameFromGameManagerContext context,
+                                     out                      bool                          isGameRunning,
+                                     [NotNullWhen(false)] out Exception?                    errorException)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         isGameRunning  = false;
@@ -139,7 +139,7 @@ public static class GameManagerExtension
             return false;
         }
 
-        nint gameManagerP = GetPointerFromInterface(context.GameManager);
+        nint gameManagerP  = GetPointerFromInterface(context.GameManager);
         nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
 
         if (gameManagerP == nint.Zero)
@@ -180,7 +180,7 @@ public static class GameManagerExtension
     /// </returns>
     public static async Task<(bool IsSuccess, Exception? Error)>
         WaitRunningGameAsync(this RunGameFromGameManagerContext context,
-                             CancellationToken token)
+                             CancellationToken                  token)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         if (!context.PluginHandle.TryGetExport("WaitRunningGameAsync", out SharedStatic.WaitRunningGameAsyncDelegate waitRunningGameAsyncCallback))
@@ -188,8 +188,8 @@ public static class GameManagerExtension
             return (false, new NotSupportedException("Plugin doesn't have WaitRunningGameAsync export in its API definition!"));
         }
 
-        nint gameManagerP = GetPointerFromInterface(context.GameManager);
-        nint pluginP = GetPointerFromInterface(context.Plugin);
+        nint gameManagerP  = GetPointerFromInterface(context.GameManager);
+        nint pluginP       = GetPointerFromInterface(context.Plugin);
         nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
 
         if (gameManagerP == nint.Zero)
@@ -235,9 +235,9 @@ public static class GameManagerExtension
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0).<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public static bool KillRunningGame(this RunGameFromGameManagerContext context,
-        out bool wasGameRunning,
-        [NotNullWhen(false)] out Exception? errorException)
+    public static bool KillRunningGame(this                     RunGameFromGameManagerContext context,
+                                       out                      bool                          wasGameRunning,
+                                       [NotNullWhen(false)] out Exception?                    errorException)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         errorException = null;
@@ -249,7 +249,7 @@ public static class GameManagerExtension
             return false;
         }
 
-        nint gameManagerP = GetPointerFromInterface(context.GameManager);
+        nint gameManagerP  = GetPointerFromInterface(context.GameManager);
         nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
 
         if (gameManagerP == nint.Zero)

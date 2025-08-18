@@ -195,7 +195,7 @@ public class PluginManifestAssetInfo
     public long Size { get; set; }
 
     /// <summary>
-    /// Hash of the asset file in <see cref="MD5"/> format.
+    /// Hash of the asset file in <see cref="System.Security.Cryptography.MD5"/> format.
     /// </summary>
     public required byte[] FileHash { get; set; }
 }

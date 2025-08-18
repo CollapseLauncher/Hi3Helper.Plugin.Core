@@ -1,5 +1,4 @@
-﻿using System;
-using Hi3Helper.Plugin.Core.Management.Api;
+﻿using Hi3Helper.Plugin.Core.Management.Api;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 

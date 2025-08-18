@@ -53,11 +53,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         try
         {
         #if MANUALCOM
-            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
+            IPlugin? plugin = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
         #else
-            IPlugin?      plugin      = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
+            IPlugin? plugin = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
         #endif
@@ -97,11 +97,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
             RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
             {
-                GameManager = gameManager,
-                Plugin = plugin,
-                PresetConfig = presetConfig,
+                GameManager          = gameManager,
+                PresetConfig         = presetConfig,
+                Plugin               = plugin,
                 PrintGameLogCallback = null!,
-                PluginHandle = nint.Zero
+                PluginHandle         = nint.Zero
             };
 
             taskResult = ThisPluginExport
@@ -147,11 +147,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
             RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
             {
-                GameManager = gameManager,
-                Plugin = null!,
-                PresetConfig = presetConfig,
+                GameManager          = gameManager,
+                PresetConfig         = presetConfig,
+                Plugin               = null!,
                 PrintGameLogCallback = null!,
-                PluginHandle = nint.Zero
+                PluginHandle         = nint.Zero
             };
 
             bool isSupported = ThisPluginExport.IsGameRunningCore(context, out bool isGameRunning);
@@ -176,11 +176,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         try
         {
         #if MANUALCOM
-            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
+            IPlugin? plugin = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
         #else
-            IPlugin?      plugin      = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
+            IPlugin? plugin = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
         #endif
@@ -213,11 +213,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
             RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
             {
-                GameManager = gameManager,
-                Plugin = plugin,
-                PresetConfig = presetConfig,
+                GameManager          = gameManager,
+                PresetConfig         = presetConfig,
+                Plugin               = plugin,
                 PrintGameLogCallback = null!,
-                PluginHandle = nint.Zero
+                PluginHandle         = nint.Zero
             };
 
             taskResult = ThisPluginExport
@@ -263,11 +263,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
             RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
             {
-                GameManager = gameManager,
-                Plugin = null!,
-                PresetConfig = presetConfig,
+                GameManager          = gameManager,
+                PresetConfig         = presetConfig,
+                Plugin               = null!,
                 PrintGameLogCallback = null!,
-                PluginHandle = nint.Zero
+                PluginHandle         = nint.Zero
             };
 
             bool isSupported = ThisPluginExport.KillRunningGameCore(context, out bool wasGameRunning);
