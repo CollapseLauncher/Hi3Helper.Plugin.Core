@@ -27,22 +27,25 @@ public static class GameManagerExtension
     }
 
     /// <summary>
-    /// Launch the game using plugin's built-in game launch mechanism.
+    /// Asynchronously launch the game using plugin's built-in game launch mechanism and wait until the game exit.
     /// </summary>
     /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
-    /// <param name="token">Cancellation token to pass into the plugin's game launch mechanism.</param>
+    /// <param name="token">
+    /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
+    /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
+    /// </param>
     /// <returns>
-    /// Returns <c>IsSuccess=false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0), hence fallback to launcher's game launch mechanism.
-    /// Otherwise, <c>IsSuccess=true</c> if the plugin does support game launch mechanism and the game ran successfully.
+    /// Returns <c>IsSuccess=false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0), hence fallback to launcher's game launch mechanism.<br/>
+    /// Otherwise, <c>IsSuccess=true</c> if the plugin does support game launch mechanism and the game ran successfully or await process is cancelled.
     /// </returns>
     public static async Task<(bool IsSuccess, Exception? Error)>
-        RunGameFromGameManager(this RunGameFromGameManagerContext context,
-                               CancellationToken                  token)
+        RunGameFromGameManagerAsync(this RunGameFromGameManagerContext context,
+                                    CancellationToken                  token)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
-        if (!context.PluginHandle.TryGetExport("LaunchGameFromGameManager", out SharedStatic.LaunchGameFromGameManagerDelegate launchGameFromGameManagerCallback))
+        if (!context.PluginHandle.TryGetExport("LaunchGameFromGameManagerAsync", out SharedStatic.LaunchGameFromGameManagerAsyncDelegate launchGameFromGameManagerAsyncCallback))
         {
-            return (false, new NotSupportedException("Plugin doesn't have LaunchGameFromGameManager export in its API definition!"));
+            return (false, new NotSupportedException("Plugin doesn't have LaunchGameFromGameManagerAsync export in its API definition!"));
         }
 
         nint gameManagerP          = GetPointerFromInterface(context.GameManager);
@@ -65,7 +68,7 @@ public static class GameManagerExtension
         }
 
         Guid cancelTokenGuid = Guid.CreateVersion7();
-        int hResult = launchGameFromGameManagerCallback(gameManagerP, pluginP, printGameLogCallbackP, ref cancelTokenGuid, out nint taskResult);
+        int hResult = launchGameFromGameManagerAsyncCallback(gameManagerP, pluginP, printGameLogCallbackP, ref cancelTokenGuid, out nint taskResult);
 
         if (taskResult == nint.Zero)
         {
@@ -77,25 +80,8 @@ public static class GameManagerExtension
             return (false, Marshal.GetExceptionForHR(hResult));
         }
 
-        try
-        {
-            bool isSuccess = await taskResult.AsTask<bool>();
-            if (isSuccess)
-            {
-                return (true, null);
-            }
-
-            throw new Exception("Failed to await ComAsyncResult as Task<bool>!");
-        }
-        catch (Exception ex)
-        {
-            return (false, ex);
-        }
+        return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
     }
-
-    private static unsafe nint GetPointerFromInterface<T>(this T interfaceSource)
-        where T : class
-        => (nint)ComInterfaceMarshaller<T>.ConvertToUnmanaged(interfaceSource);
 
     /// <summary>
     /// Check if the game from the current <see cref="IGameManager"/> is running or not.
@@ -110,7 +96,10 @@ public static class GameManagerExtension
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0).<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public static bool IsGameRunning(this IGameManager manager, nint pluginHandle, out bool isGameRunning, [NotNullWhen(false)] out Exception? errorException)
+    public static bool IsGameRunning(this IGameManager                   manager,
+                                     nint                                pluginHandle,
+                                     out                      bool       isGameRunning,
+                                     [NotNullWhen(false)] out Exception? errorException)
     {
         ArgumentNullException.ThrowIfNull(manager, nameof(manager));
         isGameRunning  = false;
@@ -139,5 +128,140 @@ public static class GameManagerExtension
 
         isGameRunning = isGameRunningInt == 1;
         return true;
+    }
+
+    /// <summary>
+    /// Asynchronously wait currently running game until it exit.
+    /// </summary>
+    /// <param name="manager">The game manager instance which handles the game launch.</param>
+    /// <param name="pluginInstance">The instance of the plugin.</param>
+    /// <param name="pluginHandle">The pointer to the plugin's library handle.</param>
+    /// <param name="token">
+    /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
+    /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
+    /// </param>
+    /// <returns>
+    /// Returns <c>IsSuccess=false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0), hence fallback to launcher's game launch mechanism.<br/>
+    /// Otherwise, <c>IsSuccess=true</c> if the plugin does support game launch mechanism and the game ran successfully.
+    /// </returns>
+    public static async Task<(bool IsSuccess, Exception? Error)>
+        WaitRunningGameAsync(this IGameManager manager,
+                             IPlugin           pluginInstance,
+                             nint              pluginHandle,
+                             CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(manager, nameof(manager));
+        if (!pluginHandle.TryGetExport("WaitRunningGameAsync", out SharedStatic.WaitRunningGameAsyncDelegate waitRunningGameAsyncCallback))
+        {
+            return (false, new NotSupportedException("Plugin doesn't have WaitRunningGameAsync export in its API definition!"));
+        }
+
+        nint gameManagerP = GetPointerFromInterface(manager);
+        nint pluginP      = GetPointerFromInterface(pluginInstance);
+
+        if (gameManagerP == nint.Zero)
+        {
+            return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
+        }
+
+        if (pluginP == nint.Zero)
+        {
+            return (false, new COMException("Cannot cast IPlugin interface to pointer!"));
+        }
+
+        Guid cancelTokenGuid = Guid.CreateVersion7();
+        int  hResult         = waitRunningGameAsyncCallback(gameManagerP, pluginP, ref cancelTokenGuid, out nint taskResult);
+
+        if (taskResult == nint.Zero)
+        {
+            return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
+        }
+
+        if (hResult != 0)
+        {
+            return (false, Marshal.GetExceptionForHR(hResult));
+        }
+
+        return await ExecuteSuccessAsyncTask(pluginInstance, taskResult, cancelTokenGuid, token);
+    }
+
+    /// <summary>
+    /// Kill the process of the currently running game.
+    /// </summary>
+    /// <param name="manager">The game manager instance which handles the game launch.</param>
+    /// <param name="pluginHandle">The pointer to the plugin's library handle.</param>
+    /// <param name="wasGameRunning">Whether to indicate that the game was running or not.</param>
+    /// <param name="errorException">Represents an exception from HRESULT of the plugin's function.</param>
+    /// <returns>
+    /// To find the actual return value, please use <paramref name="wasGameRunning"/> out-argument.<br/><br/>
+    /// 
+    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0).<br/>
+    /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
+    /// </returns>
+    public static bool KillRunningGame(this IGameManager                   manager,
+                                       nint                                pluginHandle,
+                                       out                      bool       wasGameRunning,
+                                       [NotNullWhen(false)] out Exception? errorException)
+    {
+        ArgumentNullException.ThrowIfNull(manager, nameof(manager));
+        errorException = null;
+        wasGameRunning = false;
+
+        if (!pluginHandle.TryGetExport("KillRunningGame", out SharedStatic.IsGameRunningDelegate killRunningGameCallback))
+        {
+            errorException = new NotSupportedException("Plugin doesn't have KillRunningGame export in its API definition!");
+            return false;
+        }
+
+        nint gameManagerP = GetPointerFromInterface(manager);
+
+        if (gameManagerP == nint.Zero)
+        {
+            errorException = new COMException("Cannot cast IGameManager interface to pointer!");
+            return false;
+        }
+
+        int hResult = killRunningGameCallback(gameManagerP, out int wasGameRunningInt);
+
+        errorException = Marshal.GetExceptionForHR(hResult);
+        if (errorException != null)
+        {
+            return false;
+        }
+
+        wasGameRunning = wasGameRunningInt == 1;
+        return true;
+    }
+
+    private static unsafe nint GetPointerFromInterface<T>(this T interfaceSource)
+        where T : class
+        => (nint)ComInterfaceMarshaller<T>.ConvertToUnmanaged(interfaceSource);
+
+    private static async Task<(bool IsSuccess, Exception? Error)>
+        ExecuteSuccessAsyncTask(IPlugin           pluginInstance,
+                                nint              taskResult,
+                                Guid              cancelTokenGuid,
+                                CancellationToken token)
+    {
+
+        try
+        {
+            token.Register(() => pluginInstance.CancelAsync(in cancelTokenGuid));
+            bool isSuccess = await taskResult.AsTask<bool>();
+            if (isSuccess)
+            {
+                return (true, null);
+            }
+
+            throw new Exception("Failed to await ComAsyncResult as Task<bool>!");
+        }
+        catch (OperationCanceledException ex)
+        {
+            return (true, ex);
+        }
+        catch (Exception ex)
+        {
+            return (false, ex);
+        }
     }
 }

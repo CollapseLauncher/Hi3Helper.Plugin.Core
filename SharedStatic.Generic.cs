@@ -25,14 +25,22 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         // called "update1" feature sets.
 
         // -> Plugin Async Game Launch Callback for Specific Game Region based on its IGameManager instance.
-        TryRegisterApiExport<LaunchGameFromGameManagerDelegate>("LaunchGameFromGameManager", LaunchGameFromGameManager);
+        TryRegisterApiExport<LaunchGameFromGameManagerAsyncDelegate>("LaunchGameFromGameManagerAsync", LaunchGameFromGameManagerAsync);
         // -> Plugin Game Run Check for Specific Game Region based on its IGameManager instance.
         TryRegisterApiExport<IsGameRunningDelegate>("IsGameRunning", IsGameRunning);
+        // -> Plugin Async Game Run Awaiter for Specific Game Region based on its IGameManager instance.
+        TryRegisterApiExport<WaitRunningGameAsyncDelegate>("WaitRunningGameAsync", WaitRunningGameAsync);
+        // -> Plugin Game Process Killer for Specific Game Region based on its IGameManager instance.
+        TryRegisterApiExport<IsGameRunningDelegate>("KillRunningGame", KillRunningGame);
     }
 
     private static readonly T ThisPluginExport;
 
-    public static unsafe int LaunchGameFromGameManager(nint gameManagerP, nint pluginP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult)
+    /// <summary>
+    /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
+    /// See the documentation for <see cref="SharedStatic.LaunchGameFromGameManagerCoreAsync(IGameManager, IPlugin, PrintGameLog, CancellationToken)"/> method for more information.
+    /// </summary>
+    public static unsafe int LaunchGameFromGameManagerAsync(nint gameManagerP, nint pluginP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult)
     {
         taskResult = nint.Zero;
         try
@@ -79,14 +87,18 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         catch (Exception ex)
         {
             // ignored
-            InstanceLogger.LogError(ex, "An error has occurred while trying to call LaunchGameFromGameManager() from the plugin!");
+            InstanceLogger.LogError(ex, "An error has occurred while trying to call LaunchGameFromGameManagerCoreAsync() from the plugin!");
             return Marshal.GetHRForException(ex);
         }
     }
 
-    public static unsafe int IsGameRunning(nint gameManagerP, out int isGameRunning)
+    /// <summary>
+    /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
+    /// See the documentation for <see cref="SharedStatic.IsGameRunningCore(IGameManager, out bool)"/> method for more information.
+    /// </summary>
+    public static unsafe int IsGameRunning(nint gameManagerP, out int isGameRunningInt)
     {
-        isGameRunning = 0;
+        isGameRunningInt = 0;
 
         try
         {
@@ -100,13 +112,95 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 throw new NullReferenceException("Cannot cast IGameManager from the pointer, hence it gives null!");
             }
 
-            isGameRunning = ThisPluginExport.IsGameRunningCore(gameManager) ? 1 : 0;
+            bool isSupported = ThisPluginExport.IsGameRunningCore(gameManager, out bool isGameRunning);
+            isGameRunningInt = isGameRunning ? 1 : 0;
+            return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden, yet");
+        }
+        catch (Exception ex)
+        {
+            // ignored
+            InstanceLogger.LogError(ex, "An error has occurred while trying to call IsGameRunningCore() from the plugin!");
+            return Marshal.GetHRForException(ex);
+        }
+    }
+
+    /// <summary>
+    /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
+    /// See the documentation for <see cref="SharedStatic.WaitRunningGameCoreAsync(IGameManager, IPlugin, CancellationToken)"/> method for more information.
+    /// </summary>
+    public static unsafe int WaitRunningGameAsync(nint gameManagerP, nint pluginP, ref Guid cancelToken, out nint taskResult)
+    {
+        taskResult = nint.Zero;
+        try
+        {
+        #if MANUALCOM
+        #else
+            IPlugin?      plugin      = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
+            IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
+        #endif
+
+            if (ThisPluginExport == null)
+            {
+                throw new NullReferenceException("The ThisPluginExport field is null!");
+            }
+
+            if (gameManager == null)
+            {
+                throw new NullReferenceException("Cannot cast IGameManager from the pointer, hence it gives null!");
+            }
+
+            if (plugin == null)
+            {
+                throw new NullReferenceException("Cannot cast IPlugin from the pointer, hence it gives null!");
+            }
+
+            CancellationTokenSource? cts = null;
+            if (Unsafe.IsNullRef(ref cancelToken))
+            {
+                cts = ComCancellationTokenVault.RegisterToken(in cancelToken);
+            }
+
+            taskResult = ThisPluginExport.WaitRunningGameCoreAsync(gameManager,
+                                                                   plugin,
+                                                                   cts?.Token ?? CancellationToken.None).AsResult();
             return 0;
         }
         catch (Exception ex)
         {
             // ignored
-            InstanceLogger.LogError(ex, "An error has occurred while trying to call IsGameRunning() from the plugin!");
+            InstanceLogger.LogError(ex, "An error has occurred while trying to call WaitRunningGameCoreAsync() from the plugin!");
+            return Marshal.GetHRForException(ex);
+        }
+    }
+
+    /// <summary>
+    /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
+    /// See the documentation for <see cref="SharedStatic.KillRunningGameCore(IGameManager, out bool)"/> method for more information.
+    /// </summary>
+    public static unsafe int KillRunningGame(nint gameManagerP, out int wasGameRunningInt)
+    {
+        wasGameRunningInt = 0;
+
+        try
+        {
+        #if MANUALCOM
+        #else
+            IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
+        #endif
+
+            if (gameManager == null)
+            {
+                throw new NullReferenceException("Cannot cast IGameManager from the pointer, hence it gives null!");
+            }
+
+            bool isSupported = ThisPluginExport.KillRunningGameCore(gameManager, out bool wasGameRunning);
+            wasGameRunningInt = wasGameRunning ? 1 : 0;
+            return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden which mark this plugin doesn't support this feature!");
+        }
+        catch (Exception ex)
+        {
+            // ignored
+            InstanceLogger.LogError(ex, "An error has occurred while trying to call KillRunningGameCore() from the plugin!");
             return Marshal.GetHRForException(ex);
         }
     }
