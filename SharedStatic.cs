@@ -124,9 +124,9 @@ public class SharedStatic
     protected unsafe delegate void  GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
     protected        delegate void  SetCallbackPointerDelegate(nint callbackP);
 
-    internal delegate int LaunchGameFromGameManagerAsyncDelegate(nint gameManagerP, nint pluginP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult);
-    internal delegate int WaitRunningGameAsyncDelegate(nint gameManagerP, nint pluginP, ref Guid cancelToken, out nint taskResult);
-    internal delegate int IsGameRunningDelegate(nint gameManagerP, out int isGameRunning);
+    internal delegate int LaunchGameFromGameManagerAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult);
+    internal delegate int WaitRunningGameAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, ref Guid cancelToken, out nint taskResult);
+    internal delegate int IsGameRunningDelegate(nint gameManagerP, nint presetConfigP, out int isGameRunning);
 
     /// <summary>
     /// Gets the array of CDN URLs used by the launcher to perform an update.
@@ -373,9 +373,7 @@ public class SharedStatic
     /// <summary>
     /// Asynchronously launch the game using plugin's built-in game launch mechanism and wait until the game exit.
     /// </summary>
-    /// <param name="manager">The game manager instance which handles the game launch.</param>
-    /// <param name="pluginInstance">The instance of the plugin.</param>
-    /// <param name="printGameLogCallback">A callback to send the log of the currently running game.</param>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="token">
     /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
     /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
@@ -384,7 +382,7 @@ public class SharedStatic
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public virtual Task<bool> LaunchGameFromGameManagerCoreAsync(IGameManager manager, IPlugin pluginInstance, PrintGameLog printGameLogCallback, CancellationToken token)
+    public virtual Task<bool> LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext context, CancellationToken token)
     {
         return Task.FromResult(false);
     }
@@ -392,7 +390,7 @@ public class SharedStatic
     /// <summary>
     /// Check if the game from the current <see cref="IGameManager"/> is running or not.
     /// </summary>
-    /// <param name="manager">Game manager of the current game region to check.</param>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="isGameRunning">Whether the game is currently running or not.</param>
     /// <returns>
     /// To find the actual return value, please use <paramref name="isGameRunning"/> out-argument.<br/><br/>
@@ -400,7 +398,7 @@ public class SharedStatic
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public virtual bool IsGameRunningCore(IGameManager manager, out bool isGameRunning)
+    public virtual bool IsGameRunningCore(RunGameFromGameManagerContext context, out bool isGameRunning)
     {
         isGameRunning = false;
         return false;
@@ -409,8 +407,7 @@ public class SharedStatic
     /// <summary>
     /// Asynchronously wait currently running game until it exit.
     /// </summary>
-    /// <param name="manager">The game manager instance which handles the game launch.</param>
-    /// <param name="pluginInstance">The instance of the plugin.</param>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="token">
     /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
     /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
@@ -419,7 +416,7 @@ public class SharedStatic
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
     /// Otherwise, <c>true</c> if the plugin does support game launch mechanism and the game ran successfully.
     /// </returns>
-    public virtual Task<bool> WaitRunningGameCoreAsync(IGameManager manager, IPlugin pluginInstance, CancellationToken token)
+    public virtual Task<bool> WaitRunningGameCoreAsync(RunGameFromGameManagerContext context, CancellationToken token)
     {
         return Task.FromResult(false);
     }
@@ -427,7 +424,7 @@ public class SharedStatic
     /// <summary>
     /// Kill the process of the currently running game.
     /// </summary>
-    /// <param name="manager">The game manager instance which handles the game launch.</param>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="wasGameRunning">Whether to indicate that the game was running or not.</param>
     /// <returns>
     /// To find the actual return value, please use <paramref name="wasGameRunning"/> out-argument.<br/><br/>
@@ -435,7 +432,7 @@ public class SharedStatic
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public virtual bool KillRunningGameCore(IGameManager manager, out bool wasGameRunning)
+    public virtual bool KillRunningGameCore(RunGameFromGameManagerContext context, out bool wasGameRunning)
     {
         wasGameRunning = false;
         return false;

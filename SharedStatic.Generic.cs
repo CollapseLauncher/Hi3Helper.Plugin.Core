@@ -1,4 +1,5 @@
 ﻿using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
@@ -44,19 +45,21 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.LaunchGameFromGameManagerCoreAsync(IGameManager, IPlugin, PrintGameLog, CancellationToken)"/> method for more information.
+    /// See the documentation for <see cref="SharedStatic.LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext, CancellationToken)"/> method for more information.
     /// </summary>
-    public static unsafe int LaunchGameFromGameManagerAsync(nint gameManagerP, nint pluginP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult)
+    public static unsafe int LaunchGameFromGameManagerAsync(nint gameManagerP, nint pluginP, nint presetConfigP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult)
     {
         taskResult = nint.Zero;
         try
         {
         #if MANUALCOM
-            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
         #else
             IPlugin?      plugin      = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
         #endif
 
             PrintGameLog printGameLogCallback = Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
@@ -76,6 +79,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 throw new NullReferenceException("Cannot cast IPlugin from the pointer, hence it gives null!");
             }
 
+            if (presetConfig == null)
+            {
+                throw new NullReferenceException("Cannot cast IPluginPresetConfig from the pointer, hence it gives null!");
+            }
+
             if (printGameLogCallback == null)
             {
                 throw new NullReferenceException("Cannot cast PrintGameLog callback from the pointer, hence it gives null!");
@@ -87,10 +95,18 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 cts = ComCancellationTokenVault.RegisterToken(in cancelToken);
             }
 
-            taskResult = ThisPluginExport.LaunchGameFromGameManagerCoreAsync(gameManager,
-                                                                             plugin,
-                                                                             printGameLogCallback,
-                                                                             cts?.Token ?? CancellationToken.None).AsResult();
+            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            {
+                GameManager = gameManager,
+                Plugin = plugin,
+                PresetConfig = presetConfig,
+                PrintGameLogCallback = null!,
+                PluginHandle = nint.Zero
+            };
+
+            taskResult = ThisPluginExport
+                .LaunchGameFromGameManagerCoreAsync(context, cts?.Token ?? CancellationToken.None)
+                .AsResult();
             return 0;
         }
         catch (Exception ex)
@@ -103,9 +119,9 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.IsGameRunningCore(IGameManager, out bool)"/> method for more information.
+    /// See the documentation for <see cref="SharedStatic.IsGameRunningCore(RunGameFromGameManagerContext, out bool)"/> method for more information.
     /// </summary>
-    public static unsafe int IsGameRunning(nint gameManagerP, out int isGameRunningInt)
+    public static unsafe int IsGameRunning(nint gameManagerP, nint presetConfigP, out int isGameRunningInt)
     {
         isGameRunningInt = 0;
 
@@ -113,8 +129,10 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         {
         #if MANUALCOM
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
         #else
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
         #endif
 
             if (gameManager == null)
@@ -122,7 +140,21 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 throw new NullReferenceException("Cannot cast IGameManager from the pointer, hence it gives null!");
             }
 
-            bool isSupported = ThisPluginExport.IsGameRunningCore(gameManager, out bool isGameRunning);
+            if (presetConfig == null)
+            {
+                throw new NullReferenceException("Cannot cast IPluginPresetConfig from the pointer, hence it gives null!");
+            }
+
+            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            {
+                GameManager = gameManager,
+                Plugin = null!,
+                PresetConfig = presetConfig,
+                PrintGameLogCallback = null!,
+                PluginHandle = nint.Zero
+            };
+
+            bool isSupported = ThisPluginExport.IsGameRunningCore(context, out bool isGameRunning);
             isGameRunningInt = isGameRunning ? 1 : 0;
             return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden, yet");
         }
@@ -136,19 +168,21 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.WaitRunningGameCoreAsync(IGameManager, IPlugin, CancellationToken)"/> method for more information.
+    /// See the documentation for <see cref="SharedStatic.WaitRunningGameCoreAsync(RunGameFromGameManagerContext, CancellationToken)"/> method for more information.
     /// </summary>
-    public static unsafe int WaitRunningGameAsync(nint gameManagerP, nint pluginP, ref Guid cancelToken, out nint taskResult)
+    public static unsafe int WaitRunningGameAsync(nint gameManagerP, nint pluginP, nint presetConfigP, ref Guid cancelToken, out nint taskResult)
     {
         taskResult = nint.Zero;
         try
         {
         #if MANUALCOM
-            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
         #else
             IPlugin?      plugin      = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
         #endif
 
             if (ThisPluginExport == null)
@@ -166,15 +200,29 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 throw new NullReferenceException("Cannot cast IPlugin from the pointer, hence it gives null!");
             }
 
+            if (presetConfig == null)
+            {
+                throw new NullReferenceException("Cannot cast IPluginPresetConfig from the pointer, hence it gives null!");
+            }
+
             CancellationTokenSource? cts = null;
             if (Unsafe.IsNullRef(ref cancelToken))
             {
                 cts = ComCancellationTokenVault.RegisterToken(in cancelToken);
             }
 
-            taskResult = ThisPluginExport.WaitRunningGameCoreAsync(gameManager,
-                                                                   plugin,
-                                                                   cts?.Token ?? CancellationToken.None).AsResult();
+            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            {
+                GameManager = gameManager,
+                Plugin = plugin,
+                PresetConfig = presetConfig,
+                PrintGameLogCallback = null!,
+                PluginHandle = nint.Zero
+            };
+
+            taskResult = ThisPluginExport
+                .WaitRunningGameCoreAsync(context, cts?.Token ?? CancellationToken.None)
+                .AsResult();
             return 0;
         }
         catch (Exception ex)
@@ -187,9 +235,9 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.KillRunningGameCore(IGameManager, out bool)"/> method for more information.
+    /// See the documentation for <see cref="SharedStatic.KillRunningGameCore(RunGameFromGameManagerContext, out bool)"/> method for more information.
     /// </summary>
-    public static unsafe int KillRunningGame(nint gameManagerP, out int wasGameRunningInt)
+    public static unsafe int KillRunningGame(nint gameManagerP, nint presetConfigP, out int wasGameRunningInt)
     {
         wasGameRunningInt = 0;
 
@@ -197,8 +245,10 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         {
         #if MANUALCOM
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
         #else
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
+            IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
         #endif
 
             if (gameManager == null)
@@ -206,7 +256,21 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 throw new NullReferenceException("Cannot cast IGameManager from the pointer, hence it gives null!");
             }
 
-            bool isSupported = ThisPluginExport.KillRunningGameCore(gameManager, out bool wasGameRunning);
+            if (presetConfig == null)
+            {
+                throw new NullReferenceException("Cannot cast IPluginPresetConfig from the pointer, hence it gives null!");
+            }
+
+            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            {
+                GameManager = gameManager,
+                Plugin = null!,
+                PresetConfig = presetConfig,
+                PrintGameLogCallback = null!,
+                PluginHandle = nint.Zero
+            };
+
+            bool isSupported = ThisPluginExport.KillRunningGameCore(context, out bool wasGameRunning);
             wasGameRunningInt = wasGameRunning ? 1 : 0;
             return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden which mark this plugin doesn't support this feature!");
         }

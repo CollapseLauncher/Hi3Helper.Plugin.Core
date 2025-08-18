@@ -1,4 +1,5 @@
 ﻿using Hi3Helper.Plugin.Core.Management;
+using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -18,11 +19,34 @@ public static class GameManagerExtension
 {
     public unsafe delegate void PrintGameLog(char* logString, int logStringLen, bool isStringCanFree);
 
+    /// <summary>
+    /// A context used to manage the game launch routine using plugin's functionality.
+    /// </summary>
     public class RunGameFromGameManagerContext
     {
+        /// <summary>
+        /// The game manager instance which handles the game launch.
+        /// </summary>
         public required IGameManager GameManager { get; init; }
+
+        /// <summary>
+        /// The instance of the plugin.
+        /// </summary>
         public required IPlugin Plugin { get; init; }
+
+        /// <summary>
+        /// The preset config for the region of the game.
+        /// </summary>
+        public required IPluginPresetConfig PresetConfig { get; init; }
+
+        /// <summary>
+        /// The pointer to the plugin's library handle.
+        /// </summary>
         public required nint PluginHandle { get; init; }
+
+        /// <summary>
+        /// A delegate which is pointed to a callback to print game log while the game is running.
+        /// </summary>
         public required PrintGameLog PrintGameLogCallback { get; init; }
     }
 
@@ -50,6 +74,7 @@ public static class GameManagerExtension
 
         nint gameManagerP          = GetPointerFromInterface(context.GameManager);
         nint pluginP               = GetPointerFromInterface(context.Plugin);
+        nint presetConfigP         = GetPointerFromInterface(context.PresetConfig);
         nint printGameLogCallbackP = Marshal.GetFunctionPointerForDelegate(context.PrintGameLogCallback);
 
         if (gameManagerP == nint.Zero)
@@ -62,13 +87,18 @@ public static class GameManagerExtension
             return (false, new COMException("Cannot cast IPlugin interface to pointer!"));
         }
 
+        if (presetConfigP == nint.Zero)
+        {
+            return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
+        }
+
         if (printGameLogCallbackP == nint.Zero)
         {
             return (false, new COMException("Cannot cast PrintGameLog delegate/callback to pointer!"));
         }
 
         Guid cancelTokenGuid = Guid.CreateVersion7();
-        int hResult = launchGameFromGameManagerAsyncCallback(gameManagerP, pluginP, printGameLogCallbackP, ref cancelTokenGuid, out nint taskResult);
+        int hResult = launchGameFromGameManagerAsyncCallback(gameManagerP, pluginP, presetConfigP, printGameLogCallbackP, ref cancelTokenGuid, out nint taskResult);
 
         if (taskResult == nint.Zero)
         {
@@ -86,8 +116,7 @@ public static class GameManagerExtension
     /// <summary>
     /// Check if the game from the current <see cref="IGameManager"/> is running or not.
     /// </summary>
-    /// <param name="manager">The game manager instance which handles the game launch.</param>
-    /// <param name="pluginHandle">The pointer to the plugin's library handle.</param>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="isGameRunning">Whether the game is currently running or not.</param>
     /// <param name="errorException">Represents an exception from HRESULT of the plugin's function.</param>
     /// <returns>
@@ -96,29 +125,36 @@ public static class GameManagerExtension
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0).<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public static bool IsGameRunning(this IGameManager                   manager,
-                                     nint                                pluginHandle,
-                                     out                      bool       isGameRunning,
+    public static bool IsGameRunning(this RunGameFromGameManagerContext context,
+                                     out  bool       isGameRunning,
                                      [NotNullWhen(false)] out Exception? errorException)
     {
-        ArgumentNullException.ThrowIfNull(manager, nameof(manager));
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
         isGameRunning  = false;
         errorException = null;
 
-        if (!pluginHandle.TryGetExport("IsGameRunning", out SharedStatic.IsGameRunningDelegate isGameRunningCallback))
+        if (!context.PluginHandle.TryGetExport("IsGameRunning", out SharedStatic.IsGameRunningDelegate isGameRunningCallback))
         {
             errorException = new NotSupportedException("Plugin doesn't have IsGameRunning export in its API definition!");
             return false;
         }
 
-        nint gameManagerP = GetPointerFromInterface(manager);
+        nint gameManagerP = GetPointerFromInterface(context.GameManager);
+        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
+
         if (gameManagerP == nint.Zero)
         {
             errorException = new COMException("Cannot cast IGameManager interface to pointer!");
             return false;
         }
 
-        int hResult = isGameRunningCallback(gameManagerP, out int isGameRunningInt);
+        if (presetConfigP == nint.Zero)
+        {
+            errorException = new COMException("Cannot cast IPluginPresetConfig interface to pointer!");
+            return false;
+        }
+
+        int hResult = isGameRunningCallback(gameManagerP, presetConfigP, out int isGameRunningInt);
 
         errorException = Marshal.GetExceptionForHR(hResult);
         if (errorException != null)
@@ -133,9 +169,7 @@ public static class GameManagerExtension
     /// <summary>
     /// Asynchronously wait currently running game until it exit.
     /// </summary>
-    /// <param name="manager">The game manager instance which handles the game launch.</param>
-    /// <param name="pluginInstance">The instance of the plugin.</param>
-    /// <param name="pluginHandle">The pointer to the plugin's library handle.</param>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="token">
     /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
     /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
@@ -145,19 +179,18 @@ public static class GameManagerExtension
     /// Otherwise, <c>IsSuccess=true</c> if the plugin does support game launch mechanism and the game ran successfully.
     /// </returns>
     public static async Task<(bool IsSuccess, Exception? Error)>
-        WaitRunningGameAsync(this IGameManager manager,
-                             IPlugin           pluginInstance,
-                             nint              pluginHandle,
+        WaitRunningGameAsync(this RunGameFromGameManagerContext context,
                              CancellationToken token)
     {
-        ArgumentNullException.ThrowIfNull(manager, nameof(manager));
-        if (!pluginHandle.TryGetExport("WaitRunningGameAsync", out SharedStatic.WaitRunningGameAsyncDelegate waitRunningGameAsyncCallback))
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        if (!context.PluginHandle.TryGetExport("WaitRunningGameAsync", out SharedStatic.WaitRunningGameAsyncDelegate waitRunningGameAsyncCallback))
         {
             return (false, new NotSupportedException("Plugin doesn't have WaitRunningGameAsync export in its API definition!"));
         }
 
-        nint gameManagerP = GetPointerFromInterface(manager);
-        nint pluginP      = GetPointerFromInterface(pluginInstance);
+        nint gameManagerP = GetPointerFromInterface(context.GameManager);
+        nint pluginP = GetPointerFromInterface(context.Plugin);
+        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
 
         if (gameManagerP == nint.Zero)
         {
@@ -169,8 +202,13 @@ public static class GameManagerExtension
             return (false, new COMException("Cannot cast IPlugin interface to pointer!"));
         }
 
+        if (presetConfigP == nint.Zero)
+        {
+            return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
+        }
+
         Guid cancelTokenGuid = Guid.CreateVersion7();
-        int  hResult         = waitRunningGameAsyncCallback(gameManagerP, pluginP, ref cancelTokenGuid, out nint taskResult);
+        int  hResult         = waitRunningGameAsyncCallback(gameManagerP, pluginP, presetConfigP, ref cancelTokenGuid, out nint taskResult);
 
         if (taskResult == nint.Zero)
         {
@@ -182,14 +220,13 @@ public static class GameManagerExtension
             return (false, Marshal.GetExceptionForHR(hResult));
         }
 
-        return await ExecuteSuccessAsyncTask(pluginInstance, taskResult, cancelTokenGuid, token);
+        return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
     }
 
     /// <summary>
     /// Kill the process of the currently running game.
     /// </summary>
-    /// <param name="manager">The game manager instance which handles the game launch.</param>
-    /// <param name="pluginHandle">The pointer to the plugin's library handle.</param>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="wasGameRunning">Whether to indicate that the game was running or not.</param>
     /// <param name="errorException">Represents an exception from HRESULT of the plugin's function.</param>
     /// <returns>
@@ -198,22 +235,22 @@ public static class GameManagerExtension
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0).<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public static bool KillRunningGame(this IGameManager                   manager,
-                                       nint                                pluginHandle,
-                                       out                      bool       wasGameRunning,
-                                       [NotNullWhen(false)] out Exception? errorException)
+    public static bool KillRunningGame(this RunGameFromGameManagerContext context,
+        out bool wasGameRunning,
+        [NotNullWhen(false)] out Exception? errorException)
     {
-        ArgumentNullException.ThrowIfNull(manager, nameof(manager));
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
         errorException = null;
         wasGameRunning = false;
 
-        if (!pluginHandle.TryGetExport("KillRunningGame", out SharedStatic.IsGameRunningDelegate killRunningGameCallback))
+        if (!context.PluginHandle.TryGetExport("KillRunningGame", out SharedStatic.IsGameRunningDelegate killRunningGameCallback))
         {
             errorException = new NotSupportedException("Plugin doesn't have KillRunningGame export in its API definition!");
             return false;
         }
 
-        nint gameManagerP = GetPointerFromInterface(manager);
+        nint gameManagerP = GetPointerFromInterface(context.GameManager);
+        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
 
         if (gameManagerP == nint.Zero)
         {
@@ -221,7 +258,13 @@ public static class GameManagerExtension
             return false;
         }
 
-        int hResult = killRunningGameCallback(gameManagerP, out int wasGameRunningInt);
+        if (presetConfigP == nint.Zero)
+        {
+            errorException = new COMException("Cannot cast IPluginPresetConfig interface to pointer!");
+            return false;
+        }
+
+        int hResult = killRunningGameCallback(gameManagerP, presetConfigP, out int wasGameRunningInt);
 
         errorException = Marshal.GetExceptionForHR(hResult);
         if (errorException != null)
