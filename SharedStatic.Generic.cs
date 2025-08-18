@@ -4,8 +4,11 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
+
+#if !MANUALCOM
+using System.Runtime.InteropServices.Marshalling;
+#endif
 
 using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
 
@@ -46,11 +49,14 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         try
         {
         #if MANUALCOM
+            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
         #else
-            IPlugin? plugin = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
+            IPlugin?      plugin      = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
-            PrintGameLog printGameLogCallback = Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
         #endif
+
+            PrintGameLog printGameLogCallback = Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
 
             if (ThisPluginExport == null)
             {
@@ -103,6 +109,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         try
         {
         #if MANUALCOM
+            IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
         #else
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
         #endif
@@ -134,6 +141,8 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         try
         {
         #if MANUALCOM
+            IPlugin?      plugin      = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
+            IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
         #else
             IPlugin?      plugin      = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
@@ -184,6 +193,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         try
         {
         #if MANUALCOM
+            IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
         #else
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
         #endif
