@@ -191,6 +191,7 @@ public static partial class PInvoke
                 break;
             case SpecialFolder.Windows:
                 folderGuid = KnownFoldersGuid.Windows;
+                // ReSharper disable once StringLiteralTypo
                 fallbackEnv = "windir";
                 break;
         }
