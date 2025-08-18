@@ -51,7 +51,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
             if (gameManager == null)
             {
-                throw new NullReferenceException("Cannot cast IGameException from the pointer, hence it gives null!");
+                throw new NullReferenceException("Cannot cast IGameManager from the pointer, hence it gives null!");
             }
 
             if (plugin == null)
@@ -97,11 +97,11 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
             if (gameManager == null)
             {
-                return 0;
+                throw new NullReferenceException("Cannot cast IGameManager from the pointer, hence it gives null!");
             }
 
             isGameRunning = ThisPluginExport.IsGameRunningCore(gameManager) ? 1 : 0;
-            return 1;
+            return 0;
         }
         catch (Exception ex)
         {
