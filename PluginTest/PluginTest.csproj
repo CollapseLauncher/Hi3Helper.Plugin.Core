@@ -9,7 +9,7 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <InvariantGlobalization>true</InvariantGlobalization>
     <Platforms>x64</Platforms>
-    <Configurations>Debug;Release</Configurations>
+    <Configurations>Debug;Release;DebugNoReflection;ReleaseNoReflection</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,5 +21,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Hi3Helper.Plugin.Core.csproj" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='DebugNoReflection'">
+    <DefineConstants>$(DefineConstants);DEBUG;USELIGHTWEIGHTJSONPARSER</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='ReleaseNoReflection'">
+    <DefineConstants>$(DefineConstants);USELIGHTWEIGHTJSONPARSER</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
 
 </Project>

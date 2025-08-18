@@ -1,7 +1,6 @@
 ﻿using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Update;
 using Hi3Helper.Plugin.Core.Utility;
-using Hi3Helper.Plugin.Core.Utility.Json.Converters;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
@@ -14,6 +13,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if !USELIGHTWEIGHTJSONPARSER
+using Hi3Helper.Plugin.Core.Utility.Json.Converters;
+#endif
 
 namespace PluginTest;
 
@@ -222,16 +225,24 @@ public class PluginManifest
     public string? MainPluginAuthor { get; init; }
     public string? MainPluginDescription { get; init; }
 
+#if !USELIGHTWEIGHTJSONPARSER
     [JsonConverter(typeof(Utf8SpanParsableJsonConverter<GameVersion>))]
+#endif
     public GameVersion PluginStandardVersion { get; init; }
 
+#if !USELIGHTWEIGHTJSONPARSER
     [JsonConverter(typeof(Utf8SpanParsableJsonConverter<GameVersion>))]
+#endif
     public GameVersion PluginVersion { get; init; }
 
+#if !USELIGHTWEIGHTJSONPARSER
     [JsonConverter(typeof(Utf16SpanParsableJsonConverter<DateTimeOffset>))]
+#endif
     public DateTimeOffset PluginCreationDate { get; init; }
 
+#if !USELIGHTWEIGHTJSONPARSER
     [JsonConverter(typeof(Utf16SpanParsableJsonConverter<DateTimeOffset>))]
+#endif
     public DateTimeOffset ManifestDate { get; init; }
 
     public required List<PluginManifestAsset> Assets { get; init; }
