@@ -4,11 +4,14 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
+
 // ReSharper disable CommentTypo
 
 #if MANUALCOM
@@ -124,7 +127,7 @@ public class SharedStatic
     protected unsafe delegate void  GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
     protected        delegate void  SetCallbackPointerDelegate(nint callbackP);
 
-    internal delegate int LaunchGameFromGameManagerAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult);
+    internal delegate int LaunchGameFromGameManagerAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, nint printGameLogCallbackP, nint arguments, int argumentsLen, int runBoostedInt, int processPriorityInt, ref Guid cancelToken, out nint taskResult);
     internal delegate int WaitRunningGameAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, ref Guid cancelToken, out nint taskResult);
     internal delegate int IsGameRunningDelegate(nint gameManagerP, nint presetConfigP, out int isGameRunning);
 
@@ -374,6 +377,9 @@ public class SharedStatic
     /// Asynchronously launch the game using plugin's built-in game launch mechanism and wait until the game exit.
     /// </summary>
     /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
+    /// <param name="startArgument">The additional argument to run the game executable.</param>
+    /// <param name="isRunBoosted">Based on <see cref="Process.PriorityBoostEnabled"/>, boost the process temporarily when the game window is focused (Default: false).</param>
+    /// <param name="processPriority">Based on <see cref="Process.PriorityClass"/>, run the game process with specific priority (Default: <see cref="ProcessPriorityClass.Normal"/>).</param>
     /// <param name="token">
     /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
     /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
@@ -382,7 +388,7 @@ public class SharedStatic
     /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
     /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
     /// </returns>
-    public virtual Task<bool> LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext context, CancellationToken token)
+    public virtual Task<bool> LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext context, string? startArgument, bool isRunBoosted, ProcessPriorityClass processPriority, CancellationToken token)
     {
         return Task.FromResult(false);
     }

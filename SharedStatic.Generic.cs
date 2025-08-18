@@ -3,6 +3,7 @@ using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -45,9 +46,18 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext, CancellationToken)"/> method for more information.
+    /// See the documentation for <see cref="SharedStatic.LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext, string?, bool, ProcessPriorityClass, CancellationToken)"/> method for more information.
     /// </summary>
-    public static unsafe int LaunchGameFromGameManagerAsync(nint gameManagerP, nint pluginP, nint presetConfigP, nint printGameLogCallbackP, ref Guid cancelToken, out nint taskResult)
+    public static unsafe int LaunchGameFromGameManagerAsync(nint     gameManagerP,
+                                                            nint     pluginP,
+                                                            nint     presetConfigP,
+                                                            nint     printGameLogCallbackP,
+                                                            nint     arguments,
+                                                            int      argumentsLen,
+                                                            int      runBoostedInt,
+                                                            int      processPriorityInt,
+                                                            ref Guid cancelToken,
+                                                            out nint taskResult)
     {
         taskResult = nint.Zero;
         try
@@ -104,8 +114,24 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 PluginHandle         = nint.Zero
             };
 
+            bool                 isRunBoosted         = runBoostedInt == 1;
+            ProcessPriorityClass processPriorityClass = (ProcessPriorityClass)processPriorityInt;
+
+            string? startArguments = null;
+            if (argumentsLen > 0)
+            {
+                char* argumentsP = (char*)arguments;
+                ReadOnlySpan<char> argumentsSpan = Mem.CreateSpanFromNullTerminated<char>(argumentsP);
+                if (argumentsSpan.Length > argumentsLen)
+                {
+                    argumentsSpan = argumentsSpan[..argumentsLen];
+                }
+
+                startArguments = argumentsSpan.IsEmpty ? null : argumentsSpan.ToString();
+            }
+
             taskResult = ThisPluginExport
-                .LaunchGameFromGameManagerCoreAsync(context, cts?.Token ?? CancellationToken.None)
+                .LaunchGameFromGameManagerCoreAsync(context, startArguments, isRunBoosted, processPriorityClass, cts?.Token ?? CancellationToken.None)
                 .AsResult();
             return 0;
         }

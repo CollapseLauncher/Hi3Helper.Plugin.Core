@@ -1,6 +1,7 @@
 ﻿using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
@@ -54,6 +55,9 @@ public static class GameManagerExtension
     /// Asynchronously launch the game using plugin's built-in game launch mechanism and wait until the game exit.
     /// </summary>
     /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
+    /// <param name="startArgument">The additional argument string to run the game executable (Default: null).</param>
+    /// <param name="isRunBoosted">Based on <see cref="Process.PriorityBoostEnabled"/>, boost the process temporarily when the game window is focused (Default: false).</param>
+    /// <param name="processPriority">Based on <see cref="Process.PriorityClass"/>, run the game process with specific priority (Default: <see cref="ProcessPriorityClass.Normal"/>).</param>
     /// <param name="token">
     /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
     /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
@@ -64,7 +68,10 @@ public static class GameManagerExtension
     /// </returns>
     public static async Task<(bool IsSuccess, Exception? Error)>
         RunGameFromGameManagerAsync(this RunGameFromGameManagerContext context,
-                                    CancellationToken                  token)
+                                    string?                            startArgument   = null,
+                                    bool                               isRunBoosted    = false,
+                                    ProcessPriorityClass               processPriority = ProcessPriorityClass.Normal,
+                                    CancellationToken                  token           = default)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         if (!context.PluginHandle.TryGetExport("LaunchGameFromGameManagerAsync", out SharedStatic.LaunchGameFromGameManagerAsyncDelegate launchGameFromGameManagerAsyncCallback))
@@ -97,8 +104,20 @@ public static class GameManagerExtension
             return (false, new COMException("Cannot cast PrintGameLog delegate/callback to pointer!"));
         }
 
+        nint argumentsP   = startArgument.GetPinnableStringPointerSafe();
+        int  argumentsLen = startArgument?.Length ?? 0;
+
         Guid cancelTokenGuid = Guid.CreateVersion7();
-        int hResult = launchGameFromGameManagerAsyncCallback(gameManagerP, pluginP, presetConfigP, printGameLogCallbackP, ref cancelTokenGuid, out nint taskResult);
+        int hResult = launchGameFromGameManagerAsyncCallback(gameManagerP,
+                                                             pluginP, 
+                                                             presetConfigP,
+                                                             printGameLogCallbackP,
+                                                             argumentsP,
+                                                             argumentsLen,
+                                                             isRunBoosted ? 1 : 0,
+                                                             (int)processPriority,
+                                                             ref cancelTokenGuid,
+                                                             out nint taskResult);
 
         if (taskResult == nint.Zero)
         {
