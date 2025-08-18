@@ -14,6 +14,9 @@ using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
 
 namespace Hi3Helper.Plugin.Core;
 
+/// <summary>
+/// Inherited <see cref="SharedStatic"/> with additional supports for APIs which require call or property access to derived exports.
+/// </summary>
 public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 {
     static SharedStatic()
