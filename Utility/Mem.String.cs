@@ -253,11 +253,19 @@ public static partial class Mem
     /// </summary>
     /// <param name="str">A string to get its pointer from.</param>
     /// <returns>A pinned pointer of the string.</returns>
-    public static unsafe char* GetPinnableStringPointer(this string str)
+    public static unsafe char* GetPinnableStringPointer(this string? str)
     {
         fixed (char* ptr = &Utf16StringMarshaller.GetPinnableReference(str))
         {
             return ptr;
         }
+    }
+
+    // ReSharper disable once IdentifierTypo
+    // ReSharper disable once CommentTypo
+    public static unsafe nint GetPinnableStringPointerSafe(this string? str)
+    {
+        char* p = str.GetPinnableStringPointer();
+        return (nint)p;
     }
 }
