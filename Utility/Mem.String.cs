@@ -3,6 +3,8 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable GrammarMistakeInComment
@@ -11,6 +13,8 @@ namespace Hi3Helper.Plugin.Core.Utility;
 
 public static partial class Mem
 {
+    internal static bool IsUnixBasedOs = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
     /// <summary>
     /// Creates a modifiable <see cref="Span{T}"/> by scanning the end of the null character of either <see cref="char"/> (UTF-16) or <see cref="byte"/> (UTF-8/ANSI) string from <see cref="PluginDisposableMemory{T}"/>.
     /// </summary>
@@ -263,9 +267,73 @@ public static partial class Mem
 
     // ReSharper disable once IdentifierTypo
     // ReSharper disable once CommentTypo
+    /// <summary>
+    /// Get pinnable pointer of the string.
+    /// </summary>
+    /// <param name="str">A string to get its pointer from.</param>
+    /// <returns>A pinned pointer of the string.</returns>
     public static unsafe nint GetPinnableStringPointerSafe(this string? str)
     {
         char* p = str.GetPinnableStringPointer();
         return (nint)p;
+    }
+
+    /// <summary>
+    /// Normalize path separator character based on what OS the environment is currently running on.
+    /// </summary>
+    /// <param name="str">The string path to be normalized.</param>
+    public static unsafe void NormalizePathInplace(this string str)
+    {
+        char replaceFrom = IsUnixBasedOs ? '\\' : '/';
+        char replaceTo = IsUnixBasedOs ? '/' : '\\';
+
+        fixed (char* ptr = &MemoryMarshal.GetReference(str.AsSpan()))
+        {
+            Span<char> unlockedSource = new(ptr, str.Length);
+            NormalizePathUnsafeCore(unlockedSource, replaceFrom, replaceTo, (nint)ptr);
+        }
+    }
+
+    // Reference: https://github.com/dotnet/aspnetcore/blob/c65dac77cf6540c81860a42fff41eb11b9804367/src/Shared/QueryStringEnumerable.cs#L169
+    private static unsafe void NormalizePathUnsafeCore(Span<char> buffer, char replaceFrom, char replaceTo, nint state)
+    {
+        fixed (char* ptr = buffer)
+        {
+            var input = (ushort*)state.ToPointer();
+            var output = (ushort*)ptr;
+
+            var i = (nint)0;
+            var n = (nint)(uint)buffer.Length;
+
+            if (Sse41.IsSupported && n >= Vector128<ushort>.Count)
+            {
+                Vector128<ushort> vecPlus = Vector128.Create((ushort)replaceFrom);
+                Vector128<ushort> vecSpace = Vector128.Create((ushort)replaceTo);
+
+                do
+                {
+                    Vector128<ushort> vec = Sse2.LoadVector128(input + i);
+                    Vector128<ushort> mask = Sse2.CompareEqual(vec, vecPlus);
+                    Vector128<ushort> res = Sse41.BlendVariable(vec, vecSpace, mask);
+
+                    Sse2.Store(output + i, res);
+
+                    i += Vector128<ushort>.Count;
+
+                } while (i <= n - Vector128<ushort>.Count);
+            }
+
+            for (; i < n; ++i)
+            {
+                if (input[i] != replaceFrom)
+                {
+                    output[i] = input[i];
+                }
+                else
+                {
+                    output[i] = replaceTo;
+                }
+            }
+        }
     }
 }
