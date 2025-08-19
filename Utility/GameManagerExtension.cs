@@ -61,6 +61,7 @@ public static class GameManagerExtension
         /// <summary>
         /// Indicates whether the game is currently running.
         /// </summary>
+        // ReSharper disable once MemberHidesStaticFromOuterClass
         public bool IsGameRunning => CanUseGameLaunchApi && this.IsGameRunning(out bool running, out _) && running;
     }
 
