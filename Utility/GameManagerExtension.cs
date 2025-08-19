@@ -56,13 +56,35 @@ public static class GameManagerExtension
         /// <summary>
         /// Indicates whether the Game Launch API is supported on the plugin.
         /// </summary>
-        public bool CanUseGameLaunchApi => _canUseGameLaunchApi ??= this.IsGameRunning(out _, out _);
+        public bool CanUseGameLaunchApi => _canUseGameLaunchApi ??= this.IsGameRunning(out _, out _, out _);
 
         /// <summary>
         /// Indicates whether the game is currently running.
         /// </summary>
         // ReSharper disable once MemberHidesStaticFromOuterClass
-        public bool IsGameRunning => CanUseGameLaunchApi && this.IsGameRunning(out bool running, out _) && running;
+        public bool IsGameRunning => CanUseGameLaunchApi && this.IsGameRunning(out bool running, out _, out _) && running;
+
+        /// <summary>
+        /// Indicates when the game launched. If the game isn't running, it will return a default value.
+        /// </summary>
+        public DateTime GameLaunchStartTime
+        {
+            get
+            {
+                if (!CanUseGameLaunchApi)
+                {
+                    return default;
+                }
+
+                if (!this.IsGameRunning(out bool running, out DateTime dateTime, out _) ||
+                    !running)
+                {
+                    return default;
+                }
+
+                return dateTime;
+            }
+        }
     }
 
     /// <summary>
@@ -147,6 +169,7 @@ public static class GameManagerExtension
     /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="isGameRunning">Whether the game is currently running or not.</param>
     /// <param name="errorException">Represents an exception from HRESULT of the plugin's function.</param>
+    /// <param name="gameStartTime">The date time stamp of when the process was started.</param>
     /// <returns>
     /// To find the actual return value, please use <paramref name="isGameRunning"/> out-argument.<br/><br/>
     /// 
@@ -155,11 +178,13 @@ public static class GameManagerExtension
     /// </returns>
     public static bool IsGameRunning(this                     RunGameFromGameManagerContext context,
                                      out                      bool                          isGameRunning,
+                                     out                      DateTime                      gameStartTime,
                                      [NotNullWhen(false)] out Exception?                    errorException)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         isGameRunning  = false;
         errorException = null;
+        gameStartTime  = default;
 
         if (!context.PluginHandle.TryGetExport("IsGameRunning", out SharedStatic.IsGameRunningDelegate isGameRunningCallback))
         {
@@ -182,7 +207,7 @@ public static class GameManagerExtension
             return false;
         }
 
-        int hResult = isGameRunningCallback(gameManagerP, presetConfigP, out int isGameRunningInt);
+        int hResult = isGameRunningCallback(gameManagerP, presetConfigP, out int isGameRunningInt, out gameStartTime);
 
         errorException = Marshal.GetExceptionForHR(hResult);
         if (errorException != null)
@@ -256,6 +281,7 @@ public static class GameManagerExtension
     /// </summary>
     /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="wasGameRunning">Whether to indicate that the game was running or not.</param>
+    /// <param name="gameStartTime">The date time stamp of when the process was started.</param>
     /// <param name="errorException">Represents an exception from HRESULT of the plugin's function.</param>
     /// <returns>
     /// To find the actual return value, please use <paramref name="wasGameRunning"/> out-argument.<br/><br/>
@@ -265,11 +291,13 @@ public static class GameManagerExtension
     /// </returns>
     public static bool KillRunningGame(this                     RunGameFromGameManagerContext context,
                                        out                      bool                          wasGameRunning,
+                                       out                      DateTime                      gameStartTime,
                                        [NotNullWhen(false)] out Exception?                    errorException)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         errorException = null;
         wasGameRunning = false;
+        gameStartTime  = default;
 
         if (!context.PluginHandle.TryGetExport("KillRunningGame", out SharedStatic.IsGameRunningDelegate killRunningGameCallback))
         {
@@ -292,7 +320,7 @@ public static class GameManagerExtension
             return false;
         }
 
-        int hResult = killRunningGameCallback(gameManagerP, presetConfigP, out int wasGameRunningInt);
+        int hResult = killRunningGameCallback(gameManagerP, presetConfigP, out int wasGameRunningInt, out gameStartTime);
 
         errorException = Marshal.GetExceptionForHR(hResult);
         if (errorException != null)
