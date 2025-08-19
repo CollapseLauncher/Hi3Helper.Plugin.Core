@@ -25,6 +25,9 @@ public static class GameManagerExtension
     /// </summary>
     public class RunGameFromGameManagerContext
     {
+        // Fields
+        private bool? _canUseGameLaunchApi;
+
         /// <summary>
         /// The game manager instance which handles the game launch.
         /// </summary>
@@ -49,6 +52,16 @@ public static class GameManagerExtension
         /// A delegate which is pointed to a callback to print game log while the game is running.
         /// </summary>
         public required PrintGameLog PrintGameLogCallback { get; init; }
+
+        /// <summary>
+        /// Indicates whether the Game Launch API is supported on the plugin.
+        /// </summary>
+        public bool CanUseGameLaunchApi => _canUseGameLaunchApi ??= this.IsGameRunning(out _, out _);
+
+        /// <summary>
+        /// Indicates whether the game is currently running.
+        /// </summary>
+        public bool IsGameRunning => CanUseGameLaunchApi && this.IsGameRunning(out bool running, out _) && running;
     }
 
     /// <summary>
