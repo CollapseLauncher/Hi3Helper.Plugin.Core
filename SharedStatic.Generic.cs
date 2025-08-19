@@ -153,11 +153,12 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.IsGameRunningCore(RunGameFromGameManagerContext, out bool)"/> method for more information.
+    /// See the documentation for <see cref="SharedStatic.IsGameRunningCore(RunGameFromGameManagerContext, out bool, out DateTime)"/> method for more information.
     /// </summary>
-    public static unsafe int IsGameRunning(nint gameManagerP, nint presetConfigP, out int isGameRunningInt)
+    public static unsafe int IsGameRunning(nint gameManagerP, nint presetConfigP, out int isGameRunningInt, out DateTime gameStartTime)
     {
         isGameRunningInt = 0;
+        gameStartTime    = default;
 
         try
         {
@@ -188,7 +189,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 PluginHandle         = nint.Zero
             };
 
-            bool isSupported = ThisPluginExport.IsGameRunningCore(context, out bool isGameRunning);
+            bool isSupported = ThisPluginExport.IsGameRunningCore(context, out bool isGameRunning, out gameStartTime);
             isGameRunningInt = isGameRunning ? 1 : 0;
             return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden, yet");
         }
@@ -269,11 +270,12 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.KillRunningGameCore(RunGameFromGameManagerContext, out bool)"/> method for more information.
+    /// See the documentation for <see cref="SharedStatic.KillRunningGameCore(RunGameFromGameManagerContext, out bool, out DateTime)"/> method for more information.
     /// </summary>
-    public static unsafe int KillRunningGame(nint gameManagerP, nint presetConfigP, out int wasGameRunningInt)
+    public static unsafe int KillRunningGame(nint gameManagerP, nint presetConfigP, out int wasGameRunningInt, out DateTime gameStartTime)
     {
         wasGameRunningInt = 0;
+        gameStartTime     = default;
 
         try
         {
@@ -304,7 +306,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 PluginHandle         = nint.Zero
             };
 
-            bool isSupported = ThisPluginExport.KillRunningGameCore(context, out bool wasGameRunning);
+            bool isSupported = ThisPluginExport.KillRunningGameCore(context, out bool wasGameRunning, out gameStartTime);
             wasGameRunningInt = wasGameRunning ? 1 : 0;
             return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden which mark this plugin doesn't support this feature!");
         }
