@@ -18,7 +18,7 @@ namespace Hi3Helper.Plugin.Core.Utility;
 /// </remarks>
 public static class GameManagerExtension
 {
-    public unsafe delegate void PrintGameLog(char* logString, int logStringLen, bool isStringCanFree);
+    public unsafe delegate void PrintGameLog(char* logString, int logStringLen, int isStringCanFree);
 
     /// <summary>
     /// A context used to manage the game launch routine using plugin's functionality.
