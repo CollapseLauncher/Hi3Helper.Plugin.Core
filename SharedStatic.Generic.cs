@@ -118,7 +118,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 GameManager          = gameManager,
                 PresetConfig         = presetConfig,
                 Plugin               = plugin,
-                PrintGameLogCallback = null!,
+                PrintGameLogCallback = printGameLogCallback,
                 PluginHandle         = nint.Zero
             };
 
