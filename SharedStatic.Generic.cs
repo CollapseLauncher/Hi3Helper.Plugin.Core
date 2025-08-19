@@ -45,6 +45,14 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
     private static readonly T ThisPluginExport;
 
     /// <summary>
+    /// Specify which <see cref="IPlugin"/> instance to load and use in this plugin.
+    /// </summary>
+    /// <typeparam name="TPlugin">A member of COM Interface of <see cref="IPlugin"/>.</typeparam>
+    protected new static void Load<TPlugin>(GameVersion interceptDllVersionTo = default)
+        where TPlugin : class, IPlugin, new()
+        => SharedStatic.Load<TPlugin>();
+
+    /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
     /// See the documentation for <see cref="SharedStatic.LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext, string?, bool, ProcessPriorityClass, CancellationToken)"/> method for more information.
     /// </summary>
