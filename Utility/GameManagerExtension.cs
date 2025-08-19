@@ -51,7 +51,7 @@ public static class GameManagerExtension
         /// <summary>
         /// A delegate which is pointed to a callback to print game log while the game is running.
         /// </summary>
-        public required PrintGameLog PrintGameLogCallback { get; init; }
+        public required PrintGameLog? PrintGameLogCallback { get; set; }
 
         /// <summary>
         /// Indicates whether the Game Launch API is supported on the plugin.
@@ -96,7 +96,7 @@ public static class GameManagerExtension
         nint gameManagerP          = GetPointerFromInterface(context.GameManager);
         nint pluginP               = GetPointerFromInterface(context.Plugin);
         nint presetConfigP         = GetPointerFromInterface(context.PresetConfig);
-        nint printGameLogCallbackP = Marshal.GetFunctionPointerForDelegate(context.PrintGameLogCallback);
+        nint printGameLogCallbackP = context.PrintGameLogCallback == null ? nint.Zero : Marshal.GetFunctionPointerForDelegate(context.PrintGameLogCallback);
 
         if (gameManagerP == nint.Zero)
         {
@@ -111,11 +111,6 @@ public static class GameManagerExtension
         if (presetConfigP == nint.Zero)
         {
             return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
-        }
-
-        if (printGameLogCallbackP == nint.Zero)
-        {
-            return (false, new COMException("Cannot cast PrintGameLog delegate/callback to pointer!"));
         }
 
         nint argumentsP   = startArgument.GetPinnableStringPointerSafe();
