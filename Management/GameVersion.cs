@@ -94,7 +94,8 @@ public struct GameVersion :
     /// Create a string representation of <see cref="GameVersion"/>.
     /// </summary>
     /// <param name="format">
-    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written. Otherwise or by default, only "Major.Minor.Build.Revision" format is written.
+    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written.
+    /// Otherwise or by default, it will automatically write to "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
     /// </param>
     /// <param name="formatProvider">A format provider instance to write the result.</param>
     /// <returns>A string representation of <see cref="GameVersion"/>.</returns>
@@ -221,7 +222,9 @@ public struct GameVersion :
     {
         charsWritten = 0;
 
-        bool isUseMiniFormat = !format.IsEmpty && (format[0] | 0x20) == 'n'; // This compares both 'n' or 'N' as true.
+        bool isUseMiniFormat = !format.IsEmpty && (format[0] | 0x20) == 'n' // This compares both 'n' or 'N' as true.
+            || Revision == 0;
+
         if (destination.Length < 4)
         {
             return false;
