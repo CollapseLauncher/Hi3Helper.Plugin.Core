@@ -614,7 +614,24 @@ public struct GameVersion :
     public readonly int Revision;
 
     public static implicit operator GameVersion?(string? versionString)
-        => versionString == null ? null : versionString.Length == 0 ? Empty : new GameVersion(versionString);
+    {
+        if (versionString == null)
+        {
+            return null;
+        }
+
+        if (versionString.Length == 0)
+        {
+            return Empty;
+        }
+
+        if (TryParse(versionString, out GameVersion result))
+        {
+            return result;
+        }
+
+        return null;
+    }
 
     public static implicit operator GameVersion?(Version? version)
         => version is null ? null : new GameVersion(version);
