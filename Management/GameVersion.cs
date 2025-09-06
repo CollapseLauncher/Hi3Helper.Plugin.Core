@@ -47,7 +47,7 @@ public struct GameVersion :
     {
         if (!TryParse(version, null, out GameVersion versionOut))
         {
-            throw new ArgumentException($"Version in the config.ini should be either in \"x\", \"x.x\", \"x.x.x\" or \"x.x.x.x\" format or all the values aren't numbers! (current value: \"{version}\")");
+            throw new ArgumentException($"Version should be either in \"x\", \"x.x\", \"x.x.x\" or \"x.x.x.x\" format or all the values aren't numbers! (current value: \"{version}\")");
         }
 
         Major = versionOut.Major;
@@ -86,7 +86,7 @@ public struct GameVersion :
     public readonly Version ToVersion() => new(Major, Minor, Build, Revision);
 
     /// <summary>
-    /// Create a string representation of <see cref="GameVersion"/> into full "Major.Minor.Build.Revision" format.
+    /// Create a string representation of <see cref="GameVersion"/> intoto "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
     /// </summary>
     public readonly override string ToString() => ToString(string.Empty);
 
@@ -94,8 +94,20 @@ public struct GameVersion :
     /// Create a string representation of <see cref="GameVersion"/>.
     /// </summary>
     /// <param name="format">
-    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written.
+    /// <para>
+    /// An optional format specifier.<br/><br/>
+    /// 
+    /// If it's 'S' or 's', depending on each Major, Minor, Build or Revision field whether it's non-0, then write shorter version as possible.<br/>
+    ///     For Example:<br/>
+    ///       If 3.0.0.0, then write as "3"<br/>
+    ///       If 3.2.0.0, then write as "3.2"<br/>
+    ///       and so on.<br/><br/>
+    /// 
+    /// If it's 'N' or 'n', the "Major.Minor.Build" format is written.<br/>
+    /// If it's 'F' or 'f', the "Major.Minor.Build.Revision" format is written.<br/><br/>
+    /// 
     /// Otherwise or by default, it will automatically write to "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
+    /// </para>
     /// </param>
     /// <param name="formatProvider">A format provider instance to write the result.</param>
     /// <returns>A string representation of <see cref="GameVersion"/>.</returns>
@@ -207,7 +219,20 @@ public struct GameVersion :
     /// When this method returns, contains the number of characters that were written to <paramref name="destination"/>.
     /// </param>
     /// <param name="format">
-    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written. Otherwise or by default, only "Major.Minor.Build.Revision" format is written.
+    /// <para>
+    /// An optional format specifier.<br/><br/>
+    /// 
+    /// If it's 'S' or 's', depending on each Major, Minor, Build or Revision field whether it's non-0, then write shorter version as possible.<br/>
+    ///     For Example:<br/>
+    ///       If 3.0.0.0, then write as "3"<br/>
+    ///       If 3.2.0.0, then write as "3.2"<br/>
+    ///       and so on.<br/><br/>
+    /// 
+    /// If it's 'N' or 'n', the "Major.Minor.Build" format is written.<br/>
+    /// If it's 'F' or 'f', the "Major.Minor.Build.Revision" format is written.<br/><br/>
+    /// 
+    /// Otherwise or by default, it will automatically write to "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
+    /// </para>
     /// </param>
     /// <param name="provider">
     /// An optional format provider. This parameter is ignored in this implementation.
@@ -222,33 +247,49 @@ public struct GameVersion :
     {
         charsWritten = 0;
 
-        bool isUseMiniFormat = !format.IsEmpty && (format[0] | 0x20) == 'n' // This compares both 'n' or 'N' as true.
-            || Revision == 0;
+        bool isUseAutoFormat      = !format.IsEmpty && (format[0] | 0x20) == 's'; // This compares both 's' or 'S' as true.
+        bool isForceUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == 'f'; // This compares both 'f' or 'F' as false.
+        bool isUseMiniFormat      = !isForceUseFullFormat &&
+                                    (!format.IsEmpty && (format[0] | 0x20) == 'n' // This compares both 'n' or 'N' as true.
+                                     || Revision == 0);
 
         if (destination.Length < 4)
         {
             return false;
         }
 
-        if (!TryWriteAppend(Major, destination, out int offsetWritten))
+        bool isIgnoreMinorNum = isUseAutoFormat && Minor == 0;
+        if (!TryWriteAppend(Major, destination, out int offsetWritten, isIgnoreMinorNum))
         {
             return false;
         }
         charsWritten += offsetWritten;
 
-        if (!TryWriteAppend(Minor, destination[charsWritten..], out offsetWritten))
+        if (isIgnoreMinorNum)
+        {
+            return true;
+        }
+
+        bool isIgnoreBuildNum = isUseAutoFormat && Build == 0;
+        if (!TryWriteAppend(Minor, destination[charsWritten..], out offsetWritten, isIgnoreBuildNum))
         {
             return false;
         }
         charsWritten += offsetWritten;
 
+        if (isIgnoreBuildNum)
+        {
+            return true;
+        }
+
+        bool isIgnoreRevisionNum = isUseAutoFormat && Revision == 0;
         if (!TryWriteAppend(Build, destination[charsWritten..], out offsetWritten, isUseMiniFormat))
         {
             return false;
         }
         charsWritten += offsetWritten;
 
-        if (isUseMiniFormat)
+        if (isIgnoreRevisionNum || isUseMiniFormat)
         {
             return true;
         }
@@ -260,25 +301,6 @@ public struct GameVersion :
 
         charsWritten += offsetWritten;
         return true;
-
-        static bool TryWriteAppend(int cur, Span<char> dest, out int outWritten, bool isFinal = false)
-        {
-            if (!cur.TryFormat(dest, out outWritten))
-            {
-                return false;
-            }
-
-            switch (isFinal)
-            {
-                case true:
-                    return true;
-                case false when dest.Length <= outWritten:
-                    return false;
-                default:
-                    dest[outWritten++] = '.';
-                    return true;
-            }
-        }
     }
 
     /// <summary>
@@ -291,7 +313,19 @@ public struct GameVersion :
     /// When this method returns, contains the number of characters that were written to <paramref name="utf8Destination"/>.
     /// </param>
     /// <param name="format">
-    /// An optional format specifier. If it's 'N' or 'n', the "Major.Minor.Build" format is written. Otherwise or by default, only "Major.Minor.Build.Revision" format is written.
+    /// <para>
+    /// An optional format specifier.<br/><br/>
+    /// 
+    /// If it's 'S' or 's', depending on each Major, Minor, Build or Revision field whether it's non-0, then write shorter version as possible.<br/>
+    ///     For Example:<br/>
+    ///       If 3.0.0.0, then write as "3"<br/>
+    ///       If 3.2.0.0, then write as "3.2" and so on.<br/><br/>
+    /// 
+    /// If it's 'N' or 'n', the "Major.Minor.Build" format is written.<br/>
+    /// If it's 'F' or 'f', the "Major.Minor.Build.Revision" format is written.<br/><br/>
+    /// 
+    /// Otherwise or by default, it will automatically write to "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
+    /// </para>
     /// </param>
     /// <param name="provider">
     /// An optional format provider. This parameter is ignored in this implementation.
@@ -306,31 +340,49 @@ public struct GameVersion :
     {
         bytesWritten = 0;
 
-        bool isUseMiniFormat = !format.IsEmpty && (format[0] | 0x20) == 'n'; // This compares both 'n' or 'N' as true.
+        bool isUseAutoFormat      = !format.IsEmpty && (format[0] | 0x20) == 's'; // This compares both 's' or 'S' as true.
+        bool isForceUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == 'f'; // This compares both 'f' or 'F' as false.
+        bool isUseMiniFormat      = !isForceUseFullFormat &&
+                                    (!format.IsEmpty && (format[0] | 0x20) == 'n' // This compares both 'n' or 'N' as true.
+                                     || Revision == 0);
+
         if (utf8Destination.Length < 4)
         {
             return false;
         }
 
-        if (!TryWriteAppend(Major, utf8Destination, out int offsetWritten))
+        bool isIgnoreMinorNum = isUseAutoFormat && Minor == 0;
+        if (!TryWriteAppend(Major, utf8Destination, out int offsetWritten, isIgnoreMinorNum))
         {
             return false;
         }
         bytesWritten += offsetWritten;
 
-        if (!TryWriteAppend(Minor, utf8Destination[bytesWritten..], out offsetWritten))
+        if (isIgnoreMinorNum)
+        {
+            return true;
+        }
+
+        bool isIgnoreBuildNum = isUseAutoFormat && Build == 0;
+        if (!TryWriteAppend(Minor, utf8Destination[bytesWritten..], out offsetWritten, isIgnoreBuildNum))
         {
             return false;
         }
         bytesWritten += offsetWritten;
 
+        if (isIgnoreBuildNum)
+        {
+            return true;
+        }
+
+        bool isIgnoreRevisionNum = isUseAutoFormat && Revision == 0;
         if (!TryWriteAppend(Build, utf8Destination[bytesWritten..], out offsetWritten, isUseMiniFormat))
         {
             return false;
         }
         bytesWritten += offsetWritten;
 
-        if (isUseMiniFormat)
+        if (isIgnoreRevisionNum || isUseMiniFormat)
         {
             return true;
         }
@@ -342,24 +394,57 @@ public struct GameVersion :
 
         bytesWritten += offsetWritten;
         return true;
+    }
 
-        static bool TryWriteAppend(int cur, Span<byte> dest, out int outWritten, bool isFinal = false)
+    private static bool TryWriteAppend(int cur, Span<char> dest, out int outWritten, bool isFinal = false)
+    {
+        // Ensure that the integer is non-negative before formatting
+        if (cur < 0)
         {
-            if (!cur.TryFormat(dest, out outWritten))
-            {
-                return false;
-            }
+            outWritten = 0;
+            return false;
+        }
 
-            switch (isFinal)
-            {
-                case true:
-                    return true;
-                case false when dest.Length <= outWritten:
-                    return false;
-                default:
-                    dest[outWritten++] = (byte)'.';
-                    return true;
-            }
+        if (!cur.TryFormat(dest, out outWritten))
+        {
+            return false;
+        }
+
+        switch (isFinal)
+        {
+            case true:
+                return true;
+            case false when dest.Length <= outWritten:
+                return false;
+            default:
+                dest[outWritten++] = '.';
+                return true;
+        }
+    }
+
+    private static bool TryWriteAppend(int cur, Span<byte> dest, out int outWritten, bool isFinal = false)
+    {
+        // Ensure that the integer is non-negative before formatting
+        if (cur < 0)
+        {
+            outWritten = 0;
+            return false;
+        }
+
+        if (!cur.TryFormat(dest, out outWritten))
+        {
+            return false;
+        }
+
+        switch (isFinal)
+        {
+            case true:
+                return true;
+            case false when dest.Length <= outWritten:
+                return false;
+            default:
+                dest[outWritten++] = (byte)'.';
+                return true;
         }
     }
 
@@ -406,7 +491,7 @@ public struct GameVersion :
 
         Span<int> versionInt = stackalloc int[4];
         int i = 0;
-        foreach (var currentRange in utf8Text.SplitAny(ExSeparatorsUtf8))
+        foreach (Range currentRange in utf8Text.SplitAny(ExSeparatorsUtf8))
         {
             if (!int.TryParse(utf8Text[currentRange], out int currentInt))
             {
@@ -482,7 +567,7 @@ public struct GameVersion :
             return false;
         }
 
-        Span<Range> ranges = stackalloc Range[8];
+        scoped Span<Range> ranges = stackalloc Range[8];
         int splitRanges = versionSpan.SplitAny(ranges, ExSeparators, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
         if (splitRanges == 0)
@@ -496,7 +581,7 @@ public struct GameVersion :
             return true;
         }
 
-        Span<int> versionSplits = stackalloc int[4];
+        scoped Span<int> versionSplits = stackalloc int[4];
         for (int i = 0; i < splitRanges; i++)
         {
             if (!int.TryParse(versionSpan[ranges[i]], null, out int versionParsed))
@@ -512,12 +597,12 @@ public struct GameVersion :
     }
 
     public readonly string VersionString => string.Join('.', VersionArray);
-    public readonly int[] VersionArrayManifest => [Major, Minor, Build, Revision];
-    public readonly int[] VersionArray => [Major, Minor, Build];
-    public readonly int get_Major() => Major;
-    public readonly int get_Minor() => Major;
-    public readonly int get_Build() => Build;
-    public readonly int get_Revision() => Revision;
+    public readonly int[] VersionArrayManifest => [Major, Minor, Build, Revision]; // DO NOT REMOVE: Used by legacy Collapse Launcher code
+    public readonly int[] VersionArray => [Major, Minor, Build]; // DO NOT REMOVE: Used by legacy Collapse Launcher code
+    public readonly int get_Major() => Major; // DO NOT REMOVE: To comply with IVersion interface
+    public readonly int get_Minor() => Major; // DO NOT REMOVE: To comply with IVersion interface
+    public readonly int get_Build() => Build; // DO NOT REMOVE: To comply with IVersion interface
+    public readonly int get_Revision() => Revision; // DO NOT REMOVE: To comply with IVersion interface
 
     public readonly int Major;
     public readonly int Minor;
