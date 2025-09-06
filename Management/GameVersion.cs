@@ -43,16 +43,20 @@ public struct GameVersion :
         Revision = version.Revision;
     }
 
-    public GameVersion(string? version)
+    public GameVersion(string? version) : this(version.AsSpan())
+    {
+    }
+
+    public GameVersion(ReadOnlySpan<char> version)
     {
         if (!TryParse(version, null, out GameVersion versionOut))
         {
             throw new ArgumentException($"Version should be either in \"x\", \"x.x\", \"x.x.x\" or \"x.x.x.x\" format or all the values aren't numbers! (current value: \"{version}\")");
         }
 
-        Major = versionOut.Major;
-        Minor = versionOut.Minor;
-        Build = versionOut.Build;
+        Major    = versionOut.Major;
+        Minor    = versionOut.Minor;
+        Build    = versionOut.Build;
         Revision = versionOut.Revision;
     }
 
@@ -149,7 +153,7 @@ public struct GameVersion :
             return false;
         }
 
-        return left == rightAsParsed;
+        return left.Value == rightAsParsed;
     }
 
     public static bool operator !=(GameVersion? left, string? right) =>
@@ -608,4 +612,16 @@ public struct GameVersion :
     public readonly int Minor;
     public readonly int Build;
     public readonly int Revision;
+
+    public static implicit operator GameVersion?(string? versionString)
+        => versionString == null ? null : versionString.Length == 0 ? Empty : new GameVersion(versionString);
+
+    public static implicit operator GameVersion?(Version? version)
+        => version is null ? null : new GameVersion(version);
+
+    public static implicit operator GameVersion(ReadOnlySpan<char> versionCharSpan)
+        => versionCharSpan.IsEmpty ? Empty : new GameVersion(versionCharSpan);
+
+    public static implicit operator GameVersion(ReadOnlySpan<int> versionSpan)
+        => versionSpan.IsEmpty ? Empty : new GameVersion(versionSpan);
 }
