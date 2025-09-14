@@ -50,7 +50,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
     /// <typeparam name="TPlugin">A member of COM Interface of <see cref="IPlugin"/>.</typeparam>
     protected new static void Load<TPlugin>(GameVersion interceptDllVersionTo = default)
         where TPlugin : class, IPlugin, new()
-        => SharedStatic.Load<TPlugin>();
+        => SharedStatic.Load<TPlugin>(interceptDllVersionTo);
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
