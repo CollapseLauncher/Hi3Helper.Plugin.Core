@@ -91,6 +91,7 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
         }
 
         await client.DownloadFilesAsync(fileUrl, outputStream, downloadProgress, token: token).ConfigureAwait(false);
+        await outputStream.FlushAsync(token);
     }
 
     /// <inheritdoc cref="IFree.Free"/>
