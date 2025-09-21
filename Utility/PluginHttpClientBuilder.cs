@@ -30,37 +30,37 @@ namespace Hi3Helper.Plugin.Core.Utility;
 /// </summary>
 public class PluginHttpClientBuilder
 {
-    private const int    ExMaxConnectionsDefault     = 32;
-    private const double ExHttpTimeoutDefault        = 90; // in Seconds
-    private const int    ExDnsResolverWriteBufferLen = 512;
+    public const int    ExMaxConnectionsDefault     = 32;
+    public const double ExHttpTimeoutDefault        = 90; // in Seconds
+    public const int    ExDnsResolverWriteBufferLen = 512;
 
     private static readonly ArrayPool<char> DnsResolverWriteBufferPool = ArrayPool<char>.Shared;
 
-    private static bool IsUseProxy => SharedStatic.ProxyHost != null;
-    private static bool IsUseSystemProxy => true;
-    private static WebProxy? ExternalProxy => SharedStatic.ProxyHost == null ?
+    public static bool IsUseProxy => SharedStatic.ProxyHost != null;
+    public static bool IsUseSystemProxy => true;
+    public static WebProxy? ExternalProxy => SharedStatic.ProxyHost == null ?
         null :
         SharedStatic.ProxyPassword == null ?
             new WebProxy(SharedStatic.ProxyHost, true) :
             new WebProxy(SharedStatic.ProxyHost, true, null, new NetworkCredential(SharedStatic.ProxyUsername, SharedStatic.ProxyPassword));
 
-    private bool IsAllowHttpRedirections { get; set; }
-    private bool IsAllowHttpCookies { get; set; }
-    private bool IsAllowUntrustedCert { get; set; }
+    public bool IsAllowHttpRedirections { get; set; }
+    public bool IsAllowHttpCookies { get; set; }
+    public bool IsAllowUntrustedCert { get; set; }
 
-    private int MaxConnections { get; set; } = ExMaxConnectionsDefault;
-    private DecompressionMethods DecompressionMethod { get; set; } = DecompressionMethods.All;
+    public int MaxConnections { get; set; } = ExMaxConnectionsDefault;
+    public DecompressionMethods DecompressionMethod { get; set; } = DecompressionMethods.All;
 #if MANUALCOM
-    private Version HttpProtocolVersion { get; set; } = HttpVersion.Version20;
+    public Version HttpProtocolVersion { get; set; } = HttpVersion.Version20;
 #else
-    private Version HttpProtocolVersion { get; set; } = HttpVersion.Version30;
+    public Version HttpProtocolVersion { get; set; } = HttpVersion.Version30;
 #endif
-    private string? HttpUserAgent { get; set; } = GetDefaultUserAgent();
-    private string? HttpAuthHeader { get; set; }
-    private HttpVersionPolicy HttpProtocolVersionPolicy { get; set; } = HttpVersionPolicy.RequestVersionOrLower;
-    private TimeSpan HttpTimeout { get; set; } = TimeSpan.FromSeconds(ExHttpTimeoutDefault);
-    private Uri? HttpBaseUri { get; set; }
-    private Dictionary<string, string?> HttpHeaders { get; } = new();
+    public string? HttpUserAgent { get; set; } = GetDefaultUserAgent();
+    public string? HttpAuthHeader { get; set; }
+    public HttpVersionPolicy HttpProtocolVersionPolicy { get; set; } = HttpVersionPolicy.RequestVersionOrLower;
+    public TimeSpan HttpTimeout { get; set; } = TimeSpan.FromSeconds(ExHttpTimeoutDefault);
+    public Uri? HttpBaseUri { get; set; }
+    public Dictionary<string, string?> HttpHeaders { get; set; } = new();
 
     private static string GetDefaultUserAgent()
     {
