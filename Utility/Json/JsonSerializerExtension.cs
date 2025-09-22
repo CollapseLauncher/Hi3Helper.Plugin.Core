@@ -1,9 +1,13 @@
 ﻿#if !USELIGHTWEIGHTJSONPARSER
 
 using System;
+using System.Net.Http;
+using System.Text.Json;
 using System.Text.Json.Nodes;
-
 using System.Text.Json.Serialization.Metadata;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.Core.Utility.Json;
 
@@ -72,6 +76,37 @@ public static class JsonSerializerExtension
         {
             obj.SetConfigValue(propertyName, value, typeInfo);
         }
+    }
+
+    public static Task<T> GetApiResponseFromJsonAsync<T>(this HttpClient   client,
+                                              string            url,
+                                              JsonTypeInfo<T?>  typeInfo,
+                                              CancellationToken token = default)
+        => client.GetApiResponseFromJsonAsync(url, typeInfo, null, token);
+
+    public static async Task<T> GetApiResponseFromJsonAsync<T>(this HttpClient   client,
+                                                               string            url,
+                                                               JsonTypeInfo<T?>  typeInfo,
+                                                               HttpMethod?       httpMethod = null,
+                                                               CancellationToken token      = default)
+    {
+        httpMethod ??= HttpMethod.Get;
+
+        using HttpRequestMessage request = new(httpMethod, url);
+        using HttpResponseMessage response =
+                await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+
+        response.EnsureSuccessStatusCode();
+
+#if DEBUG
+        string jsonResponse = await response.Content.ReadAsStringAsync(token);
+        SharedStatic.InstanceLogger.LogTrace("API response for <T> ({TypeOf}): {JsonResponse}", typeof(T).Name, jsonResponse);
+        return JsonSerializer.Deserialize(jsonResponse, typeInfo)
+            ?? throw new NullReferenceException($"API response for <T> ({typeof(T).Name}) Returns null response!");
+#else
+        return await response.Content.ReadFromJsonAsync(typeInfo, token)
+            ?? throw new NullReferenceException($"API response for <T> ({typeof(T).Name}) Returns null response!");
+#endif
     }
 }
 
