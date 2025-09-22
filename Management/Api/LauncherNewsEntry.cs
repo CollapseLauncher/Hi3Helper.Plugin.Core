@@ -9,7 +9,7 @@ namespace Hi3Helper.Plugin.Core.Management.Api;
 /// Entry of the launcher's news data.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
-public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
+public unsafe struct LauncherNewsEntry()
     : IDisposable
 {
     private byte _isFreed = 0;
@@ -17,8 +17,7 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     /// <summary>
     /// The type of the news entry. See <see cref="LauncherNewsEntryType"/> for the types.
     /// </summary>
-    public readonly LauncherNewsEntryType Type = newsType;
-
+    public  LauncherNewsEntryType Type = LauncherNewsEntryType.Event;
     private byte* _title       = null;
     private byte* _description = null;
     private byte* _url         = null;
@@ -51,7 +50,8 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
     /// <param name="description">The description of the news entry.</param>
     /// <param name="url">The HREF/click URL of the news entry.</param>
     /// <param name="postDate">The short format (DD/MM) of the date for the news entry.</param>
-    public void Write(string? title, string? description, string? url, string? postDate)
+    /// <param name="type">Type of the news entry</param>
+    public void Write(string? title, string? description, string? url, string? postDate, LauncherNewsEntryType type = LauncherNewsEntryType.Event)
     {
         Utf8StringMarshaller.Free(_title);
         Utf8StringMarshaller.Free(_description);
@@ -62,11 +62,15 @@ public unsafe struct LauncherNewsEntry(LauncherNewsEntryType newsType)
         _description = Utf8StringMarshaller.ConvertToUnmanaged(description);
         _url         = Utf8StringMarshaller.ConvertToUnmanaged(url);
         _postDate    = Utf8StringMarshaller.ConvertToUnmanaged(postDate);
+        Type         = type;
     }
 
     public void Dispose()
     {
-        if (_isFreed == 1) return;
+        if (_isFreed == 1)
+        {
+            return;
+        }
 
         Utf8StringMarshaller.Free(_title);
         Utf8StringMarshaller.Free(_description);
