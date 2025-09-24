@@ -45,6 +45,11 @@ public partial class SharedStaticV1Ext<T>
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
 #endif
 
+            if (presetConfig == null)
+            {
+                return false;
+            }
+
             DiscordPresenceExtension.DiscordPresenceContext context = new(presetConfig);
 
             if (presenceInfoP == null)

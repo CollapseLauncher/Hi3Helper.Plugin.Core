@@ -9,6 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
+#if !DEBUG
+using System.Net.Http.Json;
+#endif
+
 namespace Hi3Helper.Plugin.Core.Utility.Json;
 
 public static class JsonSerializerExtension
