@@ -26,7 +26,7 @@ public static class GameManagerExtension
     public class RunGameFromGameManagerContext
     {
         // Fields
-        private bool? _canUseGameLaunchApi;
+        private bool? _isFeatureAvailable;
 
         /// <summary>
         /// The game manager instance which handles the game launch.
@@ -56,13 +56,13 @@ public static class GameManagerExtension
         /// <summary>
         /// Indicates whether the Game Launch API is supported on the plugin.
         /// </summary>
-        public bool CanUseGameLaunchApi => _canUseGameLaunchApi ??= this.IsGameRunning(out _, out _, out _);
+        public bool IsFeatureAvailable => _isFeatureAvailable ??= this.IsGameRunning(out _, out _, out _);
 
         /// <summary>
         /// Indicates whether the game is currently running.
         /// </summary>
         // ReSharper disable once MemberHidesStaticFromOuterClass
-        public bool IsGameRunning => CanUseGameLaunchApi && this.IsGameRunning(out bool running, out _, out _) && running;
+        public bool IsGameRunning => IsFeatureAvailable && this.IsGameRunning(out bool running, out _, out _) && running;
 
         /// <summary>
         /// Indicates when the game launched. If the game isn't running, it will return a default value.
@@ -71,7 +71,7 @@ public static class GameManagerExtension
         {
             get
             {
-                if (!CanUseGameLaunchApi)
+                if (!IsFeatureAvailable)
                 {
                     return default;
                 }
