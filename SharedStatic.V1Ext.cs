@@ -21,21 +21,21 @@ public class SharedStaticV1Ext : SharedStatic
 /// <summary>
 /// Inherited <see cref="SharedStatic"/> with additional supports for API extensions which require call or property access to derived exports.
 /// </summary>
-public partial class SharedStaticV1Ext<T> : SharedStaticV1Ext where T : SharedStatic, new()
+public partial class SharedStaticV1Ext<T> : SharedStaticV1Ext
+    where T : SharedStaticV1Ext<T>, new()
 {
-    private static readonly SharedStaticV1Ext<T> ThisExtensionExport;
+    private static T ThisExtensionExport { get; }
 
     static SharedStaticV1Ext()
     {
-        ThisExtensionExport = new SharedStaticV1Ext<T>();
+        ThisExtensionExport = new T();
 
         /* ----------------------------------------------------------------------
          * Plugin extension exports
          * ----------------------------------------------------------------------
          * These exports are optional and can be removed if it's not necessarily
          * used. These optional exports are included under additional
-         * functionalities used as a subset of v0.1, which is called "update1"
-         * feature sets.
+         * functionalities used as a subset of v0.1 API standard.
          */
         InitExtension_Update1Exports();
         InitExtension_Update2Exports();

@@ -4,13 +4,8 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
 
 // ReSharper disable CommentTypo
 

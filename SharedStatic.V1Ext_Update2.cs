@@ -40,15 +40,15 @@ public partial class SharedStaticV1Ext<T>
             }
 
 #if MANUALCOM
-            IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
+            IPluginPresetConfig presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
 #else
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
-#endif
 
             if (presetConfig == null)
             {
                 return false;
             }
+#endif
 
             DiscordPresenceExtension.DiscordPresenceContext context = new(presetConfig);
 
