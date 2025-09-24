@@ -13,6 +13,7 @@ namespace Hi3Helper.Plugin.Core.Utility
         internal HResult(int                         value) => Value = value;
         public static implicit operator int(HResult  value) => value.Value;
         public static implicit operator uint(HResult value) => (uint)value.Value;
+        public static implicit operator bool(HResult value) => value.Value == 0;
         public static implicit operator HResult(int  value) => new(value);
         public static implicit operator HResult(uint value) => new((int)value);
         public static implicit operator HResult(bool value) => new(value ? 0 : 1);
