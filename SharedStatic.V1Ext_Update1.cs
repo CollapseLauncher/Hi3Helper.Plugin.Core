@@ -130,7 +130,7 @@ public partial class SharedStaticV1Ext<T>
                 startArguments = argumentsSpan.IsEmpty ? null : argumentsSpan.ToString();
             }
 
-            (bool isSupported, Task task) = ThisExtensionExport
+            (bool isSupported, Task<bool> task) = ThisExtensionExport
                 .LaunchGameFromGameManagerCoreAsync(context,
                                                     startArguments,
                                                     isRunBoosted,
@@ -253,7 +253,7 @@ public partial class SharedStaticV1Ext<T>
                 PluginHandle         = nint.Zero
             };
 
-            (bool isSupported, Task task) = ThisExtensionExport.WaitRunningGameCoreAsync(context, cts?.Token ?? CancellationToken.None);
+            (bool isSupported, Task<bool> task) = ThisExtensionExport.WaitRunningGameCoreAsync(context, cts?.Token ?? CancellationToken.None);
             taskResult = task.AsResult();
 
             return isSupported;
