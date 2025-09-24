@@ -110,7 +110,7 @@ public static class GameManagerExtension
                                     CancellationToken                  token           = default)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
-        if (!context.PluginHandle.TryGetExport("LaunchGameFromGameManagerAsync", out SharedStatic.LaunchGameFromGameManagerAsyncDelegate launchGameFromGameManagerAsyncCallback))
+        if (!context.PluginHandle.TryGetExport("LaunchGameFromGameManagerAsync", out SharedStaticV1Ext.LaunchGameFromGameManagerAsyncDelegate launchGameFromGameManagerAsyncCallback))
         {
             return (false, new NotSupportedException("Plugin doesn't have LaunchGameFromGameManagerAsync export in its API definition!"));
         }
@@ -186,7 +186,7 @@ public static class GameManagerExtension
         errorException = null;
         gameStartTime  = default;
 
-        if (!context.PluginHandle.TryGetExport("IsGameRunning", out SharedStatic.IsGameRunningDelegate isGameRunningCallback))
+        if (!context.PluginHandle.TryGetExport("IsGameRunning", out SharedStaticV1Ext.IsGameRunningDelegate isGameRunningCallback))
         {
             errorException = new NotSupportedException("Plugin doesn't have IsGameRunning export in its API definition!");
             return false;
@@ -236,7 +236,7 @@ public static class GameManagerExtension
                              CancellationToken                  token)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
-        if (!context.PluginHandle.TryGetExport("WaitRunningGameAsync", out SharedStatic.WaitRunningGameAsyncDelegate waitRunningGameAsyncCallback))
+        if (!context.PluginHandle.TryGetExport("WaitRunningGameAsync", out SharedStaticV1Ext.WaitRunningGameAsyncDelegate waitRunningGameAsyncCallback))
         {
             return (false, new NotSupportedException("Plugin doesn't have WaitRunningGameAsync export in its API definition!"));
         }
@@ -299,7 +299,7 @@ public static class GameManagerExtension
         wasGameRunning = false;
         gameStartTime  = default;
 
-        if (!context.PluginHandle.TryGetExport("KillRunningGame", out SharedStatic.IsGameRunningDelegate killRunningGameCallback))
+        if (!context.PluginHandle.TryGetExport("KillRunningGame", out SharedStaticV1Ext.IsGameRunningDelegate killRunningGameCallback))
         {
             errorException = new NotSupportedException("Plugin doesn't have KillRunningGame export in its API definition!");
             return false;
