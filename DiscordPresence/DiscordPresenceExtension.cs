@@ -40,14 +40,14 @@ public static class DiscordPresenceExtension
                 return;
             }
 
-            DiscordPresenceInfo** info = null;
+            DiscordPresenceInfo* info = null;
 
             void* ptr = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(presetConfig);
-            HResult result = method(ptr, info);
+            HResult result = method(ptr, &info);
 
-            if (result == HResult.Ok && info != null && *info != null)
+            if (result == HResult.Ok && info != null)
             {
-                _data = *info;
+                _data = info;
             }
         }
 
