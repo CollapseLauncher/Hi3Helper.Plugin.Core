@@ -4,13 +4,8 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
 
 // ReSharper disable CommentTypo
 
@@ -108,7 +103,7 @@ public class SharedStatic
     internal static string?                         ProxyPassword;
     internal static string                          PluginLocaleCode = "en-us";
 
-    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 1, 0);
+    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 2, 0);
     public static readonly ILogger     InstanceLogger         = new SharedLogger();
 
 #if DEBUG
@@ -126,10 +121,6 @@ public class SharedStatic
     protected unsafe delegate void* GetUnknownPointerDelegate();
     protected unsafe delegate void  GetPluginUpdateCdnListDelegate(int* count, ushort*** ptr);
     protected        delegate void  SetCallbackPointerDelegate(nint callbackP);
-
-    internal delegate int LaunchGameFromGameManagerAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, nint printGameLogCallbackP, nint arguments, int argumentsLen, int runBoostedInt, int processPriorityInt, ref Guid cancelToken, out nint taskResult);
-    internal delegate int WaitRunningGameAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, ref Guid cancelToken, out nint taskResult);
-    internal delegate int IsGameRunningDelegate(nint gameManagerP, nint presetConfigP, out int isGameRunning, out DateTime processStartTime);
 
     /// <summary>
     /// Gets the array of CDN URLs used by the launcher to perform an update.
@@ -372,79 +363,4 @@ public class SharedStatic
         return 0;
     }
     #endregion
-
-    /// <summary>
-    /// Asynchronously launch the game using plugin's built-in game launch mechanism and wait until the game exit.
-    /// </summary>
-    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
-    /// <param name="startArgument">The additional argument to run the game executable.</param>
-    /// <param name="isRunBoosted">Based on <see cref="Process.PriorityBoostEnabled"/>, boost the process temporarily when the game window is focused (Default: false).</param>
-    /// <param name="processPriority">Based on <see cref="Process.PriorityClass"/>, run the game process with specific priority (Default: <see cref="ProcessPriorityClass.Normal"/>).</param>
-    /// <param name="token">
-    /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
-    /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
-    /// </param>
-    /// <returns>
-    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
-    /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
-    /// </returns>
-    public virtual Task<bool> LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext context, string? startArgument, bool isRunBoosted, ProcessPriorityClass processPriority, CancellationToken token)
-    {
-        return Task.FromResult(false);
-    }
-
-    /// <summary>
-    /// Check if the game from the current <see cref="IGameManager"/> is running or not.
-    /// </summary>
-    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
-    /// <param name="isGameRunning">Whether the game is currently running or not.</param>
-    /// <param name="gameStartTime">The date time stamp of when the process was started.</param>
-    /// <returns>
-    /// To find the actual return value, please use <paramref name="isGameRunning"/> out-argument.<br/><br/>
-    /// 
-    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
-    /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
-    /// </returns>
-    public virtual bool IsGameRunningCore(RunGameFromGameManagerContext context, out bool isGameRunning, out DateTime gameStartTime)
-    {
-        isGameRunning = false;
-        gameStartTime = default;
-        return false;
-    }
-
-    /// <summary>
-    /// Asynchronously wait currently running game until it exit.
-    /// </summary>
-    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
-    /// <param name="token">
-    /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
-    /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
-    /// </param>
-    /// <returns>
-    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
-    /// Otherwise, <c>true</c> if the plugin does support game launch mechanism and the game ran successfully.
-    /// </returns>
-    public virtual Task<bool> WaitRunningGameCoreAsync(RunGameFromGameManagerContext context, CancellationToken token)
-    {
-        return Task.FromResult(false);
-    }
-
-    /// <summary>
-    /// Kill the process of the currently running game.
-    /// </summary>
-    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
-    /// <param name="wasGameRunning">Whether to indicate that the game was running or not.</param>
-    /// <param name="gameStartTime">The date time stamp of when the process was started.</param>
-    /// <returns>
-    /// To find the actual return value, please use <paramref name="wasGameRunning"/> out-argument.<br/><br/>
-    /// 
-    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.0) or if this method isn't overriden.<br/>
-    /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
-    /// </returns>
-    public virtual bool KillRunningGameCore(RunGameFromGameManagerContext context, out bool wasGameRunning, out DateTime gameStartTime)
-    {
-        wasGameRunning = false;
-        gameStartTime  = default;
-        return false;
-    }
 }

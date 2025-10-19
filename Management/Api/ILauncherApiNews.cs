@@ -19,7 +19,7 @@ public unsafe partial interface ILauncherApiNews : ILauncherApi
 {
     /// <summary>
     /// Get the news entries fot the launcher.<br/>
-    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherPathEntry"/>.<br/>
+    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherNewsEntry"/>.<br/>
     /// Pass this method to <see cref="PluginDisposableMemoryExtension.ToManagedSpan{T}(PluginDisposableMemoryExtension.MarshalToMemorySelectorDelegate)"/> to get the span.
     /// </summary>
     /// <param name="handle">The handle to the pointer of the <see cref="LauncherNewsEntry"/> data</param>
@@ -30,7 +30,7 @@ public unsafe partial interface ILauncherApiNews : ILauncherApi
 
     /// <summary>
     /// Get the carousel image entries for the launcher.<br/>
-    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherPathEntry"/>.<br/>
+    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherCarouselEntry"/>.<br/>
     /// Pass this method to <see cref="PluginDisposableMemoryExtension.ToManagedSpan{T}(PluginDisposableMemoryExtension.MarshalToMemorySelectorDelegate)"/> to get the span.
     /// </summary>
     /// <param name="handle">The handle to the pointer of the <see cref="LauncherCarouselEntry"/> data</param>
@@ -41,7 +41,7 @@ public unsafe partial interface ILauncherApiNews : ILauncherApi
 
     /// <summary>
     /// Get the social media info entries for the launcher.<br/>
-    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherPathEntry"/>.<br/>
+    /// This method returns a handle to the <see cref="PluginDisposableMemory{T}"/> of <see cref="LauncherSocialMediaEntry"/>.<br/>
     /// Pass this method to <see cref="PluginDisposableMemoryExtension.ToManagedSpan{T}(PluginDisposableMemoryExtension.MarshalToMemorySelectorDelegate)"/> to get the span.
     /// </summary>
     /// <param name="handle">The handle to the pointer of the <see cref="LauncherSocialMediaEntry"/> data</param>

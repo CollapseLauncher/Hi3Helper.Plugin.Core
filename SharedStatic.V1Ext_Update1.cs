@@ -7,30 +7,31 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
+
+using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
 
 #if !MANUALCOM
 using System.Runtime.InteropServices.Marshalling;
 #endif
 
-using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
-
 namespace Hi3Helper.Plugin.Core;
 
-/// <summary>
-/// Inherited <see cref="SharedStatic"/> with additional supports for APIs which require call or property access to derived exports.
-/// </summary>
-public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
+public partial class SharedStaticV1Ext<T>
 {
-    static SharedStatic()
+    private static void InitExtension_Update1Exports()
     {
-        ThisPluginExport = new T();
-
-        // Plugin optional exports (based on v0.1-update1 (v0.1.1) API Standard)
-        // ---------------------------------------------------------------
-        // These exports are optional and can be removed if it's not
-        // necessarily used. These optional exports are included under
-        // additional functionalities used as a subset of v0.1, which is
-        // called "update1" feature sets.
+        /* ----------------------------------------------------------------------
+         * Update 1 Feature Sets
+         * ----------------------------------------------------------------------
+         * This feature sets includes the following feature:
+         *  - Game Launch
+         *    - LaunchGameFromGameManagerAsync
+         *    - WaitRunningGameAsync
+         *  - Game Process Management
+         *    - IsGameRunning
+         *    - KillRunningGame
+         */
 
         // -> Plugin Async Game Launch Callback for Specific Game Region based on its IGameManager instance.
         TryRegisterApiExport<LaunchGameFromGameManagerAsyncDelegate>("LaunchGameFromGameManagerAsync", LaunchGameFromGameManagerAsync);
@@ -42,47 +43,38 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
         TryRegisterApiExport<IsGameRunningDelegate>("KillRunningGame", KillRunningGame);
     }
 
-    private static readonly T ThisPluginExport;
-
-    /// <summary>
-    /// Specify which <see cref="IPlugin"/> instance to load and use in this plugin.
-    /// </summary>
-    /// <typeparam name="TPlugin">A member of COM Interface of <see cref="IPlugin"/>.</typeparam>
-    protected new static void Load<TPlugin>(GameVersion interceptDllVersionTo = default)
-        where TPlugin : class, IPlugin, new()
-        => SharedStatic.Load<TPlugin>();
-
+    #region ABI Proxies
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext, string?, bool, ProcessPriorityClass, CancellationToken)"/> method for more information.
+    /// See the documentation for <see cref="SharedStaticV1Ext{T}.LaunchGameFromGameManagerCoreAsync(RunGameFromGameManagerContext, string?, bool, ProcessPriorityClass, CancellationToken)"/> method for more information.
     /// </summary>
-    public static unsafe int LaunchGameFromGameManagerAsync(nint     gameManagerP,
-                                                            nint     pluginP,
-                                                            nint     presetConfigP,
-                                                            nint     printGameLogCallbackP,
-                                                            nint     arguments,
-                                                            int      argumentsLen,
-                                                            int      runBoostedInt,
-                                                            int      processPriorityInt,
-                                                            ref Guid cancelToken,
-                                                            out nint taskResult)
+    private static unsafe HResult LaunchGameFromGameManagerAsync(nint     gameManagerP,
+                                                                 nint     pluginP,
+                                                                 nint     presetConfigP,
+                                                                 nint     printGameLogCallbackP,
+                                                                 nint     arguments,
+                                                                 int      argumentsLen,
+                                                                 int      runBoostedInt,
+                                                                 int      processPriorityInt,
+                                                                 ref Guid cancelToken,
+                                                                 out nint taskResult)
     {
         taskResult = nint.Zero;
         try
         {
-        #if MANUALCOM
+#if MANUALCOM
             IPlugin? plugin = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
-        #else
+#else
             IPlugin? plugin = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
-        #endif
+#endif
 
             PrintGameLog printGameLogCallback = Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
 
-            if (ThisPluginExport == null)
+            if (ThisExtensionExport == null)
             {
                 throw new NullReferenceException("The ThisPluginExport field is null!");
             }
@@ -113,7 +105,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 cts = ComCancellationTokenVault.RegisterToken(in cancelToken);
             }
 
-            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            RunGameFromGameManagerContext context = new()
             {
                 GameManager          = gameManager,
                 PresetConfig         = presetConfig,
@@ -122,7 +114,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 PluginHandle         = nint.Zero
             };
 
-            bool                 isRunBoosted         = runBoostedInt == 1;
+            bool isRunBoosted = runBoostedInt == 1;
             ProcessPriorityClass processPriorityClass = (ProcessPriorityClass)processPriorityInt;
 
             string? startArguments = null;
@@ -138,10 +130,15 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 startArguments = argumentsSpan.IsEmpty ? null : argumentsSpan.ToString();
             }
 
-            taskResult = ThisPluginExport
-                .LaunchGameFromGameManagerCoreAsync(context, startArguments, isRunBoosted, processPriorityClass, cts?.Token ?? CancellationToken.None)
-                .AsResult();
-            return 0;
+            (bool isSupported, Task<bool> task) = ThisExtensionExport
+                .LaunchGameFromGameManagerCoreAsync(context,
+                                                    startArguments,
+                                                    isRunBoosted,
+                                                    processPriorityClass,
+                                                    cts?.Token ?? CancellationToken.None);
+
+            taskResult = task.AsResult();
+            return isSupported;
         }
         catch (Exception ex)
         {
@@ -153,22 +150,22 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.IsGameRunningCore(RunGameFromGameManagerContext, out bool, out DateTime)"/> method for more information.
+    /// See the documentation for <see cref="SharedStaticV1Ext{T}.IsGameRunningCore(RunGameFromGameManagerContext, out bool, out DateTime)"/> method for more information.
     /// </summary>
-    public static unsafe int IsGameRunning(nint gameManagerP, nint presetConfigP, out int isGameRunningInt, out DateTime gameStartTime)
+    private static unsafe HResult IsGameRunning(nint gameManagerP, nint presetConfigP, out int isGameRunningInt, out DateTime gameStartTime)
     {
         isGameRunningInt = 0;
-        gameStartTime    = default;
+        gameStartTime = default;
 
         try
         {
-        #if MANUALCOM
+#if MANUALCOM
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
-        #else
+#else
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
-        #endif
+#endif
 
             if (gameManager == null)
             {
@@ -180,7 +177,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 throw new NullReferenceException("Cannot cast IPluginPresetConfig from the pointer, hence it gives null!");
             }
 
-            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            RunGameFromGameManagerContext context = new()
             {
                 GameManager          = gameManager,
                 PresetConfig         = presetConfig,
@@ -189,9 +186,10 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 PluginHandle         = nint.Zero
             };
 
-            bool isSupported = ThisPluginExport.IsGameRunningCore(context, out bool isGameRunning, out gameStartTime);
+            bool isSupported = ThisExtensionExport.IsGameRunningCore(context, out bool isGameRunning, out gameStartTime);
             isGameRunningInt = isGameRunning ? 1 : 0;
-            return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden, yet");
+
+            return isSupported;
         }
         catch (Exception ex)
         {
@@ -203,24 +201,24 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.WaitRunningGameCoreAsync(RunGameFromGameManagerContext, CancellationToken)"/> method for more information.
+    /// See the documentation for <see cref="SharedStaticV1Ext{T}.WaitRunningGameCoreAsync(RunGameFromGameManagerContext, CancellationToken)"/> method for more information.
     /// </summary>
-    public static unsafe int WaitRunningGameAsync(nint gameManagerP, nint pluginP, nint presetConfigP, ref Guid cancelToken, out nint taskResult)
+    private static unsafe HResult WaitRunningGameAsync(nint gameManagerP, nint pluginP, nint presetConfigP, ref Guid cancelToken, out nint taskResult)
     {
         taskResult = nint.Zero;
         try
         {
-        #if MANUALCOM
+#if MANUALCOM
             IPlugin? plugin = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
-        #else
+#else
             IPlugin? plugin = ComInterfaceMarshaller<IPlugin>.ConvertToManaged((void*)pluginP);
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
-        #endif
+#endif
 
-            if (ThisPluginExport == null)
+            if (ThisExtensionExport == null)
             {
                 throw new NullReferenceException("The ThisPluginExport field is null!");
             }
@@ -246,7 +244,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 cts = ComCancellationTokenVault.RegisterToken(in cancelToken);
             }
 
-            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            RunGameFromGameManagerContext context = new()
             {
                 GameManager          = gameManager,
                 PresetConfig         = presetConfig,
@@ -255,10 +253,10 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 PluginHandle         = nint.Zero
             };
 
-            taskResult = ThisPluginExport
-                .WaitRunningGameCoreAsync(context, cts?.Token ?? CancellationToken.None)
-                .AsResult();
-            return 0;
+            (bool isSupported, Task<bool> task) = ThisExtensionExport.WaitRunningGameCoreAsync(context, cts?.Token ?? CancellationToken.None);
+            taskResult = task.AsResult();
+
+            return isSupported;
         }
         catch (Exception ex)
         {
@@ -270,22 +268,22 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
 
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStatic.KillRunningGameCore(RunGameFromGameManagerContext, out bool, out DateTime)"/> method for more information.
+    /// See the documentation for <see cref="SharedStaticV1Ext{T}.KillRunningGameCore(RunGameFromGameManagerContext, out bool, out DateTime)"/> method for more information.
     /// </summary>
-    public static unsafe int KillRunningGame(nint gameManagerP, nint presetConfigP, out int wasGameRunningInt, out DateTime gameStartTime)
+    private static unsafe HResult KillRunningGame(nint gameManagerP, nint presetConfigP, out int wasGameRunningInt, out DateTime gameStartTime)
     {
         wasGameRunningInt = 0;
-        gameStartTime     = default;
+        gameStartTime = default;
 
         try
         {
-        #if MANUALCOM
+#if MANUALCOM
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
-        #else
+#else
             IGameManager? gameManager = ComInterfaceMarshaller<IGameManager>.ConvertToManaged((void*)gameManagerP);
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
-        #endif
+#endif
 
             if (gameManager == null)
             {
@@ -297,7 +295,7 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 throw new NullReferenceException("Cannot cast IPluginPresetConfig from the pointer, hence it gives null!");
             }
 
-            RunGameFromGameManagerContext context = new RunGameFromGameManagerContext
+            RunGameFromGameManagerContext context = new()
             {
                 GameManager          = gameManager,
                 PresetConfig         = presetConfig,
@@ -306,9 +304,9 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
                 PluginHandle         = nint.Zero
             };
 
-            bool isSupported = ThisPluginExport.KillRunningGameCore(context, out bool wasGameRunning, out gameStartTime);
+            bool isSupported = ThisExtensionExport.KillRunningGameCore(context, out bool wasGameRunning, out gameStartTime);
             wasGameRunningInt = wasGameRunning ? 1 : 0;
-            return isSupported ? 0 : throw new NotSupportedException("Method isn't overriden which mark this plugin doesn't support this feature!");
+            return isSupported;
         }
         catch (Exception ex)
         {
@@ -317,4 +315,95 @@ public class SharedStatic<T> : SharedStatic where T : SharedStatic, new()
             return Marshal.GetHRForException(ex);
         }
     }
+    #endregion
+
+    #region Core Methods
+    /// <summary>
+    /// Asynchronously launch the game using plugin's built-in game launch mechanism and wait until the game exit.
+    /// </summary>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
+    /// <param name="startArgument">The additional argument to run the game executable.</param>
+    /// <param name="isRunBoosted">Based on <see cref="Process.PriorityBoostEnabled"/>, boost the process temporarily when the game window is focused (Default: false).</param>
+    /// <param name="processPriority">Based on <see cref="Process.PriorityClass"/>, run the game process with specific priority (Default: <see cref="ProcessPriorityClass.Normal"/>).</param>
+    /// <param name="token">
+    /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
+    /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
+    /// </param>
+    /// <returns>
+    /// Returns <c>IsSupported.false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.1) or if this method isn't overriden.<br/>
+    /// Otherwise, <c>IsSupported.true</c> if the plugin supports game launch mechanism.
+    /// </returns>
+    protected virtual (bool IsSupported, Task<bool> Task) LaunchGameFromGameManagerCoreAsync(
+        RunGameFromGameManagerContext context,
+        string?                       startArgument,
+        bool                          isRunBoosted,
+        ProcessPriorityClass          processPriority,
+        CancellationToken             token)
+    {
+        return (false, Task.FromResult(false));
+    }
+
+    /// <summary>
+    /// Check if the game from the current <see cref="IGameManager"/> is running or not.
+    /// </summary>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
+    /// <param name="isGameRunning">Whether the game is currently running or not.</param>
+    /// <param name="gameStartTime">The date time stamp of when the process was started.</param>
+    /// <returns>
+    /// To find the actual return value, please use <paramref name="isGameRunning"/> out-argument.<br/><br/>
+    /// 
+    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.1) or if this method isn't overriden.<br/>
+    /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
+    /// </returns>
+    protected virtual bool IsGameRunningCore(
+        RunGameFromGameManagerContext context,
+        out bool                      isGameRunning,
+        out DateTime                  gameStartTime)
+    {
+        isGameRunning = false;
+        gameStartTime = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Asynchronously wait currently running game until it exit.
+    /// </summary>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
+    /// <param name="token">
+    /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
+    /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
+    /// </param>
+    /// <returns>
+    /// Returns <c>IsSupported.false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.1) or if this method isn't overriden.<br/>
+    /// Otherwise, <c>IsSupported.true</c> if the plugin does support game launch mechanism and the game ran successfully.
+    /// </returns>
+    protected virtual (bool IsSupported, Task<bool> Task) WaitRunningGameCoreAsync(
+        RunGameFromGameManagerContext context,
+        CancellationToken             token)
+    {
+        return (false, Task.FromResult(false));
+    }
+
+    /// <summary>
+    /// Kill the process of the currently running game.
+    /// </summary>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
+    /// <param name="wasGameRunning">Whether to indicate that the game was running or not.</param>
+    /// <param name="gameStartTime">The date time stamp of when the process was started.</param>
+    /// <returns>
+    /// To find the actual return value, please use <paramref name="wasGameRunning"/> out-argument.<br/><br/>
+    /// 
+    /// Returns <c>false</c> if the plugin doesn't have game launch mechanism (or API Standard is equal or lower than v0.1.1) or if this method isn't overriden.<br/>
+    /// Otherwise, <c>true</c> if the plugin supports game launch mechanism.
+    /// </returns>
+    protected virtual bool KillRunningGameCore(
+        RunGameFromGameManagerContext context,
+        out bool                      wasGameRunning,
+        out DateTime                  gameStartTime)
+    {
+        wasGameRunning = false;
+        gameStartTime = default;
+        return false;
+    }
+    #endregion
 }
