@@ -19,7 +19,7 @@ public class HexStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?>
 
     public override unsafe TStruct[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (reader.ValueSequence.IsEmpty)
+        if (reader.ValueSpan.IsEmpty)
         {
             return [];
         }
