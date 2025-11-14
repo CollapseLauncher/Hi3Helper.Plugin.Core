@@ -90,7 +90,7 @@ public struct GameVersion :
     public readonly Version ToVersion() => new(Major, Minor, Build, Revision);
 
     /// <summary>
-    /// Create a string representation of <see cref="GameVersion"/> intoto "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
+    /// Create a string representation of <see cref="GameVersion"/> into "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
     /// </summary>
     public readonly override string ToString() => ToString(string.Empty);
 
