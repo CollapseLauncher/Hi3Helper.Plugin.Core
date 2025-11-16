@@ -347,12 +347,16 @@ public struct GameVersion :
     /// </remarks>
     public readonly bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
+        const byte formatByteS = (byte)'s';
+        const byte formatByteF = (byte)'f';
+        const byte formatByteN = (byte)'n';
+
         bytesWritten = 0;
 
-        bool isUseAutoFormat      = !format.IsEmpty && (format[0] | 0x20) == 's'; // This compares both 's' or 'S' as true.
-        bool isForceUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == 'f'; // This compares both 'f' or 'F' as false.
+        bool isUseAutoFormat      = !format.IsEmpty && (format[0] | 0x20) == formatByteS; // This compares both 's' or 'S' as true.
+        bool isForceUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == formatByteF; // This compares both 'f' or 'F' as false.
         bool isUseMiniFormat      = !isForceUseFullFormat &&
-                                    (!format.IsEmpty && (format[0] | 0x20) == 'n' // This compares both 'n' or 'N' as true.
+                                    (!format.IsEmpty && (format[0] | 0x20) == formatByteN // This compares both 'n' or 'N' as true.
                                      || Revision == 0);
 
         if (utf8Destination.Length < 4)
