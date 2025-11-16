@@ -117,13 +117,10 @@ public struct GameVersion :
     /// <returns>A string representation of <see cref="GameVersion"/>.</returns>
     public readonly string ToString(string? format, IFormatProvider? formatProvider = null)
     {
-        Span<char> writeStackalloc = stackalloc char[64];
-        if (!TryFormat(writeStackalloc, out int written, format, formatProvider))
-        {
-            throw new InvalidOperationException("Cannot write string to stackalloc buffer!");
-        }
-
-        return new string(writeStackalloc[..written]);
+        scoped Span<char> writeStackalloc = stackalloc char[32];
+        return !TryFormat(writeStackalloc, out int written, format, formatProvider)
+            ? throw new InvalidOperationException("Cannot write string to stackalloc buffer!")
+            : new string(writeStackalloc[..written]);
     }
 
     public static bool operator <(GameVersion? left, GameVersion? right) =>
@@ -135,6 +132,14 @@ public struct GameVersion :
 
     public static bool operator >(GameVersion? left, GameVersion? right) =>
         right < left;
+
+#if NET10_0_OR_GREATER
+    public static bool operator <=(GameVersion? left, GameVersion? right) =>
+        left < right || left == right;
+
+    public static bool operator >=(GameVersion? left, GameVersion? right) =>
+        right < left || right == left;
+#endif
 
     public static bool operator ==(GameVersion? left, GameVersion? right) =>
         left.HasValue && right.HasValue &&
