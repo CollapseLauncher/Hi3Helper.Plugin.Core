@@ -9,6 +9,11 @@
       "commandName": "Project",
       "commandLineArgs": "NoWait \"H:\\myGit\\Hi3Helper.Plugin.HBR\\Hi3Helper.Plugin.HBR\\publish\\Debug\\main.dll\"",
       "nativeDebugging": true
+    },
+    "PluginTest - DNA": {
+      "commandName": "Project",
+      "commandLineArgs": "NoWait \"D:\\GitHub\\Hi3Helper.Plugin.DNA\\Hi3Helper.Plugin.DNA\\publish\\Debug\\DNAbyss.dll\"",
+      "nativeDebugging": true
     }
   }
 }
