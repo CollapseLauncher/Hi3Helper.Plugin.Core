@@ -338,8 +338,8 @@ public static class GameManagerExtension
     /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
     /// <param name="executableName">The name of the game executable.</param>
     /// <param name="height">Height of the host screen.</param>
-    /// <param name="width">Height of the host screen.</param>
-    /// <param name="executableDirectory">The path where the game executable is located.</param>
+    /// <param name="width">Width of the host screen.</param>
+    /// <param name="executableDirectory">The path to the directory where the game executable is located.</param>
     /// <param name="token">
     /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
     /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
