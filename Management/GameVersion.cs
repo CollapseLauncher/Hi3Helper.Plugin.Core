@@ -117,7 +117,7 @@ public struct GameVersion :
     /// <returns>A string representation of <see cref="GameVersion"/>.</returns>
     public readonly string ToString(string? format, IFormatProvider? formatProvider = null)
     {
-        scoped Span<char> writeStackalloc = stackalloc char[32];
+        scoped Span<char> writeStackalloc = stackalloc char[48];
         return !TryFormat(writeStackalloc, out int written, format, formatProvider)
             ? throw new InvalidOperationException("Cannot write string to stackalloc buffer!")
             : new string(writeStackalloc[..written]);
