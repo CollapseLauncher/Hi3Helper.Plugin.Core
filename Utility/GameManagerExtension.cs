@@ -332,6 +332,80 @@ public static class GameManagerExtension
         return true;
     }
 
+    /// <summary>
+    /// Asynchronously hook to the game process making the window resizable and wait until the game exit.
+    /// </summary>
+    /// <param name="context">The context to launch the game from <see cref="IGameManager"/>.</param>
+    /// <param name="executableName">The name of the game executable.</param>
+    /// <param name="height">Height of the host screen.</param>
+    /// <param name="width">Height of the host screen.</param>
+    /// <param name="executableDirectory">The path where the game executable is located.</param>
+    /// <param name="token">
+    /// Cancellation token to pass into the plugin's game launch mechanism.<br/>
+    /// If cancellation is requested, it will cancel the awaiting but not killing the game process.
+    /// </param>
+    /// <returns>
+    /// Returns <c>IsSupported.false</c> if the plugin's API Standard is equal or lower than v0.1.3 or if this method isn't overriden.<br/>
+    /// Otherwise, <c>IsSupported.true</c> if the plugin supports game launch mechanism and this method.
+    /// </returns>
+    public static async Task<(bool IsSuccess, Exception? Error)>
+        StartResizableWindowHookAsync(this RunGameFromGameManagerContext context,
+                                      string? executableName = null,
+                                      int? height = null,
+                                      int? width = null,
+                                      string? executableDirectory = null,
+                                      CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        if (!context.PluginHandle.TryGetExport("StartResizableWindowHookAsync", out SharedStaticV1Ext.StartResizableWindowHookAsyncDelegate startResizableWindowHookAsyncCallback))
+        {
+            return (false, new NotSupportedException("Plugin doesn't have StartResizableWindowHookAsync export in its API definition!"));
+        }
+
+        nint gameManagerP = GetPointerFromInterface(context.GameManager);
+        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
+
+        if (gameManagerP == nint.Zero)
+        {
+            return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
+        }
+
+        if (presetConfigP == nint.Zero)
+        {
+            return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
+        }
+
+        nint exeNameP = executableName.GetPinnableStringPointerSafe();
+        int exeNameLen = executableName?.Length ?? 0;
+
+        nint exeDirP = executableDirectory.GetPinnableStringPointerSafe();
+        int exeDirLen = executableDirectory?.Length ?? 0;
+
+        Guid cancelTokenGuid = Guid.CreateVersion7();
+        int hResult = startResizableWindowHookAsyncCallback(gameManagerP,
+                                                            presetConfigP,
+                                                            exeNameP,
+                                                            exeNameLen,
+                                                            height ?? int.MinValue,
+                                                            width ?? int.MinValue,
+                                                            exeDirP,
+                                                            exeDirLen,
+                                                            ref cancelTokenGuid,
+                                                            out nint taskResult);
+
+        if (taskResult == nint.Zero)
+        {
+            return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
+        }
+
+        if (hResult != 0)
+        {
+            return (false, Marshal.GetExceptionForHR(hResult));
+        }
+
+        return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
+    }
+
     private static unsafe nint GetPointerFromInterface<T>(this T interfaceSource)
         where T : class
         => (nint)ComInterfaceMarshaller<T>.ConvertToUnmanaged(interfaceSource);

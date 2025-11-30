@@ -101,9 +101,9 @@ public class SharedStatic
     internal static Uri?                            ProxyHost;
     internal static string?                         ProxyUsername;
     internal static string?                         ProxyPassword;
-    internal static string                          PluginLocaleCode = "en-us";
-
-    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 2, 0);
+    
+    public static string               PluginLocaleCode       { get; internal set; } = "en-us";
+    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 3, 0);
     public static readonly ILogger     InstanceLogger         = new SharedLogger();
 
 #if DEBUG
