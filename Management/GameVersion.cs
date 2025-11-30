@@ -117,7 +117,7 @@ public struct GameVersion :
     /// <returns>A string representation of <see cref="GameVersion"/>.</returns>
     public readonly string ToString(string? format, IFormatProvider? formatProvider = null)
     {
-        scoped Span<char> writeStackalloc = stackalloc char[32];
+        scoped Span<char> writeStackalloc = stackalloc char[48];
         return !TryFormat(writeStackalloc, out int written, format, formatProvider)
             ? throw new InvalidOperationException("Cannot write string to stackalloc buffer!")
             : new string(writeStackalloc[..written]);
@@ -259,7 +259,7 @@ public struct GameVersion :
         bool isUseAutoFormat      = !format.IsEmpty && (format[0] | 0x20) == 's'; // This compares both 's' or 'S' as true.
         bool isForceUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == 'f'; // This compares both 'f' or 'F' as false.
         bool isUseMiniFormat      = !isForceUseFullFormat &&
-                                    (!format.IsEmpty && (format[0] | 0x20) == 'n' // This compares both 'n' or 'N' as true.
+                                    ((!format.IsEmpty && (format[0] | 0x20) == 'n') // This compares both 'n' or 'N' as true.
                                      || Revision == 0);
 
         if (destination.Length < 4)
@@ -356,7 +356,7 @@ public struct GameVersion :
         bool isUseAutoFormat      = !format.IsEmpty && (format[0] | 0x20) == formatByteS; // This compares both 's' or 'S' as true.
         bool isForceUseFullFormat = !format.IsEmpty && (format[0] | 0x20) == formatByteF; // This compares both 'f' or 'F' as false.
         bool isUseMiniFormat      = !isForceUseFullFormat &&
-                                    (!format.IsEmpty && (format[0] | 0x20) == formatByteN // This compares both 'n' or 'N' as true.
+                                    ((!format.IsEmpty && (format[0] | 0x20) == formatByteN) // This compares both 'n' or 'N' as true.
                                      || Revision == 0);
 
         if (utf8Destination.Length < 4)
