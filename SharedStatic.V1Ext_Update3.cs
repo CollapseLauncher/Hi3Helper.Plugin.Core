@@ -107,7 +107,7 @@ public partial class SharedStaticV1Ext<T>
             {
                 char* exeDirP = (char*)exeDir;
                 ReadOnlySpan<char> executableDirectorySpan = Mem.CreateSpanFromNullTerminated<char>(exeDirP);
-                if (executableDirectorySpan.Length > exeNameLen)
+                if (executableDirectorySpan.Length > exeDirLen)
                 {
                     executableDirectorySpan = executableDirectorySpan[..exeDirLen];
                 }
