@@ -1,17 +1,31 @@
 # Collapse Launcher Plugin Core Library
-This is the main repository of the ``Hi3Helper.Plugin.Core`` library (aka Collapse Launcher Standard Core Plugin Library), broadly used as a fundamental to develop Game Plugin Support system on Collapse Launcher, implements standard of API contracts and core functionality which is used by both the plugin and the launcher, including: Platform Invocation, COM Interop and Marshalling.
+This is the main repository of the ``Hi3Helper.Plugin.Core`` library (aka Collapse Launcher Standard Core Plugin Library), broadly used as a base to develop Game Plugin Support system for Collapse, implementing standards of API contracts and core functionalities which are used by both the plugin and the launcher, including: Platform Invocation, COM Interop and Marshalling.
 
 # How to Contribute?
-As per current state of the Plugin System on Collapse Launcher, you can contribute to this library by providing a proposal of the new API contract or by improving the existing API contract implementation. You might expect some changes in the near future as the existing APIs are still under development.
+You can contribute to this library by providing a proposal of new API contracts, or by improving the existing API contract implementation. You can expect some changes in the near future as the existing APIs are still under development.
 
 Keep in mind that the code included in this repository are mainly unsafe due to marshalling nature from Managed .NET code to Unmanaged code platform invocation.
 
-Make sure that your code is **reflection-free** as possible as the code are entirely purposed to work with NativeAOT Compilation. A minimal reflection features (``GetType`` and such) are still supported, but ensure that you set the ``IlcDisableReflection`` on your ``.csproj`` project file (or ``.pubxml`` publish profile) to ``false``. If you need to perform JSON Serialization/Deserialization, please ensure that your code uses source-generated ``JsonSerializerContext`` or use Lightweight/No-Reflection (manually deserialize the JSON with some interface implementation ([See below](http://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/README.md#:~:text=Lightweight/No%2DReflection%20Supported%20JSON%20Serializer/Deserializer))) via ``JsonDocument``, ``Utf8JsonReader`` and ``Utf8JsonWriter``.
+Make sure that your code is **as reflection-free** as possible, as the code is entirely purposed to work with NativeAOT Compilation. Minimal reflection-based features (such as ``GetType``) are still supported, but ensure that you set the ``IlcDisableReflection`` on your ``.csproj`` project file (or ``.pubxml`` publish profile) to ``false``. If you need to perform JSON Serialization/Deserialization, please ensure that your code uses source-generated ``JsonSerializerContext`` or use Lightweight/No-Reflection (manually deserialize the JSON with some interface implementation ([See below](http://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/README.md#:~:text=Lightweight/No%2DReflection%20Supported%20JSON%20Serializer/Deserializer))) via ``JsonDocument``, ``Utf8JsonReader`` and ``Utf8JsonWriter``.
 
 # What's Included?
-This Core Library includes few core implementation to support the plugin development faster without need to implement the entire functions from scratch. These are including:
+This Core Library includes various APIs to make the plugin development faster, without needing to implement the entire functions from scratch. Here's a list of what's included currently:
 
-### V1 (v0.1.0.0) Implementation Standard
+### V1 (v0.1.3.0) Implementation Standard
+
+This repository follows the V1 implementation standard (current library version: ``v0.1.3.0``). The standard collects base API contracts, COM interop helpers, marshallers and small utility primitives that plugin authors and the launcher can rely on.
+
+> [!WARNING] 
+> The API contracts and implementations are still under development, so expect some breaking changes in the future.
+> This list is subject to change without prior notice.
+
+> [!NOTE]
+> This list is not exhaustive. Some utility classes and helper functions are not listed here.
+> Please explore the source code for more details.
+
+> [!TIP]
+> If a new version of the API standard is released, you will need to make sure that your plugin is updated to the latest version to take advantage of the new features and improvements.
+
 * Base/Abstract API Classes
   * [``InitializableTask``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/InitializableTask.cs) (Implement: ``IInitializableTask``)
   * [``PluginBase``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/PluginBase.cs) (Implement: ``IPlugin``)
@@ -55,4 +69,5 @@ This Core Library includes few core implementation to support the plugin develop
 # Plugin Examples
 To see the example of how the plugin implemented using this Core Library, check the link below:
 * [Hi3Helper.Plugin.HBR](https://github.com/CollapseLauncher/Hi3Helper.Plugin.HBR) (A basic plugin implementation for Game: [Heaven Burns Red](https://heavenburnsred.yo-star.com/) by [Key](https://key.visualarts.gr.jp/))
-* [Hi3Helper.Plugin.Template](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Template) (A template for Plugin Development example, also a plugin implementation for [Wuthering Waves](https://wutheringwaves.kurogames.com/en/main) by [Kuro Games](https://kurogames.com))
+* [Hi3Helper.Plugin.Wuwa](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Wuwa) (A plugin implementation for [Wuthering Waves](https://wutheringwaves.kurogames.com/en/main) by [Kuro Games](https://kurogames.com))
+* [Hi3Helper.Plugin.DNA](https://github.com/CollapseLauncher/Hi3Helper.Plugin.DNA) (A plugin implementation for [Duet Night Abyss](https://duetnightabyss.dna-panstudio.com//) by [Hero Games](https://herogame.com/))
