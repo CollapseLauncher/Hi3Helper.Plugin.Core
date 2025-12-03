@@ -16,6 +16,8 @@ public class SharedStaticV1Ext : SharedStatic
     internal unsafe delegate HResult GetCurrentDiscordPresenceInfoDelegate(void*                 presetConfigP,
                                                                            DiscordPresenceInfo** presenceInfoP);
 
+    // Update3
+    internal delegate HResult StartResizableWindowHookAsyncDelegate(nint gameManagerP, nint presetConfigP, nint executableName, int executableNameLen, int height, int width, nint executableDirectory, int executableDirectoryLen, ref Guid cancelToken, out nint taskResult);
 }
 
 /// <summary>
@@ -39,6 +41,7 @@ public partial class SharedStaticV1Ext<T> : SharedStaticV1Ext
          */
         InitExtension_Update1Exports();
         InitExtension_Update2Exports();
+        InitExtension_Update3Exports();
     }
 
     /// <summary>
