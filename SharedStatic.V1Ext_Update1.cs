@@ -72,7 +72,12 @@ public partial class SharedStaticV1Ext<T>
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
 #endif
 
-            PrintGameLog printGameLogCallback = Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
+            PrintGameLog? printGameLogCallback = null;
+
+            if (printGameLogCallbackP != nint.Zero)
+            {
+                printGameLogCallback = Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
+            }
 
             if (ThisExtensionExport == null)
             {
@@ -92,11 +97,6 @@ public partial class SharedStaticV1Ext<T>
             if (presetConfig == null)
             {
                 throw new NullReferenceException("Cannot cast IPluginPresetConfig from the pointer, hence it gives null!");
-            }
-
-            if (printGameLogCallback == null)
-            {
-                throw new NullReferenceException("Cannot cast PrintGameLog callback from the pointer, hence it gives null!");
             }
 
             CancellationTokenSource? cts = null;
