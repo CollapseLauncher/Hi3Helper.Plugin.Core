@@ -20,6 +20,8 @@ namespace Hi3Helper.Plugin.Core.Utility;
 /// {
 ///     byte[] buffer = new byte[8192];
 ///     int read;
+///
+///     nint context = SpeedLimiterService.CreateServiceContext();
 ///     while ((read = await inputStream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
 ///     {
 ///         // Do anything...
