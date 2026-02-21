@@ -62,6 +62,7 @@ public partial class SharedStaticV1Ext<T>
         taskResult = nint.Zero;
         try
         {
+            InstanceLogger.LogTrace("[LaunchGameFromGameManagerAsync] pluginP: {A:x8} | gameManagerP: {B:x8} | presetConfigP: {C:x8} | printGameLogCallbackP: {D:x8}", pluginP, gameManagerP, presetConfigP, printGameLogCallbackP);
 #if MANUALCOM
             IPlugin? plugin = ComWrappers.ComInterfaceDispatch.GetInstance<IPlugin>((ComWrappers.ComInterfaceDispatch*)pluginP);
             IGameManager? gameManager = ComWrappers.ComInterfaceDispatch.GetInstance<IGameManager>((ComWrappers.ComInterfaceDispatch*)gameManagerP);
@@ -72,12 +73,9 @@ public partial class SharedStaticV1Ext<T>
             IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
 #endif
 
-            PrintGameLog? printGameLogCallback = null;
-
-            if (printGameLogCallbackP != nint.Zero)
-            {
-                printGameLogCallback = Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
-            }
+            PrintGameLog? printGameLogCallback = printGameLogCallbackP == nint.Zero
+                ? null
+                : Marshal.GetDelegateForFunctionPointer<PrintGameLog>(printGameLogCallbackP);
 
             if (ThisExtensionExport == null)
             {
