@@ -1,24 +1,6 @@
-﻿using Hi3Helper.Plugin.Core.DiscordPresence;
-using Hi3Helper.Plugin.Core.Management;
-using Hi3Helper.Plugin.Core.Utility;
-using System;
+﻿using Hi3Helper.Plugin.Core.Management;
 
 namespace Hi3Helper.Plugin.Core;
-
-public class SharedStaticV1Ext : SharedStatic
-{
-    // Update1
-    internal delegate HResult LaunchGameFromGameManagerAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, nint printGameLogCallbackP, nint arguments, int argumentsLen, int runBoostedInt, int processPriorityInt, ref Guid cancelToken, out nint taskResult);
-    internal delegate HResult WaitRunningGameAsyncDelegate(nint gameManagerP, nint pluginP, nint presetConfigP, ref Guid cancelToken, out nint taskResult);
-    internal delegate HResult IsGameRunningDelegate(nint gameManagerP, nint presetConfigP, out int isGameRunning, out DateTime processStartTime);
-
-    // Update2
-    internal unsafe delegate HResult GetCurrentDiscordPresenceInfoDelegate(void*                 presetConfigP,
-                                                                           DiscordPresenceInfo** presenceInfoP);
-
-    // Update3
-    internal delegate HResult StartResizableWindowHookAsyncDelegate(nint gameManagerP, nint presetConfigP, nint executableName, int executableNameLen, int height, int width, nint executableDirectory, int executableDirectoryLen, ref Guid cancelToken, out nint taskResult);
-}
 
 /// <summary>
 /// Inherited <see cref="SharedStatic"/> with additional supports for API extensions which require call or property access to derived exports.
@@ -42,6 +24,7 @@ public partial class SharedStaticV1Ext<T> : SharedStaticV1Ext
         InitExtension_Update1Exports();
         InitExtension_Update2Exports();
         InitExtension_Update3Exports();
+        InitExtension_Update4Exports();
     }
 
     /// <summary>

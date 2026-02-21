@@ -9,6 +9,14 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core;
 
+public partial class SharedStaticV1Ext
+{
+    // Update2
+    internal unsafe delegate HResult GetCurrentDiscordPresenceInfoDelegate(
+        void*                 presetConfigP,
+        DiscordPresenceInfo** presenceInfoP);
+}
+
 public partial class SharedStaticV1Ext<T>
 {
     private static unsafe void InitExtension_Update2Exports()

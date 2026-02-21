@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-
 using static Hi3Helper.Plugin.Core.Utility.GameManagerExtension;
 
 #if !MANUALCOM
@@ -16,6 +15,35 @@ using System.Runtime.InteropServices.Marshalling;
 #endif
 
 namespace Hi3Helper.Plugin.Core;
+
+public partial class SharedStaticV1Ext
+{
+    // Update1
+    internal delegate HResult LaunchGameFromGameManagerAsyncDelegate(
+        nint     gameManagerP,
+        nint     pluginP,
+        nint     presetConfigP,
+        nint     printGameLogCallbackP,
+        nint     arguments,
+        int      argumentsLen,
+        int      runBoostedInt,
+        int      processPriorityInt,
+        ref Guid cancelToken,
+        out nint taskResult);
+
+    internal delegate HResult WaitRunningGameAsyncDelegate(
+        nint     gameManagerP,
+        nint     pluginP,
+        nint     presetConfigP,
+        ref Guid cancelToken,
+        out nint taskResult);
+
+    internal delegate HResult IsGameRunningDelegate(
+        nint         gameManagerP,
+        nint         presetConfigP,
+        out int      isGameRunning,
+        out DateTime processStartTime);
+}
 
 public partial class SharedStaticV1Ext<T>
 {

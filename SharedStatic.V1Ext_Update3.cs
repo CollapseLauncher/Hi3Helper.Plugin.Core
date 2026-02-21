@@ -16,6 +16,22 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace Hi3Helper.Plugin.Core;
 
+public partial class SharedStaticV1Ext : SharedStatic
+{
+    // Update3
+    internal delegate HResult StartResizableWindowHookAsyncDelegate(
+        nint     gameManagerP,
+        nint     presetConfigP,
+        nint     executableName,
+        int      executableNameLen,
+        int      height,
+        int      width,
+        nint     executableDirectory,
+        int      executableDirectoryLen,
+        ref Guid cancelToken,
+        out nint taskResult);
+}
+
 public partial class SharedStaticV1Ext<T>
 {
     private static void InitExtension_Update3Exports()
@@ -35,7 +51,7 @@ public partial class SharedStaticV1Ext<T>
     #region ABI Proxies
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStaticV1Ext{T}.StartResizableWindowHookAsync(RunGameFromGameManagerContext, string?, int, int, string?, CancellationToken)"/> method for more information.
+    /// See the documentation for <see cref="SharedStaticV1Ext{T}.StartResizableWindowHookAsync(nint, nint, nint, int, int, int, nint, int, ref Guid, out nint)"/> method for more information.
     /// </summary>
     private static unsafe HResult StartResizableWindowHookAsync(nint     gameManagerP,
                                                                 nint     presetConfigP,
