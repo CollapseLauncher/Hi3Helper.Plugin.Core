@@ -59,7 +59,7 @@ public partial class SharedStaticV1Ext<T>
             if (task is { IsCompleted: true, IsFaulted: false } ||
                 task.IsCompletedSuccessfully)
             {
-                InstanceLogger.LogTrace("[RegisterSpeedThrottlerService] Speed Throttler Service has been installed. Service's callback is located at address: 0x{Ptr:x8}", addBytesOrWaitAsyncCallback);
+                LogSuccess();
                 return HResult.Ok;
             }
 
@@ -67,7 +67,13 @@ public partial class SharedStaticV1Ext<T>
             task.GetAwaiter().GetResult();
 
             // If nothing blown up, return OK.
+            LogSuccess();
             return HResult.Ok;
+
+            void LogSuccess()
+            {
+                InstanceLogger.LogTrace("[RegisterSpeedThrottlerService] Speed Throttler Service has been installed. Service's callback is located at address: 0x{Ptr:x8}", addBytesOrWaitAsyncCallback);
+            }
         }
         catch (Exception ex)
         {
