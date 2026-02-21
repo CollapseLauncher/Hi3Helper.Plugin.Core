@@ -39,7 +39,7 @@ public partial class SharedStaticV1Ext<T>
     /// </summary>
     private static unsafe HResult RegisterSpeedThrottlerService(nint addBytesOrWaitAsyncCallback)
     {
-        SpeedLimiterService.AddBytesOrWaitAsyncCallback = (delegate* unmanaged[Stdcall]<nint, long, nint, void**, int>)addBytesOrWaitAsyncCallback;
+        SpeedLimiterService.AddBytesOrWaitAsyncCallback = (delegate* unmanaged[Stdcall]<nint, long, nint, out nint, int>)addBytesOrWaitAsyncCallback;
         if (addBytesOrWaitAsyncCallback == nint.Zero)
         {
             SpeedLimiterService.AddBytesOrWaitAsyncCallback = null;

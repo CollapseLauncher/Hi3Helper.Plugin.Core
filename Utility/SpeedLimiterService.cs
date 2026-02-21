@@ -35,7 +35,7 @@ namespace Hi3Helper.Plugin.Core.Utility;
 /// </remarks>
 public static class SpeedLimiterService
 {
-    internal static unsafe delegate* unmanaged[Stdcall]<nint, long, nint, void**, int> AddBytesOrWaitAsyncCallback =
+    internal static unsafe delegate* unmanaged[Stdcall]<nint, long, nint, out nint, int> AddBytesOrWaitAsyncCallback =
         null;
 
     /// <summary>
@@ -70,20 +70,18 @@ public static class SpeedLimiterService
             return ValueTask.CompletedTask;
         }
 
-        nint tokenHandle     = token.WaitHandle.SafeWaitHandle.DangerousGetHandle();
-        nint asyncWaitHandle = nint.Zero;
+        nint tokenHandle = token.WaitHandle.SafeWaitHandle.DangerousGetHandle();
+        int hr = AddBytesOrWaitAsyncCallback(context,
+                                         readBytes,
+                                         tokenHandle,
+                                         out nint asyncWaitHandle);
 
-        Unsafe.SkipInit(out int hr);
-        fixed (nint* asyncWaitHandlePtr = &asyncWaitHandle)
+        AsyncValueTaskMethodBuilder valueTaskCs = new();
+        if (Marshal.GetExceptionForHR(hr) is { } exception)
         {
-            hr = AddBytesOrWaitAsyncCallback(
-                context,
-                readBytes,
-                tokenHandle,
-                (void**)asyncWaitHandlePtr);
+            valueTaskCs.SetException(exception);
+            return valueTaskCs.Task;
         }
-
-        Marshal.ThrowExceptionForHR(hr);
 
         SafeWaitHandle safeHandle = new(asyncWaitHandle, false);
         WaitHandle waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset)
@@ -91,7 +89,6 @@ public static class SpeedLimiterService
             SafeWaitHandle = safeHandle
         };
 
-        AsyncValueTaskMethodBuilder valueTaskCs = new();
         ThreadPool.UnsafeRegisterWaitForSingleObject(waitHandle,
             DisposeWaitHandleCallback,
             null,
