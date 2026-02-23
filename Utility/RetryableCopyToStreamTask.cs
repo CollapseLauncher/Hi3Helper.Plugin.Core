@@ -75,7 +75,9 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
         GC.SuppressFinalize(this);
     }
 
-    private RetryableCopyToStreamTask(SourceStreamFactory sourceStreamFactory, Stream targetStream, RetryableCopyToStreamTaskOptions options)
+    private RetryableCopyToStreamTask(SourceStreamFactory              sourceStreamFactory,
+                                      Stream                           targetStream,
+                                      RetryableCopyToStreamTaskOptions options)
     {
         _sourceStreamFactory = sourceStreamFactory;
         _targetStream        = targetStream;
@@ -135,7 +137,9 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
 
         while (retryAttemptLeft > 0)
         {
-            var (timedOutCts, coopCts) = RenewTimeOutCancelToken(in timeoutSpan, in token);
+            (CancellationTokenSource timedOutCts, CancellationTokenSource coopCts) =
+                RenewTimeOutCancelToken(in timeoutSpan, in token);
+
             _sourceStream = await _sourceStreamFactory(lastBytesPosition, coopCts.Token);
             if (_sourceStream == null)
             {
@@ -150,8 +154,13 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
                     .ReadAsync(buffer, coopCts.Token)
                     .ConfigureAwait(false)) > 0)
                 {
+                    await SpeedLimiterService.AddBytesOrWaitAsync(_options.SpeedLimiterServiceContext,
+                                                                  read,
+                                                                  coopCts.Token);
+
                     lastBytesPosition += read;
                     readDelegate?.Invoke(read);
+
                     await _targetStream
                         .WriteAsync(buffer.AsMemory(0, read), coopCts.Token)
                         .ConfigureAwait(false);
@@ -213,7 +222,7 @@ public class RetryableCopyToStreamTask : IDisposable, IAsyncDisposable
     private static (CancellationTokenSource TimedOutCts, CancellationTokenSource CoopCts)
         RenewTimeOutCancelToken(in TimeSpan timeoutSpan, in CancellationToken innerToken)
     {
-        CancellationTokenSource timedOutCts = new CancellationTokenSource(timeoutSpan);
+        CancellationTokenSource timedOutCts = new(timeoutSpan);
         CancellationTokenSource coopCts     = CancellationTokenSource.CreateLinkedTokenSource(timedOutCts.Token, innerToken);
 
         return (timedOutCts, coopCts);
