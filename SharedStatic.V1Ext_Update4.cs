@@ -52,43 +52,9 @@ public partial class SharedStaticV1Ext<T>
         if (addBytesOrWaitAsyncCallback != nint.Zero && getSharedThrottleBytesCallback != nint.Zero)
         {
             SpeedLimiterService.AddBytesOrWaitAsyncCallback = (delegate* unmanaged[Cdecl]<nint, long, nint, out nint, int>)addBytesOrWaitAsyncCallback;
-
-            // Test the delegate first before registering it.
-            nint contextP = SpeedLimiterService.CreateServiceContext();
-            try
-            {
-                // Try call the increment function with 16 bytes of load, then check for exception
-#pragma warning disable CA2012
-                ValueTask task = SpeedLimiterService.AddBytesOrWaitAsync(contextP, 16);
-#pragma warning restore CA2012
-                if (task is { IsCompleted: true, IsFaulted: false } ||
-                    task.IsCompletedSuccessfully)
-                {
-                    LogSuccess();
-                    return HResult.Ok;
-                }
-
-                // Try block and await if task is still going.
-                task.GetAwaiter().GetResult();
-
-                // If nothing blown up, return OK.
-                LogSuccess();
-                return HResult.Ok;
-
-                void LogSuccess()
-                {
-                    InstanceLogger.LogTrace("[RegisterSpeedThrottlerService] Speed Throttler Service has been installed. Service's callback is located at address: 0x{Ptr:x8}", addBytesOrWaitAsyncCallback);
-                }
-            }
-            catch (Exception ex)
-            {
-                SpeedLimiterService.AddBytesOrWaitAsyncCallback = null; // Reset the callback
-                return Marshal.GetHRForException(ex);
-            }
-            finally
-            {
-                SpeedLimiterService.FreeServiceContext(contextP);
-            }
+            SpeedLimiterService.GetSharedThrottleBytesCallback = (delegate* unmanaged[Cdecl]<ref long, ref long, void>)getSharedThrottleBytesCallback;
+            InstanceLogger.LogTrace("[RegisterSpeedThrottlerService] Speed Throttler Service has been installed. Service's callback is located at address: (AddBytesOrWaitAsync) 0x{Ptr1:x8} (GetSharedThrottleBytes) 0x{Ptr2:x8}", addBytesOrWaitAsyncCallback, getSharedThrottleBytesCallback);
+            return HResult.Ok;
         }
 
         InstanceLogger.LogError("[RegisterSpeedThrottlerService] Failed to install/uninstall Speed Throttler Service. You must provide both arguments either all null or not-null!");
