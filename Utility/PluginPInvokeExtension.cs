@@ -4,8 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
-public static class PluginPInvokeExtension
+public static partial class PluginPInvokeExtension
 {
+    [SkipLocalsInit]
     public static bool TryGetExport<T>(this nint handle, string exportName, out T callback)
         where T : Delegate
     {
@@ -16,12 +17,7 @@ public static class PluginPInvokeExtension
         return true;
     }
 
-    public static bool TryGetExportUnsafe(this nint handle, string exportName, out nint callbackP)
-    {
-        Unsafe.SkipInit(out callbackP);
-        return TryGetExportAddressCore(handle, exportName, out callbackP);
-    }
-
+    [SkipLocalsInit]
     private static unsafe bool TryGetExportAddressCore(
         nint     handle,
         string   exportName,
