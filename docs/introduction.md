@@ -10,8 +10,8 @@ Plugins are compiled as native shared libraries (`.dll` on Windows) and loaded d
 Collapse Launcher
 │
 │  GetApiExport("GetPlugin") ──────────────────────────────────┐
-│                                                               │
-▼                                                               ▼
+│                                                              │
+▼                                                              ▼
 Plugin.dll (NativeAOT)
 ├── SharedStatic / SharedStaticV1Ext<T>   (export registry)
 ├── IPlugin  ──► PluginBase               (plugin metadata)

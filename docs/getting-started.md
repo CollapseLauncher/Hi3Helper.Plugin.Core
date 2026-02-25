@@ -177,4 +177,4 @@ The resulting `.dll` in the publish output directory is ready to be loaded by Co
 | Topic | Guide |
 |-------|-------|
 | Full walkthrough with game management and self-update | [Creating a Plugin — full guide](create-plugin.md) |
-| API reference | [API docs](../api/) |
+| API reference | [API docs](../api/Hi3Helper.Plugin.Core.html) |
