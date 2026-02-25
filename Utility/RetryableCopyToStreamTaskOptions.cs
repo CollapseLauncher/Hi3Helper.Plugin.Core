@@ -47,7 +47,15 @@ public class RetryableCopyToStreamTaskOptions
     /// Whether to dispose the target <see cref="Stream"/> once <see cref="IDisposable.Dispose()"/> is being called.
     /// </summary>
     /// <remarks>
-    /// Default: false
+    /// Default: <see langword="false"/>
     /// </remarks>
     public bool IsDisposeTargetStream { get; init; }
+
+    /// <summary>
+    /// The context of speed limiter service to be used for download speed throttling.
+    /// </summary>
+    /// <remarks>
+    /// Default: <see cref="nint.Zero"/>
+    /// </remarks>
+    public nint SpeedLimiterServiceContext { get; init; }
 }

@@ -13,8 +13,9 @@ public partial class SharedStaticV1Ext
     /// Registers the function of the Speed Throttler Service from the Main Application.
     /// To disable the speed throttler service, set the <paramref name="addBytesOrWaitAsyncCallback"/> to <see cref="nint.Zero"/>.
     /// </summary>
-    /// <param name="addBytesOrWaitAsyncCallback">The address of the speed throttler service callback</param>
-    internal delegate HResult RegisterSpeedThrottlerServiceDelegate(nint addBytesOrWaitAsyncCallback);
+    /// <param name="addBytesOrWaitAsyncCallback">The address of the adder wait callback</param>
+    /// <param name="addBytesOrWaitAsyncCallback">The address of the current speed getter callback</param>
+    internal delegate HResult RegisterSpeedThrottlerServiceDelegate(nint addBytesOrWaitAsyncCallback, nint getSharedThrottleBytesCallback);
 }
 
 public partial class SharedStaticV1Ext<T>
@@ -37,53 +38,27 @@ public partial class SharedStaticV1Ext<T>
     /// <summary>
     /// This method is an ABI proxy and installer for the Speed Throttler Service functionality. To use Speed Throttler Service functionalities, Use <see cref="SpeedLimiterService"/> instead.
     /// </summary>
-    private static unsafe HResult RegisterSpeedThrottlerService(nint addBytesOrWaitAsyncCallback)
+    private static unsafe HResult RegisterSpeedThrottlerService(nint addBytesOrWaitAsyncCallback, nint getSharedThrottleBytesCallback)
     {
-        SpeedLimiterService.AddBytesOrWaitAsyncCallback = (delegate* unmanaged[Stdcall]<nint, long, nint, out nint, int>)addBytesOrWaitAsyncCallback;
-        if (addBytesOrWaitAsyncCallback == nint.Zero)
+        if (addBytesOrWaitAsyncCallback == nint.Zero && getSharedThrottleBytesCallback == nint.Zero)
         {
             SpeedLimiterService.AddBytesOrWaitAsyncCallback = null;
+            SpeedLimiterService.GetSharedThrottleBytesCallback = null;
             InstanceLogger.LogTrace("[RegisterSpeedThrottlerService] Speed Throttler Service has been uninstalled");
 
             return HResult.Ok;
         }
 
-        // Test the delegate first before registering it.
-        nint contextP = SpeedLimiterService.CreateServiceContext();
-        try
+        if (addBytesOrWaitAsyncCallback != nint.Zero && getSharedThrottleBytesCallback != nint.Zero)
         {
-            // Try call the increment function with 16 bytes of load, then check for exception
-#pragma warning disable CA2012
-            ValueTask task = SpeedLimiterService.AddBytesOrWaitAsync(contextP, 16);
-#pragma warning restore CA2012
-            if (task is { IsCompleted: true, IsFaulted: false } ||
-                task.IsCompletedSuccessfully)
-            {
-                LogSuccess();
-                return HResult.Ok;
-            }
-
-            // Try block and await if task is still going.
-            task.GetAwaiter().GetResult();
-
-            // If nothing blown up, return OK.
-            LogSuccess();
+            SpeedLimiterService.AddBytesOrWaitAsyncCallback = (delegate* unmanaged[Cdecl]<nint, long, nint, out nint, int>)addBytesOrWaitAsyncCallback;
+            SpeedLimiterService.GetSharedThrottleBytesCallback = (delegate* unmanaged[Cdecl]<ref long, ref long, void>)getSharedThrottleBytesCallback;
+            InstanceLogger.LogTrace("[RegisterSpeedThrottlerService] Speed Throttler Service has been installed. Service's callback is located at address: (AddBytesOrWaitAsync) 0x{Ptr1:x8} (GetSharedThrottleBytes) 0x{Ptr2:x8}", addBytesOrWaitAsyncCallback, getSharedThrottleBytesCallback);
             return HResult.Ok;
+        }
 
-            void LogSuccess()
-            {
-                InstanceLogger.LogTrace("[RegisterSpeedThrottlerService] Speed Throttler Service has been installed. Service's callback is located at address: 0x{Ptr:x8}", addBytesOrWaitAsyncCallback);
-            }
-        }
-        catch (Exception ex)
-        {
-            SpeedLimiterService.AddBytesOrWaitAsyncCallback = null; // Reset the callback
-            return Marshal.GetHRForException(ex);
-        }
-        finally
-        {
-            SpeedLimiterService.FreeServiceContext(contextP);
-        }
+        InstanceLogger.LogError("[RegisterSpeedThrottlerService] Failed to install/uninstall Speed Throttler Service. You must provide both arguments either all null or not-null!");
+        return 0x80070057; // ERROR_INVALID_PARAMETER
     }
     #endregion
 }
