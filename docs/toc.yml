@@ -4,3 +4,7 @@
   href: getting-started.md
 - name: Creating a Plugin
   href: create-plugin.md
+- name: Utilities
+  href: utilities.md
+- name: Advanced Topics
+  href: advanced.md
