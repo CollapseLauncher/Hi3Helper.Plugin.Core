@@ -40,7 +40,10 @@
       "_appName": "Collapse Launcher Plugin Documentation",
       "_appTitle": "Collapse Launcher Plugin Documentation",
       "_enableSearch": true,
-      "pdf": false
+      "pdf": true
+    },
+    "sitemap": {
+      "baseUrl": "https://plugin-docs.collapselauncher.com"
     }
   }
 }
