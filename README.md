@@ -11,9 +11,9 @@ Make sure that your code is **as reflection-free** as possible, as the code is e
 # What's Included?
 This Core Library includes various APIs to make the plugin development faster, without needing to implement the entire functions from scratch. Here's a list of what's included currently:
 
-### V1 (v0.1.3.0) Implementation Standard
+### V1 (v0.1.4.0) Implementation Standard
 
-This repository follows the V1 implementation standard (current library version: ``v0.1.3.0``). The standard collects base API contracts, COM interop helpers, marshallers and small utility primitives that plugin authors and the launcher can rely on.
+This repository follows the V1 implementation standard (current library version: ``v0.1.4.0``). The standard collects base API contracts, COM interop helpers, marshallers and small utility primitives that plugin authors and the launcher can rely on.
 
 > [!WARNING] 
 > The API contracts and implementations are still under development, so expect some breaking changes in the future.
@@ -37,6 +37,16 @@ This repository follows the V1 implementation standard (current library version:
   * [``LauncherApiMediaBase``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Management/Api/LauncherApiMediaBase.cs) (Inherit: ``LauncherApiBase``, Implement: ``ILauncherApiMedia``)
   * [``LauncherApiNewsBase``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Management/Api/LauncherApiNewsBase.cs) (Inherit: ``LauncherApiBase``, Implement: ``ILauncherApiNews``)
 
+* Export Registry
+  * [``SharedStatic``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.cs) - Registers and exposes all **v0.1 core** and **v0.1-update1** function-pointer exports via ``GetApiExport``:
+    * v0.1 core: ``GetPluginStandardVersion``, ``GetPluginVersion``, ``GetPlugin``, ``FreePlugin``, ``SetLoggerCallback``, ``SetDnsResolverCallback``
+    * v0.1-update1: ``GetPluginUpdateCdnList``, ``SetDnsResolverCallbackAsync``
+  * [``SharedStaticV1Ext<T>``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext.cs) (Inherit: ``SharedStatic``) — Registers all additional optional extension exports on top of ``SharedStatic``:
+    * v0.1-update1 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update1.cs)): ``LaunchGameFromGameManagerAsync``, ``IsGameRunning``, ``WaitRunningGameAsync``, ``KillRunningGame``
+    * v0.1-update2 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update2.cs)): ``GetCurrentDiscordPresenceInfo``
+    * v0.1-update3 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update3.cs)): ``StartResizableWindowHookAsync``
+    * v0.1-update4 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update4.cs)): ``RegisterSpeedThrottlerService``
+
 * COM-API Interfaces/Contracts
   * [``IFree``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/IFree.cs)
   * [``IPlugin``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/IPlugin.cs) (Inherit: ``IFree``)
@@ -54,17 +64,31 @@ This repository follows the V1 implementation standard (current library version:
   * Asynchronous Task Marshaller with ``Exception`` throw and ``CancellationToken`` support (via: [``ComAsyncResult``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/ComAsyncResult.cs) and [``ComAsyncExtension``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/ComAsyncExtension.cs))
   * COM-Interop ABI For Manual Marshalling to Support ``No-Reflection`` mode if ``MANUALCOM`` "constant define" included inside the ``.csproj`` file (via: [``ABI\ABI_I***Wrappers``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/tree/main/ABI))
     > Source-generated COM ABI and Wrapper is used by default if ``MANUALCOM`` isn't defined.
+  * COM ``HRESULT`` wrapper struct with implicit conversions to/from ``int``, ``uint``, and ``bool`` (via: [``HResult``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/HResult.cs))
   * Disposable Plugin Memory for managing data in unmanaged memory between the plugin and the main application (via: [``PluginDisposableMemory``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/PluginDisposableMemory.cs))
   * Memory and String Tools (via: [``Mem``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Mem.cs) and [``Mem.String``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Mem.String.cs))
+  * Pre-configured ``HttpClient`` builder with proxy, custom DNS resolver, server certificate override and timeout support (via: [``PluginHttpClientBuilder``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/PluginHttpClientBuilder.cs))
+  * Retry-able HTTP stream copy helper with configurable retry count and buffer size (via: [``RetryableCopyToStreamTask``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/RetryableCopyToStreamTask.cs) and [``PluginFiles``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/PluginFiles.cs))
+  * Download speed throttling service that integrates with the ``RegisterSpeedThrottlerService`` launcher export (via: [``SpeedLimiterService``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/SpeedLimiterService.cs))
+  * Unmanaged struct for DNS A/AAAA record resolver results shared across the COM boundary (via: [``DnsARecordResult``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/DnsARecordResult.cs))
+  * Discord Rich Presence information retrieval for the current game region (via: [``DiscordPresenceExtension``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/DiscordPresence/DiscordPresenceExtension.cs) and [``DiscordPresenceInfo``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/DiscordPresence/DiscordPresenceInfo.cs))
+  * Launcher-side game launch/wait/kill helpers that call the plugin's ``IGameManager`` via the export ABI (via: [``GameManagerExtension``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/GameManagerExtension.cs))
   * Lightweight/No-Reflection Supported JSON Serializer/Deserializer Contracts (using: ``JsonDocument``, ``Utf8JsonWriter`` and ``Utf8JsonReader``) via:
     * [``IJsonElementParsable<out T>``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/IJsonElementParsable.cs)
     * [``IJsonStreamParsable<T>``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/IJsonStreamParsable.cs)
     * [``IJsonStreamSerializable<in T>``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/IJsonStreamSerializable.cs)
     * [``IJsonStringSerializable<in T>``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/IJsonStringSerializable.cs)
     * [``IJsonWriterSerializable<in T>``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/IJsonWriterSerializable.cs)
+    * JSON Converters: [``HexStringToArrayJsonConverter``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/Converters/HexStringToArrayJsonConverter.cs), [``Utf16SpanParsableJsonConverter``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/Converters/Utf16SpanParsableJsonConverter.cs), [``Utf8SpanParsableJsonConverter``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/Converters/Utf8SpanParsableJsonConverter.cs), [``Utf8SpanParsableToBytesJsonConverter``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/Utility/Json/Converters/Utf8SpanParsableToBytesJsonConverter.cs)
 
 # How to Start Developing Plugins
-### TODO: Make an entire Wiki and documentation for How-to-use and stuff.
+Full documentation is available on the [GitHub Pages site](https://collapseLauncher.github.io/Hi3Helper.Plugin.Core/).
+
+Quick-start links:
+- **[Introduction](https://collapseLauncher.github.io/Hi3Helper.Plugin.Core/docs/introduction.html)** — architecture overview and key concepts
+- **[Getting Started](https://collapseLauncher.github.io/Hi3Helper.Plugin.Core/docs/getting-started.html)** — create and publish a minimal plugin in 5 steps
+- **[Creating a Plugin (full guide)](https://collapseLauncher.github.io/Hi3Helper.Plugin.Core/docs/create-plugin.html)** — in-depth walkthrough covering every interface, async patterns, self-update, and NativeAOT build configurations
+- **[API Reference](https://collapseLauncher.github.io/Hi3Helper.Plugin.Core/api/)** — auto-generated XML-doc reference for every public type
 
 # Plugin Examples
 To see the example of how the plugin implemented using this Core Library, check the link below:
