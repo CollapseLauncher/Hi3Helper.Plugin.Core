@@ -1,4 +1,5 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
@@ -17,22 +18,27 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
     /// <inheritdoc/>
     public void GetGameSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result)
     {
+        SharedStatic.InstanceLogger?.LogInformation("[GameInstallerBase::GetGameSizeAsync] Called with kind={Kind}", gameInstallerKind);
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         result = GetGameSizeAsyncInner(gameInstallerKind, token).AsResult();
+        SharedStatic.InstanceLogger?.LogInformation("[GameInstallerBase::GetGameSizeAsync] Returning ComAsyncResult ptr={ResultPtr}", result);
     }
 
     /// <inheritdoc/>
     public void GetGameDownloadedSizeAsync(GameInstallerKind gameInstallerKind, in Guid cancelToken, out nint result)
     {
+        SharedStatic.InstanceLogger?.LogInformation("[GameInstallerBase::GetGameDownloadedSizeAsync] Called with kind={Kind}", gameInstallerKind);
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         result = GetGameDownloadedSizeAsyncInner(gameInstallerKind, token).AsResult();
+        SharedStatic.InstanceLogger?.LogInformation("[GameInstallerBase::GetGameDownloadedSizeAsync] Returning ComAsyncResult ptr={ResultPtr}", result);
     }
 
     /// <inheritdoc/>
     public void StartInstallAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result)
     {
+        SharedStatic.InstanceLogger?.LogInformation("[GameInstallerBase::StartInstallAsync] Starting install operation");
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         result = StartInstallAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
@@ -41,6 +47,7 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
     /// <inheritdoc/>
     public void StartUpdateAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result)
     {
+        SharedStatic.InstanceLogger?.LogInformation("[GameInstallerBase::StartUpdateAsync] Starting update operation");
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         result = StartUpdateAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();
@@ -49,6 +56,7 @@ public abstract partial class GameInstallerBase(IGameManager? gameManager) : Ini
     /// <inheritdoc/>
     public void StartPreloadAsync(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, in Guid cancelToken, out nint result)
     {
+        SharedStatic.InstanceLogger?.LogInformation("[GameInstallerBase::StartPreloadAsync] Starting preload operation");
         CancellationTokenSource tokenSource = ComCancellationTokenVault.RegisterToken(in cancelToken);
         CancellationToken token = tokenSource.Token;
         result = StartPreloadAsyncInner(progressDelegate, progressStateDelegate, token).AsResult();

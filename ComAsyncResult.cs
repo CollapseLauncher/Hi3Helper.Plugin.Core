@@ -267,9 +267,19 @@ public struct ComAsyncResult() : IDisposable
 
             // If the task is completed before the OnCompleted was triggered, then set the result earlier
             // and return the pointer.
+            // NOTE: WriteTaskState + SetEvent are called directly here instead of going through
+            //       SetResult(), because SetResult() tries to acquire threadLock which we already
+            //       hold — and System.Threading.Lock is non-reentrant, so that would deadlock.
             if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
             {
-                resultP->SetResult(threadLock, task);
+                try
+                {
+                    resultP->WriteTaskState(task);
+                }
+                finally
+                {
+                    PInvoke.SetEvent(resultP->Handle);
+                }
                 return (nint)resultP;
             }
 
@@ -299,9 +309,26 @@ public struct ComAsyncResult() : IDisposable
 
             // If the task is completed before the OnCompleted was triggered, then set the result earlier
             // and return the pointer.
+            // NOTE: Same non-reentrant lock guard as the non-generic Alloc above.
             if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
             {
-                resultP->SetResult(threadLock, task);
+                try
+                {
+                    resultP->WriteTaskState(task);
+
+                    if (!task.IsFaulted && !task.IsCanceled)
+                    {
+                        resultP->_resultP = (nint)Mem.Alloc<T>();
+                        if (resultP->_resultP != nint.Zero && task.IsCompletedSuccessfully)
+                        {
+                            Unsafe.Write((void*)resultP->_resultP, task.Result);
+                        }
+                    }
+                }
+                finally
+                {
+                    PInvoke.SetEvent(resultP->Handle);
+                }
                 return (nint)resultP;
             }
 

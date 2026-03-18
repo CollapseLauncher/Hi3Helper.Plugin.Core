@@ -74,13 +74,25 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     protected abstract bool IsInstalled { get; }
 
     /// <inheritdoc/>
-    public void GetCurrentGameVersion(out GameVersion gameVersion) => gameVersion = CurrentGameVersion;
+    public void GetCurrentGameVersion(out GameVersion gameVersion)
+    {
+        gameVersion = CurrentGameVersion;
+        SharedStatic.InstanceLogger?.LogInformation("[GameManagerBase::GetCurrentGameVersion] Returning {Version}", gameVersion);
+    }
 
     /// <inheritdoc/>
-    public void GetApiGameVersion(out GameVersion gameVersion) => gameVersion = ApiGameVersion;
+    public void GetApiGameVersion(out GameVersion gameVersion)
+    {
+        gameVersion = ApiGameVersion;
+        SharedStatic.InstanceLogger?.LogInformation("[GameManagerBase::GetApiGameVersion] Returning {Version}", gameVersion);
+    }
 
     /// <inheritdoc/>
-    public void GetApiPreloadGameVersion(out GameVersion gameVersion) => gameVersion = ApiPreloadGameVersion;
+    public void GetApiPreloadGameVersion(out GameVersion gameVersion)
+    {
+        gameVersion = ApiPreloadGameVersion;
+        SharedStatic.InstanceLogger?.LogInformation("[GameManagerBase::GetApiPreloadGameVersion] Returning {Version}", gameVersion);
+    }
 
     /// <inheritdoc/>
     public void SetCurrentGameVersion(in GameVersion gameVersion)
@@ -114,13 +126,31 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
 
 
     /// <inheritdoc/>
-    public void IsGameHasPreload(out bool result) => result = HasPreload;
+    public void IsGameHasPreload(out bool result)
+    {
+        result = HasPreload;
+        SharedStatic.InstanceLogger?.LogDebug(
+            "[GameManagerBase::IsGameHasPreload] Returning {Result}, HasPreload={HP}, IsInstalled={IsInst}, ApiPreloadVersion={ApiPV}",
+            result, HasPreload, IsInstalled, ApiPreloadGameVersion);
+    }
 
     /// <inheritdoc/>
-    public void IsGameHasUpdate(out bool result) => result = HasUpdate;
+    public void IsGameHasUpdate(out bool result)
+    {
+        result = HasUpdate;
+        SharedStatic.InstanceLogger?.LogDebug(
+            "[GameManagerBase::IsGameHasUpdate] Returning {Result}",
+            result);
+    }
 
     /// <inheritdoc/>
-    public void IsGameInstalled(out bool result) => result = IsInstalled;
+    public void IsGameInstalled(out bool result)
+    {
+        result = IsInstalled;
+        SharedStatic.InstanceLogger?.LogDebug(
+            "[GameManagerBase::IsGameInstalled] Returning {Result}, InstallPath={Path}",
+            result, CurrentGameInstallPath ?? "(null)");
+    }
 
     /// <inheritdoc/>
     public void FindExistingInstallPathAsync(in Guid cancelToken, out nint result)
