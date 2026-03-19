@@ -24,7 +24,7 @@ public partial class SharedStaticV1Ext
     /// </summary>
     /// <param name="perFileDownloadedBytes">Bytes downloaded for the current file.</param>
     /// <param name="perFileTotalBytes">Total size of the current file.</param>
-    internal static unsafe void InvokePerFileProgress(long perFileDownloadedBytes, long perFileTotalBytes)
+    public static unsafe void InvokePerFileProgress(long perFileDownloadedBytes, long perFileTotalBytes)
     {
         var callback = PerFileProgressCallback;
         if (callback == null)
