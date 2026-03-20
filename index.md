@@ -11,7 +11,7 @@ _layout: landing
 - **Full NativeAOT support** — designed to be compiled with .NET NativeAOT; reflection-free when targeting `MANUALCOM`/`USELIGHTWEIGHTJSONPARSER` configurations
 - **COM interop via `System.Runtime.InteropServices.Marshalling`** — no custom COM registration; the launcher discovers everything through a single `GetApiExport` entry point
 - **Batteries-included utilities** — pre-configured `HttpClient` builder with automatic proxy and DNS resolver integration, retry-able download streams, speed limiting, and unmanaged memory helpers
-- **Versioned extension API** — optional feature sets (`v0.1-update1` through `v0.1-update4`) for game launch, Discord Rich Presence, resizable-window hook, and download throttling are all opt-in
+- **Versioned extension API** — optional feature sets (`v0.1-update1` through `v0.1-update5`) for game launch, Discord Rich Presence, resizable-window hook, download throttling, and per-file install progress are all opt-in
 
 ## Getting started
 

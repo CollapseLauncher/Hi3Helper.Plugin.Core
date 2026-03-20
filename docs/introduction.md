@@ -38,7 +38,15 @@ Plugin.dll (NativeAOT)
 
 ## API standard versioning
 
-The current API standard version is **v0.1.4**. All plugins must implement at minimum the **v0.1 core** exports. Optional feature sets are versioned as update packages (`v0.1-update1`, `v0.1-update2`, etc.) and are handled automatically by `SharedStaticV1Ext<T>`.
+The current API standard version is **v0.1.5**. All plugins must implement at minimum the **v0.1 core** exports. Optional feature sets are versioned as update packages (`v0.1-update1`, `v0.1-update2`, etc.) and are handled automatically by `SharedStaticV1Ext<T>`.
+
+| Update | Export(s) added | Description |
+|--------|----------------|-------------|
+| v0.1-update1 | `LaunchGameFromGameManagerAsync`, `IsGameRunning`, `WaitRunningGameAsync`, `KillRunningGame`, `GetPluginUpdateCdnList`, `SetDnsResolverCallbackAsync` | Game launch/runtime management, async DNS resolver, CDN self-update |
+| v0.1-update2 | `GetCurrentDiscordPresenceInfo` | Discord Rich Presence |
+| v0.1-update3 | `StartResizableWindowHookAsync` | Resizable window hook |
+| v0.1-update4 | `RegisterSpeedThrottlerService` | Download speed throttling |
+| v0.1-update5 | `SetPerFileProgressCallback` | Per-file install/download progress reporting |
 
 ## Next steps
 

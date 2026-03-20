@@ -6,6 +6,7 @@
 2. [Proxy settings](#2-proxy-settings)
 3. [Discord Rich Presence](#3-discord-rich-presence)
 4. [Multi-region plugins](#4-multi-region-plugins)
+5. [Per-file install progress](#5-per-file-install-progress)
 
 ---
 
@@ -251,3 +252,37 @@ public partial class MySeaPresetConfig : PluginPresetConfigBase
 - **`ProfileName` vs `ZoneName`** — `ZoneName` is the short display label in the launcher UI. `ProfileName` is used as an internal grouping key; it can be the same as `ZoneName`.
 - **Region ordering** — the launcher displays regions in the order the plugin returns them (index 0 first). Put the most common region first.
 - **Locale handling** — `SharedStatic.PluginLocaleCode` is set by the launcher via the `SetPluginCurrentLocale` export. Both preset configs read the same `PluginLocaleCode`, so API calls for different regions will automatically use the user's selected language.
+
+---
+
+## 5. Per-file install progress
+
+The launcher can receive per-file download progress from the plugin via the `v0.1-update5` extension export `SetPerFileProgressCallback`. This lets the launcher display fine-grained progress for each individual file being downloaded, rather than just the aggregate bytes.
+
+**No extra setup is required.** The export is automatically registered by `SharedStaticV1Ext<T>`. If the launcher supports it, it will call `SetPerFileProgressCallback` with a function pointer after loading the plugin. If the launcher does not support it, the callback is never set and calls to `InvokePerFileProgress` are no-ops.
+
+### Reporting progress from your installer
+
+Call `SharedStaticV1Ext.InvokePerFileProgress` each time you have a new byte count for the current file:
+
+```csharp
+using Hi3Helper.Plugin.Core;
+
+// Inside your download loop, after each chunk written:
+InvokePerFileProgress(perFileDownloadedBytes, perFileTotalBytes);
+```
+
+The helper is null-checked internally — it is always safe to call regardless of whether the launcher has registered a callback.
+
+### `InstallPerFileProgress` struct layout
+
+```
+Offset  Field                   Type    Description
+ 00–08  PerFileDownloadedBytes  long    Bytes downloaded so far for this file
+ 08–16  PerFileTotalBytes       long    Total size of this file in bytes
+```
+
+### Launcher-side behaviour
+
+- If the plugin exports `SetPerFileProgressCallback`, Collapse registers its handler on startup and shows per-file progress in the install UI.
+- If the plugin **does not** export the callback (i.e. older plugin versions), Collapse falls back to mirroring the aggregate `InstallProgressDelegate` as an approximation of per-file progress.
