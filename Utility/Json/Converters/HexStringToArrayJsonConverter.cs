@@ -13,7 +13,7 @@ namespace Hi3Helper.Plugin.Core.Utility.Json.Converters;
 /// </summary>
 /// <typeparam name="TStruct">A type of struct that's bit-able.</typeparam>
 public class HexStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?>
-        where TStruct : unmanaged
+    where TStruct : unmanaged
 {
     public override bool CanConvert(Type typeToConvert) => true;
 

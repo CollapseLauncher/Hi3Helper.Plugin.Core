@@ -197,5 +197,8 @@ public class PluginManifestAssetInfo
     /// <summary>
     /// Hash of the asset file in <see cref="System.Security.Cryptography.MD5"/> format.
     /// </summary>
+#if !USELIGHTWEIGHTJSONPARSER
+    [JsonConverter(typeof(BytesStringToArrayJsonConverter))]
+#endif
     public required byte[] FileHash { get; set; }
 }
