@@ -110,7 +110,7 @@ public class BytesStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?
                 return base64DecodedStructBuffer;
             }
 
-            // Lastly, try Base64Url.
+            // Lastly, try Base64.
             if (Base64.IsValid(utf8SampleData))
             {
                 // Alloc buffer
