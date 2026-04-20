@@ -44,7 +44,47 @@ public class BytesStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?
         Unsafe.SkipInit(out byte[]? utf8DataBuffer);
         try
         {
-            // Try decode in Base64Url first.
+            // Try decode in Hex first.
+            if (utf8DataLength % 2 == 0)
+            {
+                // If the sample data length is odd, then trim the length (to make it even).
+                if (utf8SampleData.Length % 2 != 0)
+                {
+                    // Cut to up-to 16 bytes for sample data
+                    utf8SampleData = utf8SampleData[..Math.Min(utf8SampleData.Length - 1, 16)];
+                }
+
+                // Try to decode the sample data.
+                Span<byte> hexTestDecodeBuffer = stackalloc byte[utf8SampleData.Length / 2];
+                OperationStatus hexTestDecodeStatus = Convert.FromHexString(utf8SampleData, hexTestDecodeBuffer, out _, out _);
+                if (hexTestDecodeStatus != OperationStatus.Done)
+                {
+                    goto ResumeToBase64;
+                }
+
+                // Alloc buffer
+                utf8DataBuffer = utf8DataLength > 2048 ? ArrayPool<byte>.Shared.Rent(utf8DataLength) : null;
+                Span<byte> utf8DataSpan = utf8DataBuffer ?? stackalloc byte[utf8DataLength];
+
+                GetUtf8Data(ref reader, utf8DataSpan);
+                utf8DataSpan = utf8DataSpan[..utf8DataLength];
+
+                // Decode the hex string
+                int hexBytesToDecodeLength = utf8DataLength / 2;
+                TStruct[] hexDecodedStructBuffer = GC.AllocateUninitializedArray<TStruct>(hexBytesToDecodeLength / sizeof(TStruct));
+                Span<byte> hexDecodedStructSpan = MemoryMarshal.AsBytes(hexDecodedStructBuffer.AsSpan());
+
+                hexTestDecodeStatus = Convert.FromHexString(utf8DataSpan, hexDecodedStructSpan, out _, out _);
+                if (hexTestDecodeStatus != OperationStatus.Done)
+                {
+                    ThrowFullHexDecodeFailedException(hexTestDecodeStatus);
+                }
+
+                return hexDecodedStructBuffer;
+            }
+
+        ResumeToBase64:
+            // Then try Base64Url.
             if (Base64Url.IsValid(utf8SampleData))
             {
                 // Alloc buffer
@@ -70,7 +110,7 @@ public class BytesStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?
                 return base64DecodedStructBuffer;
             }
 
-            // Try decode in Base64 first.
+            // Lastly, try Base64Url.
             if (Base64.IsValid(utf8SampleData))
             {
                 // Alloc buffer
@@ -100,45 +140,6 @@ public class BytesStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?
                 utf8DataSpan.CopyTo(base64DecodedStructSpan);
                 return base64DecodedStructBuffer;
             }
-
-            // Try decode in Hex.
-            if (utf8DataLength % 2 == 0)
-            {
-                // If the sample data length is odd, then trim the length (to make it even).
-                if (utf8SampleData.Length % 2 != 0)
-                {
-                    // Cut to up-to 16 bytes for sample data
-                    utf8SampleData = utf8SampleData[..Math.Min(utf8SampleData.Length - 1, 16)];
-                }
-
-                // Try to decode the sample data.
-                Span<byte> hexTestDecodeBuffer = stackalloc byte[utf8SampleData.Length / 2];
-                OperationStatus hexTestDecodeStatus = Convert.FromHexString(utf8SampleData, hexTestDecodeBuffer, out _, out _);
-                if (hexTestDecodeStatus != OperationStatus.Done)
-                {
-                    ThrowTestingHexDecodeFailedException(hexTestDecodeStatus);
-                }
-
-                // Alloc buffer
-                utf8DataBuffer = utf8DataLength > 2048 ? ArrayPool<byte>.Shared.Rent(utf8DataLength) : null;
-                Span<byte> utf8DataSpan = utf8DataBuffer ?? stackalloc byte[utf8DataLength];
-
-                GetUtf8Data(ref reader, utf8DataSpan);
-                utf8DataSpan = utf8DataSpan[..utf8DataLength];
-
-                // Decode the hex string
-                int hexBytesToDecodeLength = utf8DataLength / 2;
-                TStruct[] hexDecodedStructBuffer = GC.AllocateUninitializedArray<TStruct>(hexBytesToDecodeLength / sizeof(TStruct));
-                Span<byte> hexDecodedStructSpan = MemoryMarshal.AsBytes(hexDecodedStructBuffer.AsSpan());
-
-                hexTestDecodeStatus = Convert.FromHexString(utf8DataSpan, hexDecodedStructSpan, out _, out _);
-                if (hexTestDecodeStatus != OperationStatus.Done)
-                {
-                    ThrowFullHexDecodeFailedException(hexTestDecodeStatus);
-                }
-
-                return hexDecodedStructBuffer;
-            }
         }
         finally
         {
@@ -148,13 +149,11 @@ public class BytesStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?
             }
         }
 
-        throw new InvalidOperationException($"Value must be in Base64 or Hex string format!");
+        // Gave up :(
+        throw new InvalidOperationException("Value must be in Base64 or Hex string format!");
 
         static void ThrowInvalidStructSizeToBufferException(int sizeOfUtf8Data, int sizeOfStruct) =>
             throw new InvalidOperationException($"The decoded data length is not a multiple of the struct size ({sizeOfUtf8Data} % {sizeOfStruct} = {sizeOfUtf8Data % sizeOfStruct}).");
-
-        static void ThrowTestingHexDecodeFailedException(OperationStatus status) =>
-            throw new InvalidOperationException($"Failed while testing to decode Hex value with status: {status}.");
 
         static void ThrowFullHexDecodeFailedException(OperationStatus status) =>
             throw new InvalidOperationException($"Failed while trying to fully decode the Hex value with status: {status}.");
