@@ -65,7 +65,7 @@ public partial interface IPlugin : IFree
     /// </summary>
     /// <param name="index">The index of the preset configuration.</param>
     /// <param name="presetConfig">The <see cref="IPluginPresetConfig"/> instance at the specified index.</param>
-    void GetPresetConfig(int index, [MarshalAs(UnmanagedType.Interface)] out IPluginPresetConfig presetConfig);
+    void GetPresetConfig(int index, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IPluginPresetConfig>))] out IPluginPresetConfig presetConfig);
 
     /// <summary>
     /// Cancels an asynchronous operation associated with the specified cancellation token.
@@ -98,5 +98,5 @@ public partial interface IPlugin : IFree
     /// Gets the plugin self-updater instance.
     /// </summary>
     /// <param name="selfUpdate">An instance to <see cref="IPluginSelfUpdate"/>.</param>
-    void GetPluginSelfUpdater([MarshalAs(UnmanagedType.Interface)] out IPluginSelfUpdate? selfUpdate);
+    void GetPluginSelfUpdater([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IPluginSelfUpdate>))] out IPluginSelfUpdate? selfUpdate);
 }

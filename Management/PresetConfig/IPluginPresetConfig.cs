@@ -131,24 +131,24 @@ public partial interface IPluginPresetConfig : IInitializableTask
     /// Gets an instance to the <see cref="ILauncherApiMedia"/>.
     /// </summary>
     /// <param name="result">The launcher Media API instance.</param>
-    void comGet_LauncherApiMedia([MarshalAs(UnmanagedType.Interface)] out ILauncherApiMedia? result);
+    void comGet_LauncherApiMedia([MarshalUsing(typeof(UniqueComInterfaceMarshaller<ILauncherApiMedia>))] out ILauncherApiMedia? result);
 
     /// <summary>
     /// Gets an instance to the <see cref="ILauncherApiNews"/>.
     /// </summary>
     /// <param name="result">The launcher News API instance.</param>
-    void comGet_LauncherApiNews([MarshalAs(UnmanagedType.Interface)] out ILauncherApiNews? result);
+    void comGet_LauncherApiNews([MarshalUsing(typeof(UniqueComInterfaceMarshaller<ILauncherApiNews>))] out ILauncherApiNews? result);
 
     /// <summary>
     /// Gets an instance to the <see cref="IGameManager"/>
     /// </summary>
     /// <param name="result">The game manager instance.</param>
-    void comGet_GameManager([MarshalAs(UnmanagedType.Interface)] out IGameManager? result);
+    void comGet_GameManager([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IGameManager>))] out IGameManager? result);
 
     /// <summary>
     /// Gets an instance to the <see cref="IGameInstaller"/> and <see cref="IGameUninstaller"/>
     /// </summary>
     /// <param name="result">The game installer and uninstaller instance.</param>
-    void comGet_GameInstaller([MarshalAs(UnmanagedType.Interface)] out IGameInstaller? result);
+    void comGet_GameInstaller([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IGameInstaller>))] out IGameInstaller? result);
     #endregion
 }
