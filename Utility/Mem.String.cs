@@ -299,11 +299,11 @@ public static partial class Mem
     {
         fixed (char* ptr = buffer)
         {
-            var input = (ushort*)state.ToPointer();
-            var output = (ushort*)ptr;
+            ushort* input  = (ushort*)state.ToPointer();
+            ushort* output = (ushort*)ptr;
 
-            var i = (nint)0;
-            var n = (nint)(uint)buffer.Length;
+            nint i = (nint)0;
+            nint n = (nint)(uint)buffer.Length;
 
             if (Sse41.IsSupported && n >= Vector128<ushort>.Count)
             {

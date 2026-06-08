@@ -20,9 +20,9 @@ internal sealed unsafe class ABI_IGameUninstallerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var @this = ComInterfaceDispatch.GetInstance<IGameUninstaller>(thisNative);
-            @this.UninstallAsync(in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            IGameUninstaller @this = ComInterfaceDispatch.GetInstance<IGameUninstaller>(thisNative);
+            @this.UninstallAsync(in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

@@ -20,9 +20,9 @@ internal sealed unsafe class ABI_IGameInstallerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
-            @this.GetGameSizeAsync(gameInstallerKind, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            IGameInstaller @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
+            @this.GetGameSizeAsync(gameInstallerKind, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -45,9 +45,9 @@ internal sealed unsafe class ABI_IGameInstallerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
-            @this.GetGameDownloadedSizeAsync(gameInstallerKind, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            IGameInstaller @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
+            @this.GetGameDownloadedSizeAsync(gameInstallerKind, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -70,11 +70,11 @@ internal sealed unsafe class ABI_IGameInstallerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var progressStateDelegate = progressStateDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressStateDelegate>(progressStateDelegateNative) : null;
-            var progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
-            var @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
-            @this.StartInstallAsync(progressDelegate, progressStateDelegate, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            InstallProgressStateDelegate? progressStateDelegate = progressStateDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressStateDelegate>(progressStateDelegateNative) : null;
+            InstallProgressDelegate? progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
+            IGameInstaller @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
+            @this.StartInstallAsync(progressDelegate, progressStateDelegate, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -97,11 +97,11 @@ internal sealed unsafe class ABI_IGameInstallerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var progressStateDelegate = progressStateDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressStateDelegate>(progressStateDelegateNative) : null;
-            var progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
-            var @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
-            @this.StartUpdateAsync(progressDelegate, progressStateDelegate, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            InstallProgressStateDelegate? progressStateDelegate = progressStateDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressStateDelegate>(progressStateDelegateNative) : null;
+            InstallProgressDelegate? progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
+            IGameInstaller @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
+            @this.StartUpdateAsync(progressDelegate, progressStateDelegate, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -124,11 +124,11 @@ internal sealed unsafe class ABI_IGameInstallerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var progressStateDelegate = progressStateDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressStateDelegate>(progressStateDelegateNative) : null;
-            var progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
-            var @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
-            @this.StartPreloadAsync(progressDelegate, progressStateDelegate, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            InstallProgressStateDelegate? progressStateDelegate = progressStateDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressStateDelegate>(progressStateDelegateNative) : null;
+            InstallProgressDelegate? progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
+            IGameInstaller @this = ComInterfaceDispatch.GetInstance<IGameInstaller>(thisNative);
+            @this.StartPreloadAsync(progressDelegate, progressStateDelegate, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

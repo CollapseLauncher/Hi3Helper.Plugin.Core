@@ -101,7 +101,7 @@ public sealed unsafe class LauncherApiWrappers : ComWrappers
         }
     }
 
-    protected override object CreateObject(IntPtr externalComObject, CreateObjectFlags flags)
+    protected override object CreateObject(nint externalComObject, CreateObjectFlags flags)
         => throw new NotSupportedException();
 
     protected override void ReleaseObjects(IEnumerable objects)

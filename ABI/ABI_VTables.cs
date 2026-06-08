@@ -33,9 +33,9 @@ internal static unsafe class ABI_VTables
     {
         // Get methods for IUnknown interface query on runtime.
         GetIUnknownImpl(
-            out IntPtr fpQueryInterface,
-            out IntPtr fpAddRef,
-            out IntPtr fpRelease);
+            out nint fpQueryInterface,
+            out nint fpAddRef,
+            out nint fpRelease);
 
         /* =====================================================================================================
          * NOTE FOR PLUGIN DEVELOPERS

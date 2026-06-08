@@ -22,10 +22,10 @@ internal sealed unsafe class ABI_ILauncherApiWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var downloadProgress = downloadProgressNative != 0 ? Marshal.GetDelegateForFunctionPointer<PluginFiles.FileReadProgressDelegate>(downloadProgressNative) : null;
-            var @this = ComInterfaceDispatch.GetInstance<ILauncherApi>(thisNative);
-            @this.DownloadAssetAsync(entry, outputStreamHandle, downloadProgress, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            PluginFiles.FileReadProgressDelegate? downloadProgress = downloadProgressNative != 0 ? Marshal.GetDelegateForFunctionPointer<PluginFiles.FileReadProgressDelegate>(downloadProgressNative) : null;
+            ILauncherApi @this = ComInterfaceDispatch.GetInstance<ILauncherApi>(thisNative);
+            @this.DownloadAssetAsync(entry, outputStreamHandle, downloadProgress, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -48,11 +48,11 @@ internal sealed unsafe class ABI_ILauncherApiWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var downloadProgress = downloadProgressNative != 0 ? Marshal.GetDelegateForFunctionPointer<PluginFiles.FileReadProgressDelegate>(downloadProgressNative) : null;
-            var fileUrl = Utf16StringMarshaller.ConvertToManaged(fileUrlNative) ?? "";
-            var @this = ComInterfaceDispatch.GetInstance<ILauncherApi>(thisNative);
-            @this.DownloadAssetAsync(fileUrl, outputStreamHandle, downloadProgress, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            PluginFiles.FileReadProgressDelegate? downloadProgress = downloadProgressNative != 0 ? Marshal.GetDelegateForFunctionPointer<PluginFiles.FileReadProgressDelegate>(downloadProgressNative) : null;
+            string fileUrl = Utf16StringMarshaller.ConvertToManaged(fileUrlNative) ?? "";
+            ILauncherApi @this = ComInterfaceDispatch.GetInstance<ILauncherApi>(thisNative);
+            @this.DownloadAssetAsync(fileUrl, outputStreamHandle, downloadProgress, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

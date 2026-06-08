@@ -17,7 +17,7 @@ internal sealed unsafe class ABI_IFreeWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IFree>(thisNative);
+            IFree @this = ComInterfaceDispatch.GetInstance<IFree>(thisNative);
             @this.Free();
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK

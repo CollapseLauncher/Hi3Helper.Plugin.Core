@@ -6,6 +6,7 @@ using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Hi3Helper.Plugin.Core.Management.Api;
 using static System.Runtime.InteropServices.ComWrappers;
 
 namespace Hi3Helper.Plugin.Core.ABI;
@@ -53,8 +54,8 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
-            @this.comGet_ReleaseChannel(out var result);
+            IPluginPresetConfig @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
+            @this.comGet_ReleaseChannel(out GameReleaseChannel result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -80,8 +81,8 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
-            @this.comGet_GameSupportedLanguagesCount(out var result);
+            IPluginPresetConfig @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
+            @this.comGet_GameSupportedLanguagesCount(out int result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -133,8 +134,8 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
-            @this.comGet_LauncherApiMedia(out var result);
+            IPluginPresetConfig @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
+            @this.comGet_LauncherApiMedia(out ILauncherApiMedia? result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -156,8 +157,8 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
-            @this.comGet_LauncherApiNews(out var result);
+            IPluginPresetConfig @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
+            @this.comGet_LauncherApiNews(out ILauncherApiNews? result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -179,8 +180,8 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
-            @this.comGet_GameManager(out var result);
+            IPluginPresetConfig @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
+            @this.comGet_GameManager(out IGameManager? result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -202,8 +203,8 @@ internal sealed unsafe class ABI_IPluginPresetConfigWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
-            @this.comGet_GameInstaller(out var result);
+            IPluginPresetConfig @this = ComInterfaceDispatch.GetInstance<IPluginPresetConfig>(thisNative);
+            @this.comGet_GameInstaller(out IGameInstaller? result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

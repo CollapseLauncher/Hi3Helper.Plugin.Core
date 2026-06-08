@@ -56,7 +56,7 @@ public sealed unsafe class GameManagerWrappers : ComWrappers
         return null;
     }
 
-    protected override object CreateObject(IntPtr externalComObject, CreateObjectFlags flags)
+    protected override object CreateObject(nint externalComObject, CreateObjectFlags flags)
         => throw new NotSupportedException();
 
     protected override void ReleaseObjects(IEnumerable objects)

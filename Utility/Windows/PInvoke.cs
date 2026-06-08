@@ -20,7 +20,7 @@ public static partial class PInvoke
     public static partial int CloseHandle(nint hObject);
 
     [LibraryImport("shell32.dll", EntryPoint = "SHGetKnownFolderPath", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
-    public static partial int SHGetKnownFolderPath(in Guid rfid, uint dwFlags, IntPtr hToken, out string? ppszPath);
+    public static partial int SHGetKnownFolderPath(in Guid rfid, uint dwFlags, nint hToken, out string? ppszPath);
 
     /// Reference:
     /// https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Shell32/Interop.SHGetKnownFolderPath.cs#L269
@@ -197,7 +197,7 @@ public static partial class PInvoke
         }
 
         Guid folderId = new Guid(folderGuid);
-        int  hr       = SHGetKnownFolderPath(in folderId, (uint)option, IntPtr.Zero, out string? path);
+        int  hr       = SHGetKnownFolderPath(in folderId, (uint)option, nint.Zero, out string? path);
         if (hr == 0 && !string.IsNullOrEmpty(path))
             return path;
 

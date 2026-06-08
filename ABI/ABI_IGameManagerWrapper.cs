@@ -24,8 +24,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var gamePath = Utf16StringMarshaller.ConvertToManaged(gamePathNative);
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            string? gamePath = Utf16StringMarshaller.ConvertToManaged(gamePathNative);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
             @this.SetGamePath(gamePath ?? "");
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -46,8 +46,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.GetCurrentGameVersion(out var gameVersion);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            @this.GetCurrentGameVersion(out GameVersion gameVersion);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -69,8 +69,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var version = versionNative;
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            GameVersion version = versionNative;
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
             @this.SetCurrentGameVersion(in version);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -91,8 +91,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.GetApiGameVersion(out var gameVersion);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            @this.GetApiGameVersion(out GameVersion gameVersion);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -114,8 +114,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.GetApiPreloadGameVersion(out var gameVersion);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            @this.GetApiPreloadGameVersion(out GameVersion gameVersion);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -137,8 +137,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.IsGameInstalled(out var result);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            @this.IsGameInstalled(out bool result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -160,8 +160,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.IsGameHasUpdate(out var result);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            @this.IsGameHasUpdate(out bool result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -183,8 +183,8 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.IsGameHasPreload(out var result);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            @this.IsGameHasPreload(out bool result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -205,7 +205,7 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
             @this.LoadConfig();
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -225,7 +225,7 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
             @this.SaveConfig();
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -247,9 +247,9 @@ internal sealed unsafe class ABI_IGameManagerWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
-            @this.FindExistingInstallPathAsync(in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            IGameManager @this = ComInterfaceDispatch.GetInstance<IGameManager>(thisNative);
+            @this.FindExistingInstallPathAsync(in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

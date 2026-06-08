@@ -22,12 +22,12 @@ internal sealed unsafe class ABI_IPluginSelfUpdateWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
-            var checkForUpdatesOnly = checkForUpdatesOnlyNative != 0;
-            var outputDir = Utf16StringMarshaller.ConvertToManaged(outputDirNative);
-            var @this = ComInterfaceDispatch.GetInstance<IPluginSelfUpdate>(thisNative);
-            @this.TryPerformUpdateAsync(outputDir, checkForUpdatesOnly, progressDelegate, in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            InstallProgressDelegate? progressDelegate = progressDelegateNative != 0 ? Marshal.GetDelegateForFunctionPointer<InstallProgressDelegate>(progressDelegateNative) : null;
+            bool checkForUpdatesOnly = checkForUpdatesOnlyNative != 0;
+            string? outputDir = Utf16StringMarshaller.ConvertToManaged(outputDirNative);
+            IPluginSelfUpdate @this = ComInterfaceDispatch.GetInstance<IPluginSelfUpdate>(thisNative);
+            @this.TryPerformUpdateAsync(outputDir, checkForUpdatesOnly, progressDelegate, in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

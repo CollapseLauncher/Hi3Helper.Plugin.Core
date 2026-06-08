@@ -20,9 +20,9 @@ internal sealed unsafe class ABI_IInitializableTaskWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var @this = ComInterfaceDispatch.GetInstance<IInitializableTask>(thisNative);
-            @this.InitAsync(in cancelToken, out var result);
+            Guid cancelToken = cancelTokenNative;
+            IInitializableTask @this = ComInterfaceDispatch.GetInstance<IInitializableTask>(thisNative);
+            @this.InitAsync(in cancelToken, out nint result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Hi3Helper.Plugin.Core.Management.Api;
 using static System.Runtime.InteropServices.ComWrappers;
 
 namespace Hi3Helper.Plugin.Core.ABI;
@@ -21,8 +22,8 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
-            @this.GetBackgroundEntries(out var handle, out var count, out var isDisposable, out var isAllocated);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            @this.GetBackgroundEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -50,8 +51,8 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
-            @this.GetLogoOverlayEntries(out var handle, out var count, out var isDisposable, out var isAllocated);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            @this.GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -76,8 +77,8 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
-            @this.GetBackgroundFlag(out var result);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            @this.GetBackgroundFlag(out LauncherBackgroundFlag result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -99,8 +100,8 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
-            @this.GetLogoFlag(out var result);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            @this.GetLogoFlag(out LauncherBackgroundFlag result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -122,8 +123,8 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
-            @this.GetBackgroundSpriteFps(out var result);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            @this.GetBackgroundSpriteFps(out float result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.

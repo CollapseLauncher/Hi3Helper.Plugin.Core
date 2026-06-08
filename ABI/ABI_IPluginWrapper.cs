@@ -5,6 +5,8 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using Hi3Helper.Plugin.Core.Management.PresetConfig;
+using Hi3Helper.Plugin.Core.Update;
 using static System.Runtime.InteropServices.ComWrappers;
 
 namespace Hi3Helper.Plugin.Core.ABI;
@@ -32,7 +34,7 @@ internal sealed unsafe class ABI_IPluginWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
+            IPlugin @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
             @this.GetPluginCreationDate(out DateTime* result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -55,8 +57,8 @@ internal sealed unsafe class ABI_IPluginWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
-            @this.GetPresetConfigCount(out var count);
+            IPlugin @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
+            @this.GetPresetConfigCount(out int count);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -86,8 +88,8 @@ internal sealed unsafe class ABI_IPluginWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
-            @this.GetPresetConfig(index, out var presetConfig);
+            IPlugin @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
+            @this.GetPresetConfig(index, out IPluginPresetConfig presetConfig);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -109,8 +111,8 @@ internal sealed unsafe class ABI_IPluginWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var cancelToken = cancelTokenNative;
-            var @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
+            Guid cancelToken = cancelTokenNative;
+            IPlugin @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
             @this.CancelAsync(in cancelToken);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -131,11 +133,11 @@ internal sealed unsafe class ABI_IPluginWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var password = Utf16StringMarshaller.ConvertToManaged(passwordNative);
-            var username = Utf16StringMarshaller.ConvertToManaged(usernameNative);
-            var hostUri = Utf16StringMarshaller.ConvertToManaged(hostUriNative);
-            var @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
-            @this.SetPluginProxySettings(hostUri, username, password, out var isSuccess);
+            string? password = Utf16StringMarshaller.ConvertToManaged(passwordNative);
+            string? username = Utf16StringMarshaller.ConvertToManaged(usernameNative);
+            string? hostUri  = Utf16StringMarshaller.ConvertToManaged(hostUriNative);
+            IPlugin     @this    = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
+            @this.SetPluginProxySettings(hostUri, username, password, out bool isSuccess);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
@@ -156,8 +158,8 @@ internal sealed unsafe class ABI_IPluginWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var localeId = Utf16StringMarshaller.ConvertToManaged(localeIdNative);
-            var @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
+            string? localeId = Utf16StringMarshaller.ConvertToManaged(localeIdNative);
+            IPlugin @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
             @this.SetPluginLocaleId(localeId);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -178,8 +180,8 @@ internal sealed unsafe class ABI_IPluginWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            var @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
-            @this.GetPluginSelfUpdater(out var selfUpdate);
+            IPlugin @this = ComInterfaceDispatch.GetInstance<IPlugin>(thisNative);
+            @this.GetPluginSelfUpdater(out IPluginSelfUpdate? selfUpdate);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
             // Marshal - Convert managed data to native data.
