@@ -17,7 +17,7 @@ public partial class SharedStaticV1Ext
     /// <summary>
     /// The stored function pointer for the per-file progress callback from the Main Application.
     /// </summary>
-    internal static unsafe delegate* unmanaged[Cdecl]<InstallPerFileProgress*, void> PerFileProgressCallback;
+    internal static nint PerFileProgressCallbackAddr;
 
     /// <summary>
     /// Invokes the per-file progress callback if it has been registered by the Main Application.
@@ -26,17 +26,19 @@ public partial class SharedStaticV1Ext
     /// <param name="perFileTotalBytes">Total size of the current file.</param>
     public static unsafe void InvokePerFileProgress(long perFileDownloadedBytes, long perFileTotalBytes)
     {
-        var callback = PerFileProgressCallback;
-        if (callback == null)
+        if (PerFileProgressCallbackAddr == nint.Zero)
+        {
             return;
+        }
 
+        // Call the callback
         InstallPerFileProgress progress = new()
         {
             PerFileDownloadedBytes = perFileDownloadedBytes,
             PerFileTotalBytes = perFileTotalBytes
         };
-
-        callback(&progress);
+        ((delegate* unmanaged[Cdecl]<ref readonly InstallPerFileProgress, void>)
+            PerFileProgressCallbackAddr)(in progress);
     }
 }
 
@@ -60,16 +62,16 @@ public partial class SharedStaticV1Ext<T>
     /// <summary>
     /// This method is an ABI proxy and installer for the Per-file Progress Callback functionality.
     /// </summary>
-    private static unsafe HResult SetPerFileProgressCallback(nint perFileProgressCallback)
+    private static HResult SetPerFileProgressCallback(nint perFileProgressCallback)
     {
         if (perFileProgressCallback == nint.Zero)
         {
-            PerFileProgressCallback = null;
+            PerFileProgressCallbackAddr = nint.Zero;
             InstanceLogger.LogTrace("[SetPerFileProgressCallback] Per-file progress callback has been uninstalled");
             return HResult.Ok;
         }
 
-        PerFileProgressCallback = (delegate* unmanaged[Cdecl]<InstallPerFileProgress*, void>)perFileProgressCallback;
+        PerFileProgressCallbackAddr = perFileProgressCallback;
         InstanceLogger.LogTrace("[SetPerFileProgressCallback] Per-file progress callback has been installed at address: 0x{Ptr:x8}", perFileProgressCallback);
         return HResult.Ok;
     }
