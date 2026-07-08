@@ -45,7 +45,7 @@ public partial class PluginSelfUpdateBase
 
             GameVersion currentPluginVersion = SharedStatic.CurrentPluginVersion;
             GameVersion cdnPluginVersion     = info.PluginVersion;
-            if (cdnPluginVersion == currentPluginVersion)
+            if (cdnPluginVersion <= currentPluginVersion)
             {
                 return SelfUpdateReturnInfo.CreateToNativeMemory(SelfUpdateReturnCode.NoAvailableUpdate);
             }
