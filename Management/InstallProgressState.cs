@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 // ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management;
@@ -44,6 +44,12 @@ public enum InstallProgressState
     /// This state is the same as <see cref="InstallProgressState.Install"/>, but for updates.
     /// </summary>
     Updating = 0b_00100000,
+
+    /// <summary>
+    /// Installation process is reconciling installed source files against the CDN manifest
+    /// before applying krpdiff patches.
+    /// </summary>
+    Reconciling = 0b_10000000,
 
     /// <summary>
     /// Installation process has been completed.
