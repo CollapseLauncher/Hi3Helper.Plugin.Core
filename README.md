@@ -11,9 +11,9 @@ Make sure that your code is **as reflection-free** as possible, as the code is e
 # What's Included?
 This Core Library includes various APIs to make the plugin development faster, without needing to implement the entire functions from scratch. Here's a list of what's included currently:
 
-### V1 (v0.1.5.0) Implementation Standard
+### V1 (v0.1.6.0) Implementation Standard
 
-This repository follows the V1 implementation standard (current library version: ``v0.1.5.0``). The standard collects base API contracts, COM interop helpers, marshallers and small utility primitives that plugin authors and the launcher can rely on.
+This repository follows the V1 implementation standard (current library version: ``v0.1.6.0``). The standard collects base API contracts, COM interop helpers, marshallers and small utility primitives that plugin authors and the launcher can rely on.
 
 > [!WARNING] 
 > The API contracts and implementations are still under development, so expect some breaking changes in the future.
