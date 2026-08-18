@@ -115,10 +115,11 @@ public static class GameManagerExtension
             return (false, new NotSupportedException("Plugin doesn't have LaunchGameFromGameManagerAsync export in its API definition!"));
         }
 
+        PrintGameLog? printGameLogCallback = context.PrintGameLogCallback;
         nint gameManagerP          = GetPointerFromInterface(context.GameManager);
         nint pluginP               = GetPointerFromInterface(context.Plugin);
         nint presetConfigP         = GetPointerFromInterface(context.PresetConfig);
-        nint printGameLogCallbackP = context.PrintGameLogCallback == null ? nint.Zero : Marshal.GetFunctionPointerForDelegate(context.PrintGameLogCallback);
+        nint printGameLogCallbackP = printGameLogCallback == null ? nint.Zero : Marshal.GetFunctionPointerForDelegate(printGameLogCallback);
 
         if (gameManagerP == nint.Zero)
         {
@@ -160,7 +161,14 @@ public static class GameManagerExtension
             return (false, Marshal.GetExceptionForHR(hResult));
         }
 
-        return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
+        try
+        {
+            return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
+        }
+        finally
+        {
+            GC.KeepAlive(printGameLogCallback);
+        }
     }
 
     /// <summary>
