@@ -45,13 +45,14 @@ public static class GameSettingsExtension
             try
             {
                 int hResult = _getPage!(presetConfigP, out PluginDisposableMemoryMarshal pageJson);
+                using var memory = pageJson.ToManagedSpan<byte>();
                 if (hResult != 0)
                 {
                     error = Marshal.GetExceptionForHR(hResult);
                     return false;
                 }
 
-                string? json = pageJson;
+                string? json = pageJson.Handle == 0 || pageJson.Length <= 0 ? null : memory;
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     return false;
