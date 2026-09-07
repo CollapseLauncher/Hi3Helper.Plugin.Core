@@ -286,3 +286,66 @@ Offset  Field                   Type    Description
 
 - If the plugin exports `SetPerFileProgressCallback`, Collapse registers its handler on startup and shows per-file progress in the install UI.
 - If the plugin **does not** export the callback (i.e. older plugin versions), Collapse falls back to mirroring the aggregate `InstallProgressDelegate` as an approximation of per-file progress.
+
+---
+
+## 6. Game settings pages
+
+The `v0.1-update6` extension lets a plugin describe a native game settings page without taking a dependency on WinUI. Collapse renders the page using its own controls and styling. The supported entry kinds are toggle, text, number, slider, and choice.
+
+Override the three game-settings methods on your `SharedStaticV1Ext<T>` implementation:
+
+```csharp
+using Hi3Helper.Plugin.Core;
+using Hi3Helper.Plugin.Core.Management.PresetConfig;
+using Hi3Helper.Plugin.Core.UI.Settings;
+using System;
+using System.Globalization;
+
+public sealed class PluginExports : SharedStaticV1Ext<PluginExports>
+{
+    private bool _fullscreen = true;
+    private double _volume = 80;
+    private string _language = "en";
+
+    protected override GameSettingsPage? GetGameSettingsPageCore(IPluginPresetConfig presetConfig) =>
+        new([
+            new GameSettingsSection("Display", [
+                GameSettingEntry.Toggle("fullscreen", "Fullscreen", _fullscreen),
+                GameSettingEntry.Slider("volume", "Volume", _volume, 0, 100, 1),
+                GameSettingEntry.Choice("language", "Language", _language, [
+                    new GameSettingChoice("en", "English"),
+                    new GameSettingChoice("ja", "Japanese")
+                ])
+            ])
+        ]) { Title = "Game settings" };
+
+    protected override void SetGameSettingValueCore(IPluginPresetConfig presetConfig,
+                                                      string key, string value)
+    {
+        switch (key)
+        {
+            case "fullscreen":
+                _fullscreen = bool.Parse(value);
+                break;
+            case "volume":
+                _volume = double.Parse(value, CultureInfo.InvariantCulture);
+                break;
+            case "language":
+                _language = value;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(key));
+        }
+    }
+
+    protected override void ApplyGameSettingsCore(IPluginPresetConfig presetConfig)
+    {
+        // Validate and persist the values received by SetGameSettingValueCore.
+    }
+}
+```
+
+Each entry must have a key unique within the page. Collapse sends booleans and numbers as invariant strings. `SetGameSettingValueCore` should update pending plugin state; persist that state in `ApplyGameSettingsCore`. Throwing from either callback returns the error to the launcher and displays it on the page.
+
+The page is optional per preset: return `null` from `GetGameSettingsPageCore` when the selected preset has no game settings. Older plugins do not export the update6 functions, so Collapse keeps their Game Settings navigation item hidden.
