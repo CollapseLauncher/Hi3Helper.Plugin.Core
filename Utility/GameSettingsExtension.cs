@@ -68,7 +68,7 @@ public static class GameSettingsExtension
             }
             finally
             {
-                Marshal.Release(presetConfigP);
+                ComInterfaceMarshaller<IPluginPresetConfig>.Free((void*)presetConfigP);
             }
         }
 
@@ -91,7 +91,7 @@ public static class GameSettingsExtension
             }
             finally
             {
-                Marshal.Release(presetConfigP);
+                ComInterfaceMarshaller<IPluginPresetConfig>.Free((void*)presetConfigP);
             }
         }
 
@@ -109,7 +109,7 @@ public static class GameSettingsExtension
             }
             finally
             {
-                Marshal.Release(presetConfigP);
+                ComInterfaceMarshaller<IPluginPresetConfig>.Free((void*)presetConfigP);
             }
         }
     }
