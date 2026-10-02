@@ -38,7 +38,7 @@ Plugin.dll (NativeAOT)
 
 ## API standard versioning
 
-The current API standard version is **v0.1.5**. All plugins must implement at minimum the **v0.1 core** exports. Optional feature sets are versioned as update packages (`v0.1-update1`, `v0.1-update2`, etc.) and are handled automatically by `SharedStaticV1Ext<T>`.
+The current API standard version is **v0.1.6**. All plugins must implement at minimum the **v0.1 core** exports. Optional feature sets are versioned as update packages (`v0.1-update1`, `v0.1-update2`, etc.) and are handled automatically by `SharedStaticV1Ext<T>`.
 
 | Update | Export(s) added | Description |
 |--------|----------------|-------------|
@@ -47,6 +47,7 @@ The current API standard version is **v0.1.5**. All plugins must implement at mi
 | v0.1-update3 | `StartResizableWindowHookAsync` | Resizable window hook |
 | v0.1-update4 | `RegisterSpeedThrottlerService` | Download speed throttling |
 | v0.1-update5 | `SetPerFileProgressCallback` | Per-file install/download progress reporting |
+| v0.1-update6 | `GetGameSettingsPage`, `SetGameSettingValue`, `ApplyGameSettings` | Declarative, launcher-rendered game settings pages |
 
 ## Next steps
 

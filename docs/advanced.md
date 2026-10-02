@@ -286,3 +286,90 @@ Offset  Field                   Type    Description
 
 - If the plugin exports `SetPerFileProgressCallback`, Collapse registers its handler on startup and shows per-file progress in the install UI.
 - If the plugin **does not** export the callback (i.e. older plugin versions), Collapse falls back to mirroring the aggregate `InstallProgressDelegate` as an approximation of per-file progress.
+
+---
+
+## 6. Game settings pages
+
+The `v0.1-update6` extension lets a plugin describe a native game settings page without taking a dependency on WinUI. Collapse renders the page using its own controls and styling. The supported entry kinds are toggle, text, number, slider, and choice.
+
+Override the three game-settings methods on your `SharedStaticV1Ext<T>` implementation:
+
+```csharp
+using Hi3Helper.Plugin.Core;
+using Hi3Helper.Plugin.Core.Management.PresetConfig;
+using Hi3Helper.Plugin.Core.UI.Settings;
+using System;
+using System.Globalization;
+
+public sealed class PluginExports : SharedStaticV1Ext<PluginExports>
+{
+    private bool _fullscreen = true;
+    private double _volume = 80;
+    private string _language = "en";
+
+    protected override GameSettingsPage? GetGameSettingsPageCore(IPluginPresetConfig presetConfig) =>
+        new([
+            new GameSettingsSection("Display", [
+                GameSettingEntry.Toggle("fullscreen", "Fullscreen", _fullscreen),
+                GameSettingEntry.Slider("volume", "Volume", _volume, 0, 100, 1),
+                GameSettingEntry.Choice("language", "Language", _language, [
+                    new GameSettingChoice("en", "English"),
+                    new GameSettingChoice("ja", "Japanese")
+                ])
+            ])
+        ]) { Title = "Game settings" };
+
+    protected override void SetGameSettingValueCore(IPluginPresetConfig presetConfig,
+                                                      string key, string value)
+    {
+        switch (key)
+        {
+            case "fullscreen":
+                _fullscreen = bool.Parse(value);
+                break;
+            case "volume":
+                _volume = double.Parse(value, CultureInfo.InvariantCulture);
+                break;
+            case "language":
+                _language = value;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(key));
+        }
+    }
+
+    protected override void ApplyGameSettingsCore(IPluginPresetConfig presetConfig)
+    {
+        // Validate and persist the values received by SetGameSettingValueCore.
+    }
+}
+```
+
+Each entry must have a key unique within the page. Collapse sends booleans and numbers as invariant strings. `SetGameSettingValueCore` should update pending plugin state; persist that state in `ApplyGameSettingsCore`. Throwing from either callback returns the error to the launcher and displays it on the page.
+
+The page is optional per preset: return `null` from `GetGameSettingsPageCore` when the selected preset has no game settings. Older plugins do not export the update6 functions, so Collapse keeps their Game Settings navigation item hidden.
+
+### Contract and validation
+
+The types in `Hi3Helper.Plugin.Core.UI.Settings` describe a page (`GameSettingsPage`), its sections (`GameSettingsSection`), entries (`GameSettingEntry`), and choice values (`GameSettingChoice`). `GameSettingKind` selects the control. Text entries support a placeholder; number and slider entries support minimum, maximum, and step; choice entries provide stored values and display titles.
+
+Plugins must validate keys, numeric bounds, and choice values before persisting them. The contract describes controls; it does not implement game-specific validation or configuration storage. Keep pending state specific to the selected preset.
+
+### Launcher integration
+
+`SharedStaticV1Ext<T>` registers the three update6 exports automatically. `GetGameSettingsPage` returns an HRESULT and an `out PluginDisposableMemoryMarshal` containing UTF-8 JSON; a missing page returns `HResult.False`. `SetGameSettingValue` receives UTF-16 key/value pointers and their lengths. `ApplyGameSettings` invokes the plugin's persistence callback. Exceptions become HRESULT errors.
+
+Launcher code can use `GameSettingsExtension.GameSettingsContext` from `Hi3Helper.Plugin.Core.Utility`, constructed with the plugin handle and preset config:
+
+| Member | Behaviour |
+|--------|-----------|
+| `IsFeatureAvailable` | Checks that all three exports exist. |
+| `TryGetPage(out page, out error)` | Retrieves and deserializes the page; returns `false` for unavailable exports, an absent page, or a failure. Inspect `error` for failures. |
+| `HasPage` | Calls `TryGetPage`; this is not a cached capability check. |
+| `SetValue(key, value)` | Sends a pending edit and throws on failed HRESULTs. |
+| `Apply()` | Requests persistence and throws on failed HRESULTs. |
+
+`GameSettingsPageSerializer.Serialize` and `Deserialize` use a source-generated JSON context for ABI transfer. `TryGetPage` manages the returned data buffer and preset COM pointer lifetime. Direct export callers must dispose the JSON buffer through `pageJson.ToManagedSpan<byte>()`; the `out` wrapper is returned by value and must not be passed to `FreeMarshal`.
+
+These APIs require both a Core build containing update6 and a launcher implementation that renders the contract. Updating Core alone does not add a settings UI to an older launcher. The v0.1 core exports remain the minimum plugin requirement; update6 is optional.

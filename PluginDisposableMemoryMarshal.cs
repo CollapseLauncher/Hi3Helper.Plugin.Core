@@ -23,7 +23,8 @@ public struct PluginDisposableMemoryMarshal(nint handle, int length, bool isDisp
         PluginDisposableMemory<byte> memory = PluginDisposableMemory<byte>.Alloc(len + 1);
         Encoding.UTF8.GetBytes(inputString, memory.AsSpan());
 
-        return memory.ToUnmanagedMarshal();
+        return new PluginDisposableMemoryMarshal(
+            memory.AsSafePointer(), memory.Length, memory.IsDisposable == 1);
     }
 
     public static implicit operator string?(PluginDisposableMemoryMarshal marshal)
