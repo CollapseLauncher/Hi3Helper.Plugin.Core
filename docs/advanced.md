@@ -349,3 +349,27 @@ public sealed class PluginExports : SharedStaticV1Ext<PluginExports>
 Each entry must have a key unique within the page. Collapse sends booleans and numbers as invariant strings. `SetGameSettingValueCore` should update pending plugin state; persist that state in `ApplyGameSettingsCore`. Throwing from either callback returns the error to the launcher and displays it on the page.
 
 The page is optional per preset: return `null` from `GetGameSettingsPageCore` when the selected preset has no game settings. Older plugins do not export the update6 functions, so Collapse keeps their Game Settings navigation item hidden.
+
+### Contract and validation
+
+The types in `Hi3Helper.Plugin.Core.UI.Settings` describe a page (`GameSettingsPage`), its sections (`GameSettingsSection`), entries (`GameSettingEntry`), and choice values (`GameSettingChoice`). `GameSettingKind` selects the control. Text entries support a placeholder; number and slider entries support minimum, maximum, and step; choice entries provide stored values and display titles.
+
+Plugins must validate keys, numeric bounds, and choice values before persisting them. The contract describes controls; it does not implement game-specific validation or configuration storage. Keep pending state specific to the selected preset.
+
+### Launcher integration
+
+`SharedStaticV1Ext<T>` registers the three update6 exports automatically. `GetGameSettingsPage` returns an HRESULT and an `out PluginDisposableMemoryMarshal` containing UTF-8 JSON; a missing page returns `HResult.False`. `SetGameSettingValue` receives UTF-16 key/value pointers and their lengths. `ApplyGameSettings` invokes the plugin's persistence callback. Exceptions become HRESULT errors.
+
+Launcher code can use `GameSettingsExtension.GameSettingsContext` from `Hi3Helper.Plugin.Core.Utility`, constructed with the plugin handle and preset config:
+
+| Member | Behaviour |
+|--------|-----------|
+| `IsFeatureAvailable` | Checks that all three exports exist. |
+| `TryGetPage(out page, out error)` | Retrieves and deserializes the page; returns `false` for unavailable exports, an absent page, or a failure. Inspect `error` for failures. |
+| `HasPage` | Calls `TryGetPage`; this is not a cached capability check. |
+| `SetValue(key, value)` | Sends a pending edit and throws on failed HRESULTs. |
+| `Apply()` | Requests persistence and throws on failed HRESULTs. |
+
+`GameSettingsPageSerializer.Serialize` and `Deserialize` use a source-generated JSON context for ABI transfer. `TryGetPage` manages the returned data buffer and preset COM pointer lifetime. Direct export callers must dispose the JSON buffer through `pageJson.ToManagedSpan<byte>()`; the `out` wrapper is returned by value and must not be passed to `FreeMarshal`.
+
+These APIs require both a Core build containing update6 and a launcher implementation that renders the contract. Updating Core alone does not add a settings UI to an older launcher. The v0.1 core exports remain the minimum plugin requirement; update6 is optional.

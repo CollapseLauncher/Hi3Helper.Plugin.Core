@@ -47,6 +47,7 @@ This repository follows the V1 implementation standard (current library version:
     * v0.1-update3 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update3.cs)): ``StartResizableWindowHookAsync``
     * v0.1-update4 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update4.cs)): ``RegisterSpeedThrottlerService``
     * v0.1-update5 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update5.cs)): ``SetPerFileProgressCallback``
+    * v0.1-update6 ([source](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/SharedStatic.V1Ext_Update6.cs)): ``GetGameSettingsPage``, ``SetGameSettingValue``, ``ApplyGameSettings`` — declarative game settings pages ([guide](docs/advanced.md#6-game-settings-pages))
 
 * COM-API Interfaces/Contracts
   * [``IFree``](https://github.com/CollapseLauncher/Hi3Helper.Plugin.Core/blob/main/IFree.cs)
