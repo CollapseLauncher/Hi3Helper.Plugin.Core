@@ -23,6 +23,13 @@ internal class Program
 
         args = [..args.Where(x => !x.Equals("NoWait", StringComparison.OrdinalIgnoreCase))];
 
+        if (args.Contains("GameSettingsContract", StringComparer.OrdinalIgnoreCase))
+        {
+            Test.TestGameSettingsContract();
+            Console.WriteLine("Game settings contract passed!");
+            return 0;
+        }
+
         foreach (var arg in args)
         {
             var result = await TryPerformLibraryTest(arg);
@@ -144,7 +151,7 @@ internal class Program
     }
 
     private static void PrintHelp()
-        => Console.WriteLine($"Usage:\r\n{Path.GetFileName(Environment.ProcessPath)} Path_to_dll_1 Path_to_dll_2 ...");
+        => Console.WriteLine($"Usage:\r\n{Path.GetFileName(Environment.ProcessPath)} Path_to_dll_1 Path_to_dll_2 ...\r\n{Path.GetFileName(Environment.ProcessPath)} GameSettingsContract");
 }
 
 public class InvokeLogger : ILogger

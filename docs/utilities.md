@@ -216,3 +216,9 @@ finally
     data.Dispose(); // frees the unmanaged pointer if the launcher marked it as disposable
 }
 ```
+
+### Marshal wrapper ownership
+
+Converting a non-empty string to `PluginDisposableMemoryMarshal` allocates a UTF-8 data buffer and returns the wrapper by value. Dispose the buffer through `ToManagedSpan<byte>()` when ownership is transferred to you. Converting the wrapper back to a string implicitly also disposes its disposable data buffer; do not dispose that buffer again.
+
+`ToUnmanagedMarshal<T>()` has a different ownership contract: it allocates a separate unmanaged wrapper and returns it by reference. Retain that original reference and call `FreeMarshal` on it when finished. Freeing the wrapper does not free its data buffer. Never call `FreeMarshal` on a by-value copy, such as the `out` wrapper returned by `GetGameSettingsPage`.
