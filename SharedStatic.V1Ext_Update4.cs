@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Hi3Helper.Plugin.Core.Utility;
+﻿using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.Core;

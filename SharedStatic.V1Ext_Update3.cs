@@ -51,7 +51,7 @@ public partial class SharedStaticV1Ext<T>
     #region ABI Proxies
     /// <summary>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
-    /// See the documentation for <see cref="SharedStaticV1Ext{T}.StartResizableWindowHookAsync(nint, nint, nint, int, int, int, nint, int, ref Guid, out nint)"/> method for more information.
+    /// See the documentation for <see cref="SharedStaticV1Ext{T}.StartResizableWindowHookCoreAsync"/> method for more information.
     /// </summary>
     private static unsafe HResult StartResizableWindowHookAsync(nint     gameManagerP,
                                                                 nint     presetConfigP,
@@ -132,12 +132,12 @@ public partial class SharedStaticV1Ext<T>
             }
 
             (bool isSupported, Task<bool> task) = ThisExtensionExport
-                .StartResizableWindowHookAsync(context,
-                                               executableName,
-                                               height == int.MinValue ? null : height,
-                                               width == int.MinValue ? null : width,
-                                               executableDirectory,
-                                               cts?.Token ?? CancellationToken.None);
+                .StartResizableWindowHookCoreAsync(context,
+                                                   executableName,
+                                                   height == int.MinValue ? null : height,
+                                                   width == int.MinValue ? null : width,
+                                                   executableDirectory,
+                                                   cts?.Token ?? CancellationToken.None);
 
             taskResult = task.AsResult();
             return isSupported;
@@ -175,7 +175,7 @@ public partial class SharedStaticV1Ext<T>
     /// Returns <c>IsSupported.false</c> if the plugin's API Standard is equal or lower than v0.1.3 or if this method isn't overriden.<br/>
     /// Otherwise, <c>IsSupported.true</c> if the plugin supports game launch mechanism and this method.
     /// </returns>
-    protected virtual (bool IsSupported, Task<bool> Task) StartResizableWindowHookAsync(
+    protected virtual (bool IsSupported, Task<bool> Task) StartResizableWindowHookCoreAsync(
         RunGameFromGameManagerContext context,
         string?                       executableName,
         int?                          height,

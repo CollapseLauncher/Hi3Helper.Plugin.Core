@@ -7,6 +7,6 @@ namespace Hi3Helper.Plugin.Core.UI.Settings;
 /// </summary>
 public sealed class GameSettingsPage(IReadOnlyList<GameSettingsSection> sections)
 {
-    public string?                         Title    { get; init; }
+    public string?                            Title    { get; init; }
     public IReadOnlyList<GameSettingsSection> Sections { get; init; } = sections;
 }

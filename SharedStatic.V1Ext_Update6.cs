@@ -4,7 +4,9 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.InteropServices;
+#if !MANUALCOM
 using System.Runtime.InteropServices.Marshalling;
+#endif
 
 namespace Hi3Helper.Plugin.Core;
 
@@ -12,9 +14,11 @@ public partial class SharedStaticV1Ext
 {
     internal unsafe delegate HResult GetGameSettingsPageDelegate(nint presetConfig,
                                                                   out PluginDisposableMemoryMarshal pageJson);
-    internal unsafe delegate HResult SetGameSettingValueDelegate(nint presetConfig,
-                                                                  char* key, int keyLength,
-                                                                  char* value, int valueLength);
+    internal unsafe delegate HResult SetGameSettingValueDelegate(nint  presetConfig,
+                                                                 char* key,
+                                                                 int   keyLength,
+                                                                 char* value,
+                                                                 int   valueLength);
     internal delegate HResult ApplyGameSettingsDelegate(nint presetConfig);
 }
 
@@ -27,14 +31,14 @@ public partial class SharedStaticV1Ext<T>
         TryRegisterApiExport<ApplyGameSettingsDelegate>("ApplyGameSettings", ApplyGameSettings);
     }
 
-    private static unsafe HResult GetGameSettingsPage(nint presetConfigP,
-                                                       out PluginDisposableMemoryMarshal pageJson)
+    private static unsafe HResult GetGameSettingsPage(nint                              presetConfigP,
+                                                      out PluginDisposableMemoryMarshal pageJson)
     {
         pageJson = PluginDisposableMemoryMarshal.Empty;
         try
         {
             IPluginPresetConfig presetConfig = GetPresetConfig(presetConfigP);
-            GameSettingsPage? page = ThisExtensionExport.GetGameSettingsPageCore(presetConfig);
+            GameSettingsPage?   page         = ThisExtensionExport.GetGameSettingsPageCore(presetConfig);
             if (page == null)
             {
                 return HResult.False;
@@ -56,15 +60,17 @@ public partial class SharedStaticV1Ext<T>
 #endif
     }
 
-    private static unsafe HResult SetGameSettingValue(nint presetConfigP,
-                                                       char* key, int keyLength,
-                                                       char* value, int valueLength)
+    private static unsafe HResult SetGameSettingValue(nint  presetConfigP,
+                                                      char* key,
+                                                      int   keyLength,
+                                                      char* value,
+                                                      int   valueLength)
     {
         try
         {
             IPluginPresetConfig presetConfig = GetPresetConfig(presetConfigP);
-            string keyString = new(key, 0, keyLength);
-            string valueString = new(value, 0, valueLength);
+            string              keyString    = new(key, 0, keyLength);
+            string              valueString  = new(value, 0, valueLength);
             ThisExtensionExport.SetGameSettingValueCore(presetConfig, keyString, valueString);
             return HResult.Ok;
         }
