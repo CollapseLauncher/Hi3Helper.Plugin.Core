@@ -13,7 +13,12 @@ namespace Hi3Helper.Plugin.Core.Utility;
 internal static unsafe class ComWrappersExtension<T>
     where T : ComWrappers, new()
 {
-    private static T? _cachedWrappers;
+    private static readonly T CachedWrappers;
+
+    static ComWrappersExtension()
+    {
+        CachedWrappers = new T();
+    }
 
     /// <summary>
     /// Gets a pointer of IUnknown implementation from a member of <see cref="ComObject"/>.
@@ -28,8 +33,8 @@ internal static unsafe class ComWrappersExtension<T>
             return null;
         }
 
-        _cachedWrappers ??= new T();
-        return (void*)_cachedWrappers.GetOrCreateComInterfaceForObject(obj, flags);
+        var ret = (void*)CachedWrappers.GetOrCreateComInterfaceForObject(obj, flags);
+        return ret;
     }
 
     /// <summary>
@@ -40,13 +45,8 @@ internal static unsafe class ComWrappersExtension<T>
     /// <returns>A pointer to the representation of IUnknown of the current object.</returns>
     internal static object? GetComInterfaceObjFromWrappers(nint ptr, CreateObjectFlags flags = CreateObjectFlags.None)
     {
-        if (ptr == nint.Zero)
-        {
-            return null;
-        }
-
-        _cachedWrappers ??= new T();
-        return _cachedWrappers.GetOrCreateObjectForComInstance(ptr, flags);
+        object? ret = ptr == nint.Zero ? null : CachedWrappers.GetOrCreateObjectForComInstance(ptr, flags);
+        return ret;
     }
 }
 

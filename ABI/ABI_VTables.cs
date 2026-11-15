@@ -109,6 +109,7 @@ internal static unsafe class ABI_VTables
             IPluginPresetConfig[26] = (delegate* unmanaged[MemberFunction]<ComInterfaceDispatch*, void**, int>)&ABI_IPluginPresetConfigWrapper.ABI_comGet_GameInstaller;
         }
 
+        // IPluginSelfUpdate
         IPluginSelfUpdate = (void**)RuntimeHelpers.AllocateTypeAssociatedMemory(typeof(IPluginSelfUpdate), sizeof(void*) * 5);
         {
             // Inherit IFree by copying its VTable

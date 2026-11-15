@@ -4,6 +4,7 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -208,11 +209,36 @@ public class SharedStatic
     /// Gets the COM interface pointer of the <see cref="IPlugin"/> instance.
     /// </summary>
     private static unsafe void* GetPlugin()
+    {
 #if !MANUALCOM
-        => ComInterfaceMarshaller<IPlugin>.ConvertToUnmanaged(_thisPluginInstance);
+        return ComInterfaceMarshaller<IPlugin>.ConvertToUnmanaged(_thisPluginInstance);
 #else
-        => ComWrappersExtension<PluginWrappers>.GetComInterfacePtrFromWrappers(_thisPluginInstance);
+        // Note to Developers:
+        // Please add these assertions if you add another COM Wrappers for Reflection-free builds
+        // to make sure the ABI pointers are allocated correctly.
+        EnsurePointerInitialized(PluginWrappers.InterfaceDefinitions);
+
+        EnsurePointerInitialized(PluginPresetConfigWrappers.InterfaceDefinitions);
+
+        EnsurePointerInitialized(LauncherApiWrappers.InterfaceDefinitions_ILauncherApi);
+        EnsurePointerInitialized(LauncherApiWrappers.InterfaceDefinitions_ILauncherApiMedia);
+        EnsurePointerInitialized(LauncherApiWrappers.InterfaceDefinitions_ILauncherApiNews);
+
+        EnsurePointerInitialized(GameManagerWrappers.InterfaceDefinitions);
+
+        EnsurePointerInitialized(GameInstallerWrappers.InterfaceDefinitions_IGameInstaller);
+        EnsurePointerInitialized(GameInstallerWrappers.InterfaceDefinitions_IGameUninstaller);
+
+        EnsurePointerInitialized(PluginSelfUpdateWrappers.InterfaceDefinitions);
+
+        return ComWrappersExtension<PluginWrappers>.GetComInterfacePtrFromWrappers(_thisPluginInstance);
+        static void EnsurePointerInitialized(void* ptr, [CallerMemberName] string? memberName = null)
+        {
+            if (ptr == null)
+                throw new ArgumentNullException($"Pointer of argument: {memberName} is not initialized!");
+        }
 #endif
+    }
 
     /// <summary>
     /// Sets the pointer of the Debug Log callback/<see cref="SharedLoggerCallback"/> from the main application.
