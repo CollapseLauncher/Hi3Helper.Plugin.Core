@@ -20,8 +20,6 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
     protected abstract HttpClient ApiResponseHttpClient { get; set; }
     protected virtual  string?    ApiResponseBaseUrl    => null;
 
-    protected bool IsDisposed;
-
     /// <inheritdoc/>
     public virtual void DownloadAssetAsync(LauncherPathEntry                     entry,
                                            FileHandle                            outputStreamHandle,
@@ -99,17 +97,10 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 
     public virtual void Dispose()
     {
-        using (ThisInstanceLock.EnterScope())
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
+        if (Interlocked.Exchange(ref IsFreed, true))
+            return;
 
-            IsDisposed = true;
-            ApiResponseHttpClient.Dispose();
-            ApiResponseHttpClient = null!;
-            GC.SuppressFinalize(this);
-        }
+        ApiResponseHttpClient.Dispose();
+        ApiResponseHttpClient = null!;
     }
 }

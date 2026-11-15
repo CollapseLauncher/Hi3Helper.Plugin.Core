@@ -11,7 +11,7 @@ namespace Hi3Helper.Plugin.Core.Update;
 /// A plugin self-updater instance which is used to perform update check and update download.
 /// </summary>
 [GeneratedComClass]
-public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
+public abstract partial class PluginSelfUpdateBase : FreeableObject, IPluginSelfUpdate
 {
     /// <summary>
     /// A Span/Array of the CDN URL to use for getting the update.
@@ -41,11 +41,13 @@ public abstract partial class PluginSelfUpdateBase : IPluginSelfUpdate
     }
 
     /// <inheritdoc cref="IFree.Free"/>
-    public void Free() => Dispose();
+    public override void Free() => Dispose();
 
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref IsFreed, true))
+            return;
+
         UpdateHttpClient.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

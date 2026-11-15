@@ -1,7 +1,7 @@
 ﻿using Hi3Helper.Plugin.Core.Management.Api;
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
 
 namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 
@@ -13,8 +13,6 @@ namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 [GeneratedComClass]
 public abstract partial class PluginPresetConfigBase : InitializableTask, IPluginPresetConfig
 {
-    private bool _isDisposed;
-
     /// <inheritdoc cref="IPluginPresetConfig.comGet_GameName(out string)"/>
     public abstract string? GameName { get; }
 
@@ -162,7 +160,8 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
 
     public virtual void Dispose()
     {
-        if (_isDisposed) return;
+        if (Interlocked.Exchange(ref IsFreed, true))
+            return;
 
         LauncherApiMedia?.Free();
         LauncherApiNews?.Free();
@@ -171,9 +170,5 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
         LauncherApiMedia = null;
         LauncherApiNews = null;
         GameManager = null;
-
-        GC.SuppressFinalize(this);
-
-        _isDisposed = true;
     }
 }

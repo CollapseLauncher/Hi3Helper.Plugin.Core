@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
 using Hi3Helper.Plugin.Core.Management.PresetConfig;
 using Hi3Helper.Plugin.Core.Update;
 using Hi3Helper.Plugin.Core.Utility;
@@ -15,7 +16,7 @@ namespace Hi3Helper.Plugin.Core;
 /// This <see cref="PluginBase"/> base class requires the abstract methods to be implemented, except for the <see cref="IPlugin.CancelAsync(in Guid)"/> method.
 /// </remarks>
 [GeneratedComClass]
-public abstract partial class PluginBase : IPlugin
+public abstract partial class PluginBase : FreeableObject, IPlugin
 {
     /// <inheritdoc/>
     public abstract void GetPluginName(out string? result);
@@ -85,14 +86,20 @@ public abstract partial class PluginBase : IPlugin
         isSuccess = true;
     }
 
+    ~PluginBase() => Dispose();
+
     /// <inheritdoc/>
     public void SetPluginLocaleId(string? localeId) => SharedStatic.SetPluginCurrentLocale(localeId);
 
     /// <inheritdoc cref="IFree.Free"/>
-    public void Free() => Dispose();
+    public override void Free() => Dispose();
 
     public virtual void Dispose()
     {
+        // Lock dispose call to avoid Disposing the object twice.
+        if (Interlocked.Exchange(ref IsFreed, true))
+            return;
+
         // Cancel all the cancellable async operations first before disposing all plugin instance
         ComCancellationTokenVault.DangerousCancelAndUnregisterAllToken();
 
@@ -104,7 +111,6 @@ public abstract partial class PluginBase : IPlugin
             presetConfig.Free();
         }
 
-        GC.SuppressFinalize(this);
         GetPluginName(out string? pluginName);
         SharedStatic.InstanceLogger.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", pluginName);
     }
