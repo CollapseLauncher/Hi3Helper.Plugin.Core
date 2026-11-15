@@ -148,6 +148,13 @@ public partial class SharedStaticV1Ext<T>
             InstanceLogger.LogError(ex, "An error has occurred while trying to call StartResizableWindowHookAsync() from the plugin!");
             return Marshal.GetHRForException(ex);
         }
+#if !MANUALCOM
+        finally
+        {
+            ComInterfaceMarshaller<IGameManager>.Free((void*)gameManagerP);
+            ComInterfaceMarshaller<IPluginPresetConfig>.Free((void*)presetConfigP);
+        }
+#endif
     }
     #endregion
 

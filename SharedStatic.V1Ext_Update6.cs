@@ -48,6 +48,12 @@ public partial class SharedStaticV1Ext<T>
             InstanceLogger.LogError(ex, "An error occurred while retrieving the plugin game settings page");
             return Marshal.GetHRForException(ex);
         }
+#if !MANUALCOM
+        finally
+        {
+            ComInterfaceMarshaller<IPluginPresetConfig>.Free((void*)presetConfigP);
+        }
+#endif
     }
 
     private static unsafe HResult SetGameSettingValue(nint presetConfigP,
@@ -68,6 +74,12 @@ public partial class SharedStaticV1Ext<T>
                                     key == null ? null : new string(key, 0, keyLength));
             return Marshal.GetHRForException(ex);
         }
+#if !MANUALCOM
+        finally
+        {
+            ComInterfaceMarshaller<IPluginPresetConfig>.Free((void*)presetConfigP);
+        }
+#endif
     }
 
     private static HResult ApplyGameSettings(nint presetConfigP)
