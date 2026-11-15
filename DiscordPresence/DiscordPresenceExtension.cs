@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using static Hi3Helper.Plugin.Core.SharedStaticV1Ext;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.DiscordPresence;
 

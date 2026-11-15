@@ -72,7 +72,7 @@ public static partial class SpanHelpers
             if (offset < length)
             {
                 Debug.Assert(length - offset >= Vector128<ushort>.Count);
-                if (((nint)(searchSpace + (nint)offset) & (nint)(Vector256<byte>.Count - 1)) != 0)
+                if (((nint)(searchSpace + offset) & (Vector256<byte>.Count - 1)) != 0)
                 {
                     // Not currently aligned to Vector256 (is aligned to Vector128); this can cause a problem for searches
                     // with no upper bound e.g. String.wcslen. Start with a check on Vector128 to align to Vector256,
@@ -99,7 +99,7 @@ public static partial class SpanHelpers
                         return (int)(offset + ((uint)BitOperations.TrailingZeroCount(matches) / sizeof(char)));
                     }
                 }
-                if (((nint)(searchSpace + (nint)offset) & (nint)(Vector512<byte>.Count - 1)) != 0)
+                if (((nint)(searchSpace + offset) & (Vector512<byte>.Count - 1)) != 0)
                 {
                     // Not currently aligned to Vector512 (is aligned to Vector256); this can cause a problem for searches
                     // with no upper bound e.g. String.wcslen. Start with a check on Vector256 to align to Vector512,
@@ -216,7 +216,7 @@ public static partial class SpanHelpers
             if (offset < length)
             {
                 Debug.Assert(length - offset >= Vector128<ushort>.Count);
-                if (((nint)(searchSpace + (nint)offset) & (nint)(Vector256<byte>.Count - 1)) != 0)
+                if (((nint)(searchSpace + offset) & (Vector256<byte>.Count - 1)) != 0)
                 {
                     // Not currently aligned to Vector256 (is aligned to Vector128); this can cause a problem for searches
                     // with no upper bound e.g. String.wcslen. Start with a check on Vector128 to align to Vector256,

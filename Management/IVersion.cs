@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 // ReSharper disable UnusedMemberInSuper.Global
 // ReSharper disable UnusedMember.Global
+#pragma warning disable IDE0051
 
 namespace Hi3Helper.Plugin.Core.Management;
 

@@ -25,7 +25,7 @@ public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Length, nameof(index));
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Length);
 
             return ref Unsafe.AsRef<T>(Unsafe.Add<T>(handle, index));
         }

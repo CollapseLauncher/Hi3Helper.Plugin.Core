@@ -8,10 +8,10 @@ using System.Text.Json.Serialization;
 #else
 using Hi3Helper.Plugin.Core.Utility.Json;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMember.Global
 #endif
 
 namespace Hi3Helper.Plugin.Core.Update;
@@ -158,7 +158,7 @@ public class PluginManifest
             throw new JsonException("Assets cannot be empty or null!");
         }
 
-        PluginManifest refInfoRet = new PluginManifest
+        PluginManifest refInfoRet = new()
         {
             MainLibraryName = mainLibraryNameValue,
             MainPluginName = mainPluginNameValue,

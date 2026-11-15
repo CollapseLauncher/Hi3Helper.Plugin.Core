@@ -1,6 +1,7 @@
 using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core;
 

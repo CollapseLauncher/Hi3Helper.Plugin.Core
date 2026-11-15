@@ -18,6 +18,8 @@ namespace Hi3Helper.Plugin.Core;
 [GeneratedComClass]
 public abstract partial class PluginBase : FreeableObject, IPlugin
 {
+    protected readonly Lock ThisInstanceLock = new();
+
     /// <inheritdoc/>
     public abstract void GetPluginName(out string? result);
 
@@ -96,22 +98,25 @@ public abstract partial class PluginBase : FreeableObject, IPlugin
 
     public virtual void Dispose()
     {
-        // Lock dispose call to avoid Disposing the object twice.
-        if (Interlocked.Exchange(ref IsFreed, true))
-            return;
-
-        // Cancel all the cancellable async operations first before disposing all plugin instance
-        ComCancellationTokenVault.DangerousCancelAndUnregisterAllToken();
-
-        // Then continue disposing all the plugin.
-        GetPresetConfigCount(out int presetConfigCount);
-        for (int i = 0; i < presetConfigCount; i++)
+        using (ThisInstanceLock.EnterScope())
         {
-            GetPresetConfig(i, out IPluginPresetConfig presetConfig);
-            presetConfig.Free();
-        }
+            if (IsDisposed)
+                return;
 
-        GetPluginName(out string? pluginName);
-        SharedStatic.InstanceLogger.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", pluginName);
+            // Cancel all the cancellable async operations first before disposing all plugin instance
+            ComCancellationTokenVault.DangerousCancelAndUnregisterAllToken();
+
+            // Then continue disposing all the plugin.
+            GetPresetConfigCount(out int presetConfigCount);
+            for (int i = 0; i < presetConfigCount; i++)
+            {
+                GetPresetConfig(i, out IPluginPresetConfig presetConfig);
+                presetConfig.Free();
+            }
+
+            GetPluginName(out string? pluginName);
+            SharedStatic.InstanceLogger.LogTrace("[PluginBase::Dispose] Plugin: {PluginName} has been disposed!", pluginName);
+            IsDisposed = true;
+        }
     }
 }

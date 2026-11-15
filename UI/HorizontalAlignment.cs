@@ -1,4 +1,5 @@
-﻿namespace Hi3Helper.Plugin.Core.UI;
+﻿// ReSharper disable UnusedMember.Global
+namespace Hi3Helper.Plugin.Core.UI;
 
 /// <summary>
 /// Describes how the element is horizontally positioned or stretched within the frame.

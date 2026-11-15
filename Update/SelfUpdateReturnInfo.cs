@@ -3,6 +3,8 @@ using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+// ReSharper disable UnusedMember.Global
+#pragma warning disable IDE0290
 
 namespace Hi3Helper.Plugin.Core.Update;
 

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Utility;
 

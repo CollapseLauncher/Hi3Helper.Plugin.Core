@@ -22,7 +22,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<ILauncherApiMedia>(thisNative);
             @this.GetBackgroundEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -51,7 +51,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<ILauncherApiMedia>(thisNative);
             @this.GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -70,14 +70,14 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
-    internal static int ABI_GetBackgroundFlag(ComInterfaceDispatch* thisNative, Management.Api.LauncherBackgroundFlag* resultNativeParam)
+    internal static int ABI_GetBackgroundFlag(ComInterfaceDispatch* thisNative, LauncherBackgroundFlag* resultNativeParam)
     {
-        ref Management.Api.LauncherBackgroundFlag resultNative = ref *resultNativeParam;
+        ref LauncherBackgroundFlag resultNative = ref *resultNativeParam;
         int retVal;
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<ILauncherApiMedia>(thisNative);
             @this.GetBackgroundFlag(out LauncherBackgroundFlag result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -93,14 +93,14 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
-    internal static int ABI_GetLogoFlag(ComInterfaceDispatch* thisNative, Management.Api.LauncherBackgroundFlag* resultNativeParam)
+    internal static int ABI_GetLogoFlag(ComInterfaceDispatch* thisNative, LauncherBackgroundFlag* resultNativeParam)
     {
-        ref Management.Api.LauncherBackgroundFlag resultNative = ref *resultNativeParam;
+        ref LauncherBackgroundFlag resultNative = ref *resultNativeParam;
         int retVal;
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<ILauncherApiMedia>(thisNative);
             @this.GetLogoFlag(out LauncherBackgroundFlag result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -123,7 +123,7 @@ internal sealed unsafe class ABI_ILauncherApiMediaWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiMedia>(thisNative);
+            ILauncherApiMedia @this = ComInterfaceDispatch.GetInstance<ILauncherApiMedia>(thisNative);
             @this.GetBackgroundSpriteFps(out float result);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK

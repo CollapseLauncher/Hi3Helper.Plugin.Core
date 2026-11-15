@@ -3,6 +3,7 @@ using Hi3Helper.Plugin.Core.UI.Settings;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Utility;
 

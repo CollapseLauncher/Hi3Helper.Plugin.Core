@@ -1,5 +1,6 @@
 using System;
 // ReSharper disable UnusedMember.Global
+// ReSharper disable CommentTypo
 
 namespace Hi3Helper.Plugin.Core.Management;
 

@@ -214,7 +214,7 @@ public static partial class Mem
                 CreateStringFast:
                     // Perform a return string creation by how much data being written into the buffer by decrementing
                     // bufferWrittenPtr with initial base pointer, bufferPtr.
-                    string returnString = new string(bufferPtr, 0, (int)(bufferWrittenPtr - bufferPtr));
+                    string returnString = new(bufferPtr, 0, (int)(bufferWrittenPtr - bufferPtr));
                     // Then return the string
                     return returnString;
                 }
@@ -302,7 +302,7 @@ public static partial class Mem
             ushort* input  = (ushort*)state.ToPointer();
             ushort* output = (ushort*)ptr;
 
-            nint i = (nint)0;
+            nint i = 0;
             nint n = (nint)(uint)buffer.Length;
 
             if (Sse41.IsSupported && n >= Vector128<ushort>.Count)

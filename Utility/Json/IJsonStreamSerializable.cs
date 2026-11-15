@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace Hi3Helper.Plugin.Core.Utility.Json;
 

@@ -196,7 +196,7 @@ public static partial class PInvoke
                 break;
         }
 
-        Guid folderId = new Guid(folderGuid);
+        Guid folderId = new(folderGuid);
         int  hr       = SHGetKnownFolderPath(in folderId, (uint)option, nint.Zero, out string? path);
         if (hr == 0 && !string.IsNullOrEmpty(path))
             return path;

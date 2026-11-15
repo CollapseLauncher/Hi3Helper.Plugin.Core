@@ -13,6 +13,8 @@ namespace Hi3Helper.Plugin.Core.Update;
 [GeneratedComClass]
 public abstract partial class PluginSelfUpdateBase : FreeableObject, IPluginSelfUpdate
 {
+    protected readonly Lock ThisInstanceLock = new();
+
     /// <summary>
     /// A Span/Array of the CDN URL to use for getting the update.
     /// </summary>
@@ -45,9 +47,13 @@ public abstract partial class PluginSelfUpdateBase : FreeableObject, IPluginSelf
 
     public void Dispose()
     {
-        if (Interlocked.Exchange(ref IsFreed, true))
-            return;
+        using (ThisInstanceLock.EnterScope())
+        {
+            if (IsDisposed)
+                return;
 
-        UpdateHttpClient.Dispose();
+            UpdateHttpClient.Dispose();
+            IsDisposed = true;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Hi3Helper.Plugin.Core.Utility;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.InteropServices;
 // ReSharper disable UnusedMember.Global
 
@@ -49,7 +50,7 @@ public struct GameVersion :
 
     public GameVersion(ReadOnlySpan<char> version)
     {
-        if (!TryParse(version, null, out GameVersion versionOut))
+        if (!TryParse(version, CultureInfo.InvariantCulture, out GameVersion versionOut))
         {
             throw new ArgumentException($"Version should be either in \"x\", \"x.x\", \"x.x.x\" or \"x.x.x.x\" format or all the values aren't numbers! (current value: \"{version}\")");
         }
@@ -92,7 +93,7 @@ public struct GameVersion :
     /// <summary>
     /// Create a string representation of <see cref="GameVersion"/> into "Major.Minor.Build.Revision" format if Revision number is defined or "Major.Minor.Build" if not.
     /// </summary>
-    public readonly override string ToString() => ToString(string.Empty);
+    public readonly override string ToString() => ToString(string.Empty, CultureInfo.InvariantCulture);
 
     /// <summary>
     /// Create a string representation of <see cref="GameVersion"/>.
@@ -153,7 +154,7 @@ public struct GameVersion :
 
     public static bool operator ==(GameVersion? left, string? right)
     {
-        if (!left.HasValue || !TryParse(right, null, out GameVersion rightAsParsed))
+        if (!left.HasValue || !TryParse(right, CultureInfo.InvariantCulture, out GameVersion rightAsParsed))
         {
             return false;
         }
@@ -192,7 +193,7 @@ public struct GameVersion :
 
         if (fromVersion is IVersion fromVersionAsIComp &&
             toVersion is string toVersionStr &&
-            TryParse(toVersionStr, null, out GameVersion toVersionParsed))
+            TryParse(toVersionStr, CultureInfo.InvariantCulture, out GameVersion toVersionParsed))
         {
             return EqualsInner(fromVersionAsIComp, toVersionParsed);
         }
@@ -485,7 +486,7 @@ public struct GameVersion :
     /// <param name="result">When this method returns, contains the parsed <see cref="GameVersion"/> if successful; otherwise, the default value.</param>
     /// <returns><see langword="true"/> if parsing was successful; otherwise, <see langword="false"/>.</returns>
     public static bool TryParse(ReadOnlySpan<byte> utf8Text, out GameVersion result)
-        => TryParse(utf8Text, null, out result);
+        => TryParse(utf8Text, CultureInfo.InvariantCulture, out result);
 
     /// <summary>
     /// Attempts to parse a UTF-8 encoded byte span into a <see cref="GameVersion"/> instance.
@@ -563,7 +564,7 @@ public struct GameVersion :
     /// <param name="result">When this method returns, contains the parsed <see cref="GameVersion"/> if successful; otherwise, the default value.</param>
     /// <returns><see langword="true"/> if parsing was successful; otherwise, <see langword="false"/>.</returns>
     public static bool TryParse(ReadOnlySpan<char> versionSpan, out GameVersion result)
-        => TryParse(versionSpan, null, out result);
+        => TryParse(versionSpan, CultureInfo.InvariantCulture, out result);
 
     /// <summary>
     /// Attempts to parse a character span into a <see cref="GameVersion"/> instance.
@@ -634,7 +635,7 @@ public struct GameVersion :
             return Empty;
         }
 
-        if (TryParse(versionString, out GameVersion result))
+        if (TryParse(versionString, CultureInfo.InvariantCulture, out GameVersion result))
         {
             return result;
         }

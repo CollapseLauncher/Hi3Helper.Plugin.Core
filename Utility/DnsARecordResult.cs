@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
@@ -168,10 +169,12 @@ public unsafe struct DnsARecordResult
             }
 
             // Assign result if it's null.
+ #pragma warning disable IDE0074
             if (result == null)
             {
                 result = current;
             }
+#pragma warning restore IDE0074
 
             // Get the current IPAddress instance.
             IPAddress address = addressSpan[offset++];

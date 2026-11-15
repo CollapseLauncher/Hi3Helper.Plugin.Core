@@ -252,7 +252,7 @@ public class PluginHttpClientBuilder
     public PluginHttpClientBuilder AddHeader(string key, string? value)
     {
         // Throw if the key is null or empty
-        ArgumentException.ThrowIfNullOrEmpty(key, nameof(key));
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
         // Try check if the key is user-agent. If the user-agent has already
         // been set, then override the value from HttpUserAgent property

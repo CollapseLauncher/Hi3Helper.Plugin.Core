@@ -11,7 +11,7 @@ public abstract partial class FreeableObject : IFree
     /// <summary>
     /// Whether the object has been disposed/freed.
     /// </summary>
-    protected bool IsFreed;
+    protected bool IsDisposed;
 
     /// <summary>
     /// Free the resources associated by an instance.

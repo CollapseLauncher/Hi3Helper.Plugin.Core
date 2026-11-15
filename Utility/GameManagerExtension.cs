@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
@@ -109,7 +110,7 @@ public static class GameManagerExtension
                                     ProcessPriorityClass               processPriority = ProcessPriorityClass.Normal,
                                     CancellationToken                  token           = default)
     {
-        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
         if (!context.PluginHandle.TryGetExport("LaunchGameFromGameManagerAsync", out SharedStaticV1Ext.LaunchGameFromGameManagerAsyncDelegate launchGameFromGameManagerAsyncCallback))
         {
             return (false, new NotSupportedException("Plugin doesn't have LaunchGameFromGameManagerAsync export in its API definition!"));
@@ -189,7 +190,7 @@ public static class GameManagerExtension
                                      out                      DateTime                      gameStartTime,
                                      [NotNullWhen(false)] out Exception?                    errorException)
     {
-        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
         isGameRunning  = false;
         errorException = null;
         gameStartTime  = default;
@@ -243,7 +244,7 @@ public static class GameManagerExtension
         WaitRunningGameAsync(this RunGameFromGameManagerContext context,
                              CancellationToken                  token)
     {
-        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
         if (!context.PluginHandle.TryGetExport("WaitRunningGameAsync", out SharedStaticV1Ext.WaitRunningGameAsyncDelegate waitRunningGameAsyncCallback))
         {
             return (false, new NotSupportedException("Plugin doesn't have WaitRunningGameAsync export in its API definition!"));
@@ -302,7 +303,7 @@ public static class GameManagerExtension
                                        out                      DateTime                      gameStartTime,
                                        [NotNullWhen(false)] out Exception?                    errorException)
     {
-        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
         errorException = null;
         wasGameRunning = false;
         gameStartTime  = default;
@@ -364,7 +365,7 @@ public static class GameManagerExtension
                                       string? executableDirectory = null,
                                       CancellationToken token = default)
     {
-        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
         if (!context.PluginHandle.TryGetExport("StartResizableWindowHookAsync", out SharedStaticV1Ext.StartResizableWindowHookAsyncDelegate startResizableWindowHookAsyncCallback))
         {
             return (false, new NotSupportedException("Plugin doesn't have StartResizableWindowHookAsync export in its API definition!"));

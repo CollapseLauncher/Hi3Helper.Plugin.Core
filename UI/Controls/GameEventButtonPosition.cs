@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.UI.Controls;
 

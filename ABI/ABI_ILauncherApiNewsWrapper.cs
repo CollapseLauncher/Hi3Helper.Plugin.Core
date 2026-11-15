@@ -22,7 +22,7 @@ internal sealed unsafe class ABI_ILauncherApiNewsWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiNews @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiNews>(thisNative);
+            ILauncherApiNews @this = ComInterfaceDispatch.GetInstance<ILauncherApiNews>(thisNative);
             @this.GetNewsEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -51,7 +51,7 @@ internal sealed unsafe class ABI_ILauncherApiNewsWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiNews @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiNews>(thisNative);
+            ILauncherApiNews @this = ComInterfaceDispatch.GetInstance<ILauncherApiNews>(thisNative);
             @this.GetCarouselEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK
@@ -80,7 +80,7 @@ internal sealed unsafe class ABI_ILauncherApiNewsWrapper
         try
         {
             // Unmarshal - Convert native data to managed data.
-            ILauncherApiNews @this = ComInterfaceDispatch.GetInstance<Management.Api.ILauncherApiNews>(thisNative);
+            ILauncherApiNews @this = ComInterfaceDispatch.GetInstance<ILauncherApiNews>(thisNative);
             @this.GetSocialMediaEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated);
             // NotifyForSuccessfulInvoke - Keep alive any managed objects that need to stay alive across the call.
             retVal = 0; // S_OK

@@ -316,7 +316,7 @@ public struct ComAsyncResult() : IDisposable
                 {
                     resultP->WriteTaskState(task);
 
-                    if (!task.IsFaulted && !task.IsCanceled)
+                    if (task is { IsFaulted: false, IsCanceled: false })
                     {
                         resultP->_resultP = (nint)Mem.Alloc<T>();
                         if (resultP->_resultP != nint.Zero && task.IsCompletedSuccessfully)

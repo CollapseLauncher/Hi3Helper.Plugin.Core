@@ -1,5 +1,6 @@
 ﻿#if USELIGHTWEIGHTJSONPARSER
 using System.Text.Json;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace Hi3Helper.Plugin.Core.Utility.Json;
 

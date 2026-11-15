@@ -1,6 +1,7 @@
 ﻿#if USELIGHTWEIGHTJSONPARSER
 using System;
 using System.Text.Json;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Utility.Json;
 
@@ -8,55 +9,30 @@ public static class JsonElementExtension
 {
     public static string? GetString(this JsonElement element, string propertyName)
     {
-        if (!element.TryGetString(propertyName, out string? value))
-        {
-            throw new JsonException($"Cannot parse value of {propertyName} to string!");
-        }
-
-        return value;
+        return !element.TryGetString(propertyName, out string? value) ? throw new JsonException($"Cannot parse value of {propertyName} to string!") : value;
     }
 
     public static string GetStringNonNullOrEmpty(this JsonElement element, string propertyName)
     {
         string? value = element.GetString(propertyName);
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new JsonException($"String value of {propertyName} is empty or null!");
-        }
-
-        return value;
+        return string.IsNullOrEmpty(value) ? throw new JsonException($"String value of {propertyName} is empty or null!") : value;
     }
 
     public static byte[]? GetBytesFromBase64(this JsonElement element, string propertyName)
     {
-        if (!element.TryGetBytesFromBase64(propertyName, out byte[]? value))
-        {
-            throw new JsonException($"Cannot parse value of {propertyName} to byte array!");
-        }
-
-        return value;
+        return !element.TryGetBytesFromBase64(propertyName, out byte[]? value) ? throw new JsonException($"Cannot parse value of {propertyName} to byte array!") : value;
     }
 
     public static T GetValue<T>(this JsonElement element, string propertyName)
         where T : struct, ISpanParsable<T>
     {
-        if (!element.TryGetValue(propertyName, out T value))
-        {
-            throw new JsonException($"Cannot parse value of {propertyName}!");
-        }
-
-        return value;
+        return !element.TryGetValue(propertyName, out T value) ? throw new JsonException($"Cannot parse value of {propertyName}!") : value;
     }
 
     public static byte[] GetBytesFromBase64NonNull(this JsonElement element, string propertyName)
     {
         byte[]? value = element.GetBytesFromBase64(propertyName);
-        if (value == null)
-        {
-            throw new JsonException($"Bytes array value of {propertyName} is null!");
-        }
-
-        return value;
+        return value ?? throw new JsonException($"Bytes array value of {propertyName} is null!");
     }
 
     public static bool TryGetString(this JsonElement element, string propertyName, out string? value)

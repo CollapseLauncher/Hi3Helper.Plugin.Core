@@ -13,6 +13,8 @@ namespace Hi3Helper.Plugin.Core.Management.PresetConfig;
 [GeneratedComClass]
 public abstract partial class PluginPresetConfigBase : InitializableTask, IPluginPresetConfig
 {
+    protected readonly Lock ThisInstanceLock = new();
+
     /// <inheritdoc cref="IPluginPresetConfig.comGet_GameName(out string)"/>
     public abstract string? GameName { get; }
 
@@ -160,15 +162,20 @@ public abstract partial class PluginPresetConfigBase : InitializableTask, IPlugi
 
     public virtual void Dispose()
     {
-        if (Interlocked.Exchange(ref IsFreed, true))
-            return;
+        using (ThisInstanceLock.EnterScope())
+        {
+            if (IsDisposed)
+                return;
 
-        LauncherApiMedia?.Free();
-        LauncherApiNews?.Free();
-        GameManager?.Free();
+            LauncherApiMedia?.Free();
+            LauncherApiNews?.Free();
+            GameManager?.Free();
 
-        LauncherApiMedia = null;
-        LauncherApiNews = null;
-        GameManager = null;
+            LauncherApiMedia = null;
+            LauncherApiNews  = null;
+            GameManager      = null;
+
+            IsDisposed = true;
+        }
     }
 }

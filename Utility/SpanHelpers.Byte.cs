@@ -23,7 +23,7 @@ public static partial class SpanHelpers
         const int Length = int.MaxValue;
         const uint uValue = 0; // Use uint for comparisons to avoid unnecessary 8->32 extensions
         nuint offset = 0; // Use nuint for arithmetic to avoid unnecessary 64->32->64 truncations
-        nuint lengthToExamine = (nuint)(uint)Length;
+        nuint lengthToExamine = Length;
 
         if (Vector128.IsHardwareAccelerated)
         {
@@ -87,9 +87,9 @@ public static partial class SpanHelpers
         // have hardware accelerated. After processing Vector lengths we return to SequentialScan to finish any remaining.
         if (Vector512.IsHardwareAccelerated)
         {
-            if (offset < (nuint)(uint)Length)
+            if (offset < Length)
             {
-                if ((((nuint)(uint)searchSpace + offset) & (nuint)(Vector256<byte>.Count - 1)) != 0)
+                if ((((uint)searchSpace + offset) & (nuint)(Vector256<byte>.Count - 1)) != 0)
                 {
                     // Not currently aligned to Vector256 (is aligned to Vector128); this can cause a problem for searches
                     // with no upper bound e.g. String.strlen.
@@ -111,7 +111,7 @@ public static partial class SpanHelpers
                     }
                 }
 
-                if ((((nuint)(uint)searchSpace + offset) & (nuint)(Vector512<byte>.Count - 1)) != 0)
+                if ((((uint)searchSpace + offset) & (nuint)(Vector512<byte>.Count - 1)) != 0)
                 {
                     // Not currently aligned to Vector512 (is aligned to Vector256); this can cause a problem for searches
                     // with no upper bound e.g. String.strlen.
@@ -191,18 +191,18 @@ public static partial class SpanHelpers
                     }
                 }
 
-                if (offset < (nuint)(uint)Length)
+                if (offset < Length)
                 {
-                    lengthToExamine = ((nuint)(uint)Length - offset);
+                    lengthToExamine = (Length - offset);
                     goto SequentialScan;
                 }
             }
         }
         else if (Vector256.IsHardwareAccelerated)
         {
-            if (offset < (nuint)(uint)Length)
+            if (offset < Length)
             {
-                if ((((nuint)(uint)searchSpace + offset) & (nuint)(Vector256<byte>.Count - 1)) != 0)
+                if ((((uint)searchSpace + offset) & (nuint)(Vector256<byte>.Count - 1)) != 0)
                 {
                     // Not currently aligned to Vector256 (is aligned to Vector128); this can cause a problem for searches
                     // with no upper bound e.g. String.strlen.
@@ -264,16 +264,16 @@ public static partial class SpanHelpers
                     }
                 }
 
-                if (offset < (nuint)(uint)Length)
+                if (offset < Length)
                 {
-                    lengthToExamine = ((nuint)(uint)Length - offset);
+                    lengthToExamine = (Length - offset);
                     goto SequentialScan;
                 }
             }
         }
         else if (Vector128.IsHardwareAccelerated)
         {
-            if (offset < (nuint)(uint)Length)
+            if (offset < Length)
             {
                 lengthToExamine = GetByteVector128SpanLength(offset, Length);
 
@@ -295,9 +295,9 @@ public static partial class SpanHelpers
                     return (int)(offset + (uint)BitOperations.TrailingZeroCount(matches));
                 }
 
-                if (offset < (nuint)(uint)Length)
+                if (offset < Length)
                 {
-                    lengthToExamine = ((nuint)(uint)Length - offset);
+                    lengthToExamine = (Length - offset);
                     goto SequentialScan;
                 }
             }
@@ -324,21 +324,21 @@ public static partial class SpanHelpers
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static nuint GetByteVector128SpanLength(nuint offset, int length)
-        => (nuint)(uint)((length - (int)offset) & ~(Vector128<byte>.Count - 1));
+        => (uint)((length - (int)offset) & ~(Vector128<byte>.Count - 1));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static nuint GetByteVector256SpanLength(nuint offset, int length)
-        => (nuint)(uint)((length - (int)offset) & ~(Vector256<byte>.Count - 1));
+        => (uint)((length - (int)offset) & ~(Vector256<byte>.Count - 1));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static nuint GetByteVector512SpanLength(nuint offset, int length)
-        => (nuint)(uint)((length - (int)offset) & ~(Vector512<byte>.Count - 1));
+        => (uint)((length - (int)offset) & ~(Vector512<byte>.Count - 1));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe nuint UnalignedCountVector128(byte* searchSpace)
     {
         nint unaligned = (nint)searchSpace & (Vector128<byte>.Count - 1);
-        return (nuint)(uint)((Vector128<byte>.Count - unaligned) & (Vector128<byte>.Count - 1));
+        return (uint)((Vector128<byte>.Count - unaligned) & (Vector128<byte>.Count - 1));
     }
 
     [DoesNotReturn]

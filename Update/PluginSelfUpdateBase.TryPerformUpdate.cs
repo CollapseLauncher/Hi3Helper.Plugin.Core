@@ -35,7 +35,7 @@ public partial class PluginSelfUpdateBase
 
         try
         {
-            ArgumentException.ThrowIfNullOrEmpty(outputDir, nameof(outputDir));
+            ArgumentException.ThrowIfNullOrEmpty(outputDir);
 
             (PluginManifest? info, string? baseUrl) = await TryGetAvailableCdn(token);
             if (info == null || baseUrl == null)
@@ -165,7 +165,7 @@ public partial class PluginSelfUpdateBase
                 progressDelegate?.Invoke(progress);
             }, innerToken);
 
-            SharedStatic.InstanceLogger.LogTrace("[PluginSelfUpdateBase::StartUpdateRoutineAsync] Update file: {} has been downloaded to {}", fileUrl, filePath);
+            SharedStatic.InstanceLogger.LogTrace("[PluginSelfUpdateBase::StartUpdateRoutineAsync] Update file: {fileUrl} has been downloaded to {filePath}", fileUrl, filePath);
         }
     }
 

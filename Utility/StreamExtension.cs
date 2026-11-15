@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Utility;
 
@@ -72,7 +73,7 @@ public static class StreamExtension
 
         public static async Task<BridgedNetworkStream> CreateStream(HttpClient client, Uri url, long fromPos = 0, long? toPos = null, CancellationToken token = default)
         {
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            HttpRequestMessage requestMessage = new(HttpMethod.Get, url);
 
             requestMessage.Version       = client.DefaultRequestVersion;
             requestMessage.VersionPolicy = client.DefaultVersionPolicy;

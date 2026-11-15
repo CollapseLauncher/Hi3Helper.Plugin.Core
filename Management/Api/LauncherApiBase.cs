@@ -97,10 +97,14 @@ public abstract partial class LauncherApiBase : InitializableTask, ILauncherApi
 
     public virtual void Dispose()
     {
-        if (Interlocked.Exchange(ref IsFreed, true))
-            return;
+        using (ThisInstanceLock.EnterScope())
+        {
+            if (IsDisposed)
+                return;
 
-        ApiResponseHttpClient.Dispose();
-        ApiResponseHttpClient = null!;
+            ApiResponseHttpClient.Dispose();
+            ApiResponseHttpClient = null!;
+            IsDisposed            = true;
+        }
     }
 }

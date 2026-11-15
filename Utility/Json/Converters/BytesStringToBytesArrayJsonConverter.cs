@@ -44,7 +44,7 @@ public class BytesStringToArrayJsonConverter<TStruct> : JsonConverter<TStruct[]?
         Unsafe.SkipInit(out byte[]? utf8DataBuffer);
         try
         {
-            // Try decode in Hex first.
+            // Try to decode in Hex first.
             if (utf8DataLength % 2 == 0)
             {
                 // If the sample data length is odd, then trim the length (to make it even).

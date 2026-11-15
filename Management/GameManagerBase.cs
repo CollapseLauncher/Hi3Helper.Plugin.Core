@@ -77,21 +77,21 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     public void GetCurrentGameVersion(out GameVersion gameVersion)
     {
         gameVersion = CurrentGameVersion;
-        SharedStatic.InstanceLogger?.LogInformation("[GameManagerBase::GetCurrentGameVersion] Returning {Version}", gameVersion);
+        SharedStatic.InstanceLogger.LogInformation("[GameManagerBase::GetCurrentGameVersion] Returning {Version}", gameVersion);
     }
 
     /// <inheritdoc/>
     public void GetApiGameVersion(out GameVersion gameVersion)
     {
         gameVersion = ApiGameVersion;
-        SharedStatic.InstanceLogger?.LogInformation("[GameManagerBase::GetApiGameVersion] Returning {Version}", gameVersion);
+        SharedStatic.InstanceLogger.LogInformation("[GameManagerBase::GetApiGameVersion] Returning {Version}", gameVersion);
     }
 
     /// <inheritdoc/>
     public void GetApiPreloadGameVersion(out GameVersion gameVersion)
     {
         gameVersion = ApiPreloadGameVersion;
-        SharedStatic.InstanceLogger?.LogInformation("[GameManagerBase::GetApiPreloadGameVersion] Returning {Version}", gameVersion);
+        SharedStatic.InstanceLogger.LogInformation("[GameManagerBase::GetApiPreloadGameVersion] Returning {Version}", gameVersion);
     }
 
     /// <inheritdoc/>
@@ -129,7 +129,7 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     public void IsGameHasPreload(out bool result)
     {
         result = HasPreload;
-        SharedStatic.InstanceLogger?.LogDebug(
+        SharedStatic.InstanceLogger.LogDebug(
             "[GameManagerBase::IsGameHasPreload] Returning {Result}, HasPreload={HP}, IsInstalled={IsInst}, ApiPreloadVersion={ApiPV}",
             result, HasPreload, IsInstalled, ApiPreloadGameVersion);
     }
@@ -138,7 +138,7 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     public void IsGameHasUpdate(out bool result)
     {
         result = HasUpdate;
-        SharedStatic.InstanceLogger?.LogDebug(
+        SharedStatic.InstanceLogger.LogDebug(
             "[GameManagerBase::IsGameHasUpdate] Returning {Result}",
             result);
     }
@@ -147,7 +147,7 @@ public abstract partial class GameManagerBase : LauncherApiBase, IGameManager
     public void IsGameInstalled(out bool result)
     {
         result = IsInstalled;
-        SharedStatic.InstanceLogger?.LogDebug(
+        SharedStatic.InstanceLogger.LogDebug(
             "[GameManagerBase::IsGameInstalled] Returning {Result}, InstallPath={Path}",
             result, CurrentGameInstallPath ?? "(null)");
     }
