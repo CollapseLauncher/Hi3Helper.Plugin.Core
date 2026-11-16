@@ -104,7 +104,7 @@ public class SharedStatic
     internal static string?                         ProxyPassword;
     
     public static string               PluginLocaleCode       { get; internal set; } = "en-us";
-    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 6, 1);
+    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 6, 2);
     public static readonly ILogger     InstanceLogger         = new SharedLogger();
 
 #if DEBUG

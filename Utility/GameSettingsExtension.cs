@@ -45,8 +45,8 @@ public static class GameSettingsExtension
             nint presetConfigP = (nint)ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToUnmanaged(PresetConfig);
             try
             {
-                int hResult = _getPage!(presetConfigP, out PluginDisposableMemoryMarshal pageJson);
-                using var memory = pageJson.ToManagedSpan<byte>();
+                int                                hResult = _getPage!(presetConfigP, out PluginDisposableMemoryMarshal pageJson);
+                using PluginDisposableMemory<byte> memory  = pageJson.ToManagedSpan<byte>();
                 if (hResult != 0)
                 {
                     error = Marshal.GetExceptionForHR(hResult);

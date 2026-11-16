@@ -13,8 +13,8 @@ public partial class SharedStaticV1Ext
 {
     // Update2
     internal unsafe delegate HResult GetCurrentDiscordPresenceInfoDelegate(
-        void*                 presetConfigP,
-        DiscordPresenceInfo** presenceInfoP);
+        void*                    presetConfigP,
+        out DiscordPresenceInfo* presenceInfoP);
 }
 
 public partial class SharedStaticV1Ext<T>

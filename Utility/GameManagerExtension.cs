@@ -117,58 +117,67 @@ public static class GameManagerExtension
         }
 
         PrintGameLog? printGameLogCallback = context.PrintGameLogCallback;
-        nint gameManagerP          = GetPointerFromInterface(context.GameManager);
-        nint pluginP               = GetPointerFromInterface(context.Plugin);
-        nint presetConfigP         = GetPointerFromInterface(context.PresetConfig);
-        nint printGameLogCallbackP = printGameLogCallback == null ? nint.Zero : Marshal.GetFunctionPointerForDelegate(printGameLogCallback);
-
-        if (gameManagerP == nint.Zero)
-        {
-            return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
-        }
-
-        if (pluginP == nint.Zero)
-        {
-            return (false, new COMException("Cannot cast IPlugin interface to pointer!"));
-        }
-
-        if (presetConfigP == nint.Zero)
-        {
-            return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
-        }
-
-        nint argumentsP   = startArgument.GetPinnableStringPointerSafe();
-        int  argumentsLen = startArgument?.Length ?? 0;
-
-        Guid cancelTokenGuid = Guid.CreateVersion7();
-        int hResult = launchGameFromGameManagerAsyncCallback(gameManagerP,
-                                                             pluginP, 
-                                                             presetConfigP,
-                                                             printGameLogCallbackP,
-                                                             argumentsP,
-                                                             argumentsLen,
-                                                             isRunBoosted ? 1 : 0,
-                                                             (int)processPriority,
-                                                             ref cancelTokenGuid,
-                                                             out nint taskResult);
-
-        if (taskResult == nint.Zero)
-        {
-            return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
-        }
-
-        if (hResult != 0)
-        {
-            return (false, Marshal.GetExceptionForHR(hResult));
-        }
+        nint          gameManagerP         = context.GameManager.GetPointerFromInterface();
+        nint          pluginP              = context.Plugin.GetPointerFromInterface();
+        nint          presetConfigP        = context.PresetConfig.GetPointerFromInterface();
 
         try
         {
-            return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
+            nint printGameLogCallbackP = printGameLogCallback == null ? nint.Zero : Marshal.GetFunctionPointerForDelegate(printGameLogCallback);
+            if (gameManagerP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
+            }
+
+            if (pluginP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IPlugin interface to pointer!"));
+            }
+
+            if (presetConfigP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
+            }
+
+            nint argumentsP   = startArgument.GetPinnableStringPointerSafe();
+            int  argumentsLen = startArgument?.Length ?? 0;
+
+            Guid cancelTokenGuid = Guid.CreateVersion7();
+            int hResult = launchGameFromGameManagerAsyncCallback(gameManagerP,
+                                                                 pluginP,
+                                                                 presetConfigP,
+                                                                 printGameLogCallbackP,
+                                                                 argumentsP,
+                                                                 argumentsLen,
+                                                                 isRunBoosted ? 1 : 0,
+                                                                 (int)processPriority,
+                                                                 ref cancelTokenGuid,
+                                                                 out nint taskResult);
+
+            if (taskResult == nint.Zero)
+            {
+                return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
+            }
+
+            if (hResult != 0)
+            {
+                return (false, Marshal.GetExceptionForHR(hResult));
+            }
+
+            try
+            {
+                return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
+            }
+            finally
+            {
+                GC.KeepAlive(printGameLogCallback);
+            }
         }
         finally
         {
-            GC.KeepAlive(printGameLogCallback);
+            gameManagerP.ReleaseInterfacePointer();
+            pluginP.ReleaseInterfacePointer();
+            presetConfigP.ReleaseInterfacePointer();
         }
     }
 
@@ -201,31 +210,39 @@ public static class GameManagerExtension
             return false;
         }
 
-        nint gameManagerP  = GetPointerFromInterface(context.GameManager);
-        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
+        nint gameManagerP  = context.GameManager.GetPointerFromInterface();
+        nint presetConfigP = context.PresetConfig.GetPointerFromInterface();
 
-        if (gameManagerP == nint.Zero)
+        try
         {
-            errorException = new COMException("Cannot cast IGameManager interface to pointer!");
-            return false;
-        }
+            if (gameManagerP == nint.Zero)
+            {
+                errorException = new COMException("Cannot cast IGameManager interface to pointer!");
+                return false;
+            }
 
-        if (presetConfigP == nint.Zero)
+            if (presetConfigP == nint.Zero)
+            {
+                errorException = new COMException("Cannot cast IPluginPresetConfig interface to pointer!");
+                return false;
+            }
+
+            int hResult = isGameRunningCallback(gameManagerP, presetConfigP, out int isGameRunningInt, out gameStartTime);
+
+            errorException = Marshal.GetExceptionForHR(hResult);
+            if (errorException != null)
+            {
+                return false;
+            }
+
+            isGameRunning = isGameRunningInt == 1;
+            return true;
+        }
+        finally
         {
-            errorException = new COMException("Cannot cast IPluginPresetConfig interface to pointer!");
-            return false;
+            gameManagerP.ReleaseInterfacePointer();
+            presetConfigP.ReleaseInterfacePointer();
         }
-
-        int hResult = isGameRunningCallback(gameManagerP, presetConfigP, out int isGameRunningInt, out gameStartTime);
-
-        errorException = Marshal.GetExceptionForHR(hResult);
-        if (errorException != null)
-        {
-            return false;
-        }
-
-        isGameRunning = isGameRunningInt == 1;
-        return true;
     }
 
     /// <summary>
@@ -250,39 +267,48 @@ public static class GameManagerExtension
             return (false, new NotSupportedException("Plugin doesn't have WaitRunningGameAsync export in its API definition!"));
         }
 
-        nint gameManagerP  = GetPointerFromInterface(context.GameManager);
-        nint pluginP       = GetPointerFromInterface(context.Plugin);
-        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
+        nint gameManagerP  = context.GameManager.GetPointerFromInterface();
+        nint pluginP       = context.Plugin.GetPointerFromInterface();
+        nint presetConfigP = context.PresetConfig.GetPointerFromInterface();
 
-        if (gameManagerP == nint.Zero)
+        try
         {
-            return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
-        }
+            if (gameManagerP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
+            }
 
-        if (pluginP == nint.Zero)
+            if (pluginP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IPlugin interface to pointer!"));
+            }
+
+            if (presetConfigP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
+            }
+
+            Guid cancelTokenGuid = Guid.CreateVersion7();
+            int hResult = waitRunningGameAsyncCallback(gameManagerP, pluginP, presetConfigP, ref cancelTokenGuid, out nint taskResult);
+
+            if (taskResult == nint.Zero)
+            {
+                return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
+            }
+
+            if (hResult != 0)
+            {
+                return (false, Marshal.GetExceptionForHR(hResult));
+            }
+
+            return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
+        }
+        finally
         {
-            return (false, new COMException("Cannot cast IPlugin interface to pointer!"));
+            gameManagerP.ReleaseInterfacePointer();
+            pluginP.ReleaseInterfacePointer();
+            presetConfigP.ReleaseInterfacePointer();
         }
-
-        if (presetConfigP == nint.Zero)
-        {
-            return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
-        }
-
-        Guid cancelTokenGuid = Guid.CreateVersion7();
-        int  hResult         = waitRunningGameAsyncCallback(gameManagerP, pluginP, presetConfigP, ref cancelTokenGuid, out nint taskResult);
-
-        if (taskResult == nint.Zero)
-        {
-            return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
-        }
-
-        if (hResult != 0)
-        {
-            return (false, Marshal.GetExceptionForHR(hResult));
-        }
-
-        return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
     }
 
     /// <summary>
@@ -314,31 +340,39 @@ public static class GameManagerExtension
             return false;
         }
 
-        nint gameManagerP  = GetPointerFromInterface(context.GameManager);
-        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
+        nint gameManagerP  = context.GameManager.GetPointerFromInterface();
+        nint presetConfigP = context.PresetConfig.GetPointerFromInterface();
 
-        if (gameManagerP == nint.Zero)
+        try
         {
-            errorException = new COMException("Cannot cast IGameManager interface to pointer!");
-            return false;
-        }
+            if (gameManagerP == nint.Zero)
+            {
+                errorException = new COMException("Cannot cast IGameManager interface to pointer!");
+                return false;
+            }
 
-        if (presetConfigP == nint.Zero)
+            if (presetConfigP == nint.Zero)
+            {
+                errorException = new COMException("Cannot cast IPluginPresetConfig interface to pointer!");
+                return false;
+            }
+
+            int hResult = killRunningGameCallback(gameManagerP, presetConfigP, out int wasGameRunningInt, out gameStartTime);
+
+            errorException = Marshal.GetExceptionForHR(hResult);
+            if (errorException != null)
+            {
+                return false;
+            }
+
+            wasGameRunning = wasGameRunningInt == 1;
+            return true;
+        }
+        finally
         {
-            errorException = new COMException("Cannot cast IPluginPresetConfig interface to pointer!");
-            return false;
+            gameManagerP.ReleaseInterfacePointer();
+            presetConfigP.ReleaseInterfacePointer();
         }
-
-        int hResult = killRunningGameCallback(gameManagerP, presetConfigP, out int wasGameRunningInt, out gameStartTime);
-
-        errorException = Marshal.GetExceptionForHR(hResult);
-        if (errorException != null)
-        {
-            return false;
-        }
-
-        wasGameRunning = wasGameRunningInt == 1;
-        return true;
     }
 
     /// <summary>
@@ -371,53 +405,69 @@ public static class GameManagerExtension
             return (false, new NotSupportedException("Plugin doesn't have StartResizableWindowHookAsync export in its API definition!"));
         }
 
-        nint gameManagerP = GetPointerFromInterface(context.GameManager);
-        nint presetConfigP = GetPointerFromInterface(context.PresetConfig);
+        nint gameManagerP  = context.GameManager.GetPointerFromInterface();
+        nint presetConfigP = context.PresetConfig.GetPointerFromInterface();
 
-        if (gameManagerP == nint.Zero)
+        try
         {
-            return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
-        }
+            if (gameManagerP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IGameManager interface to pointer!"));
+            }
 
-        if (presetConfigP == nint.Zero)
+            if (presetConfigP == nint.Zero)
+            {
+                return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
+            }
+
+            nint exeNameP   = executableName.GetPinnableStringPointerSafe();
+            int  exeNameLen = executableName?.Length ?? 0;
+
+            nint exeDirP   = executableDirectory.GetPinnableStringPointerSafe();
+            int  exeDirLen = executableDirectory?.Length ?? 0;
+
+            Guid cancelTokenGuid = Guid.CreateVersion7();
+            int hResult = startResizableWindowHookAsyncCallback(gameManagerP,
+                                                                presetConfigP,
+                                                                exeNameP,
+                                                                exeNameLen,
+                                                                height ?? int.MinValue,
+                                                                width ?? int.MinValue,
+                                                                exeDirP,
+                                                                exeDirLen,
+                                                                ref cancelTokenGuid,
+                                                                out nint taskResult);
+
+            if (taskResult == nint.Zero)
+            {
+                return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
+            }
+
+            if (hResult != 0)
+            {
+                return (false, Marshal.GetExceptionForHR(hResult));
+            }
+
+            return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
+        }
+        finally
         {
-            return (false, new COMException("Cannot cast IPluginPresetConfig interface to pointer!"));
+            gameManagerP.ReleaseInterfacePointer();
+            presetConfigP.ReleaseInterfacePointer();
         }
-
-        nint exeNameP = executableName.GetPinnableStringPointerSafe();
-        int exeNameLen = executableName?.Length ?? 0;
-
-        nint exeDirP = executableDirectory.GetPinnableStringPointerSafe();
-        int exeDirLen = executableDirectory?.Length ?? 0;
-
-        Guid cancelTokenGuid = Guid.CreateVersion7();
-        int hResult = startResizableWindowHookAsyncCallback(gameManagerP,
-                                                            presetConfigP,
-                                                            exeNameP,
-                                                            exeNameLen,
-                                                            height ?? int.MinValue,
-                                                            width ?? int.MinValue,
-                                                            exeDirP,
-                                                            exeDirLen,
-                                                            ref cancelTokenGuid,
-                                                            out nint taskResult);
-
-        if (taskResult == nint.Zero)
-        {
-            return (false, new NullReferenceException("ComAsyncResult pointer in taskReturn argument shouldn't return a null pointer!"));
-        }
-
-        if (hResult != 0)
-        {
-            return (false, Marshal.GetExceptionForHR(hResult));
-        }
-
-        return await ExecuteSuccessAsyncTask(context.Plugin, taskResult, cancelTokenGuid, token);
     }
 
     private static unsafe nint GetPointerFromInterface<T>(this T interfaceSource)
         where T : class
         => (nint)ComInterfaceMarshaller<T>.ConvertToUnmanaged(interfaceSource);
+
+    private static unsafe void ReleaseInterfacePointer(this nint interfacePtr)
+    {
+        if (interfacePtr == nint.Zero)
+            return;
+
+        _ = Marshal.Release(interfacePtr);
+    }
 
     private static async Task<(bool IsSuccess, Exception? Error)>
         ExecuteSuccessAsyncTask(IPlugin           pluginInstance,
