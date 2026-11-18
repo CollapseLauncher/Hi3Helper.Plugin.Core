@@ -43,8 +43,12 @@ public struct ComAsyncResult() : IDisposable
         readonly get => new((ComAsyncException*)_exception, _exceptionCount);
         set
         {
-            _exceptionCount = value.Length;
-            _exception = (nint)Unsafe.AsPointer(ref value[0]);
+            nint oldException = Interlocked.Exchange(ref _exception, (nint)Unsafe.AsPointer(ref value[0]));
+            Interlocked.Exchange(ref _exceptionCount, value.Length);
+
+            // Dispose old exception
+            if (oldException != nint.Zero)
+                ((ComAsyncException*)_exception)->Dispose();
         }
     }
 
@@ -54,9 +58,9 @@ public struct ComAsyncResult() : IDisposable
     public bool IsCancelled
     {
         readonly get => (_statusFlags & 0b001) != 0;
-        set => _statusFlags = value
-            ? (byte)(_statusFlags | 0b001)
-            : (byte)(_statusFlags & ~0b001);
+        set => Interlocked.Exchange(ref _statusFlags, value
+                                        ? (byte)(_statusFlags | 0b001)
+                                        : (byte)(_statusFlags & ~0b001));
     }
 
     /// <summary>
@@ -65,9 +69,9 @@ public struct ComAsyncResult() : IDisposable
     public bool IsSuccessful
     {
         readonly get => (_statusFlags & 0b010) != 0;
-        set => _statusFlags = value
-            ? (byte)(_statusFlags | 0b010)
-            : (byte)(_statusFlags & ~0b010);
+        set => Interlocked.Exchange(ref _statusFlags, value
+                                        ? (byte)(_statusFlags | 0b010)
+                                        : (byte)(_statusFlags & ~0b010));
     }
 
     /// <summary>
@@ -76,86 +80,78 @@ public struct ComAsyncResult() : IDisposable
     public bool IsFaulty
     {
         readonly get => (_statusFlags & 0b100) != 0;
-        set => _statusFlags = value
-            ? (byte)(_statusFlags | 0b100)
-            : (byte)(_statusFlags & ~0b100);
+        set => Interlocked.Exchange(ref _statusFlags, value
+                                        ? (byte)(_statusFlags | 0b100)
+                                        : (byte)(_statusFlags & ~0b100));
     }
 
     /// <summary>
     /// Set the result of the task. This method is also used to write the information about the <see cref="Task"/> execution status/result to then being passed to managed code which loads the plugin.
     /// </summary>
-    /// <param name="threadLock">Thread lock to be used to set the result.</param>
     /// <param name="task">The <see cref="Task"/> in which the status/result is being written from.</param>
-    public void SetResult(Lock threadLock, Task task)
+    public void SetResult(Task task)
     {
-        using (threadLock.EnterScope())
+        try
         {
-            try
-            {
-                WriteTaskState(task);
-            }
-            finally
-            {
-                PInvoke.SetEvent(Handle);
-            }
+            WriteTaskState(task);
+        }
+        finally
+        {
+            PInvoke.SetEvent(Handle);
         }
     }
 
     /// <summary>
     /// Set the result of the task. This method is also used to write the information about the <see cref="Task"/> execution status/result to then being passed to managed code which loads the plugin.
     /// </summary>
-    /// <param name="threadLock">Thread lock to be used to set the result.</param>
     /// <param name="task">The <see cref="Task"/> in which the status/result is being written from.</param>
-    public unsafe void SetResult<T>(Lock threadLock, Task<T> task)
+    public unsafe void SetResult<T>(Task<T> task)
         where T : unmanaged
     {
-        using (threadLock.EnterScope())
+        try
         {
-            try
-            {
-                WriteTaskState(task);
+            WriteTaskState(task);
 
-                if (task.IsFaulted || task.IsCanceled)
-                {
-                    return;
-                }
+            if (task.IsFaulted || task.IsCanceled)
+            {
+                return;
+            }
 
 #if DEBUG
 #if MANUALCOM
-                string nameOfT = $"<unknown>_sizeof({sizeof(T)})";
+            string nameOfT = $"<unknown>_sizeof({sizeof(T)})";
 #else
-                string nameOfT = typeof(T).Name;
+            string nameOfT = typeof(T).Name;
 #endif
 #endif
 
-                // Allocate result pointer
-                _resultP = (nint)Mem.Alloc<T>();
+            // Allocate result pointer
+            Interlocked.Exchange(ref _resultP, (nint)Mem.Alloc<T>());
 #if DEBUG
-                // Log the exception info
-                SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] Result will be written at ptr: 0x{RetAddress:x8}", nameOfT, _resultP);
+            // Log the exception info
+            SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] Result will be written at ptr: 0x{RetAddress:x8}", nameOfT, _resultP);
 #endif
 
-                if (_resultP == nint.Zero)
-                {
-#if DEBUG
-                    SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult _resultP isn't allocated. The return value will not be written!", nameOfT);
-#endif
-                    return;
-                }
-
-                if (task.IsCompletedSuccessfully)
-                {
-                    Unsafe.Write((void*)_resultP, task.Result);
-                }
-
-#if DEBUG
-                SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult return value value has been written!", nameOfT);
-#endif
-            }
-            finally
+            if (_resultP == nint.Zero)
             {
-                PInvoke.SetEvent(Handle);
+#if DEBUG
+                SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult _resultP isn't allocated. The return value will not be written!", nameOfT);
+#endif
+                return;
             }
+
+            if (task.IsCompletedSuccessfully)
+            {
+                Unsafe.Write((void*)_resultP, task.Result);
+            }
+
+#if DEBUG
+            SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult return value value has been written!", nameOfT);
+#endif
+        }
+        finally
+        {
+            PInvoke.SetEvent(Handle);
         }
     }
 
@@ -251,91 +247,54 @@ public struct ComAsyncResult() : IDisposable
     /// <summary>
     /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
     /// </summary>
-    /// <param name="threadLock">Thread lock to be used to create the <see cref="ComAsyncResult"/> struct.</param>
     /// <param name="task">The <see cref="Task"/> instance in which the result being passed to <see cref="ComAsyncResult"/></param>
     /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
-    public static unsafe nint Alloc(Lock threadLock, Task task)
+    public static unsafe nint Alloc(Task task)
     {
-        // Enter and lock the current thread
-        using (threadLock.EnterScope())
+        // Get the result and allocate the ComAsyncResult handle
+        ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
+
+        // Allocate wait handle
+        resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
+
+        // If the task is completed before the OnCompleted was triggered, then set the result earlier
+        // and return the pointer.
+        if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
         {
-            // Get the result and allocate the ComAsyncResult handle
-            ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
-
-            // Allocate wait handle
-            resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
-
-            // If the task is completed before the OnCompleted was triggered, then set the result earlier
-            // and return the pointer.
-            // NOTE: WriteTaskState + SetEvent are called directly here instead of going through
-            //       SetResult(), because SetResult() tries to acquire threadLock which we already
-            //       hold — and System.Threading.Lock is non-reentrant, so that would deadlock.
-            if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
-            {
-                try
-                {
-                    resultP->WriteTaskState(task);
-                }
-                finally
-                {
-                    PInvoke.SetEvent(resultP->Handle);
-                }
-                return (nint)resultP;
-            }
-
-            // Set the "attach status" callback to the task completion, then return the async result handle
-            task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
+            resultP->SetResult(task);
             return (nint)resultP;
         }
+
+        // Set the "attach status" callback to the task completion, then return the async result handle
+        task.GetAwaiter().OnCompleted(() => resultP->SetResult(task));
+        return (nint)resultP;
     }
 
     /// <summary>
     /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
     /// </summary>
-    /// <param name="threadLock">Thread lock to be used to create the <see cref="ComAsyncResult"/> struct.</param>
     /// <param name="task">The <see cref="Task"/> instance in which the result being passed to <see cref="ComAsyncResult"/></param>
     /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
-    public static unsafe nint Alloc<T>(Lock threadLock, Task<T> task)
+    public static unsafe nint Alloc<T>(Task<T> task)
         where T : unmanaged
     {
-        // Enter and lock the current thread
-        using (threadLock.EnterScope())
+        // Get the result and allocate the ComAsyncResult handle
+        ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
+
+        // Allocate wait handle
+        resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
+
+        // If the task is completed before the OnCompleted was triggered, then set the result earlier
+        // and return the pointer.
+        if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
         {
-            // Get the result and allocate the ComAsyncResult handle
-            ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
-
-            // Allocate wait handle
-            resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
-
-            // If the task is completed before the OnCompleted was triggered, then set the result earlier
-            // and return the pointer.
-            // NOTE: Same non-reentrant lock guard as the non-generic Alloc above.
-            if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
-            {
-                try
-                {
-                    resultP->WriteTaskState(task);
-
-                    if (task is { IsFaulted: false, IsCanceled: false })
-                    {
-                        resultP->_resultP = (nint)Mem.Alloc<T>();
-                        if (resultP->_resultP != nint.Zero && task.IsCompletedSuccessfully)
-                        {
-                            Unsafe.Write((void*)resultP->_resultP, task.Result);
-                        }
-                    }
-                }
-                finally
-                {
-                    PInvoke.SetEvent(resultP->Handle);
-                }
-                return (nint)resultP;
-            }
-
-            // Set the "attach status" callback to the task completion, then return the async result handle
-            task.GetAwaiter().OnCompleted(() => resultP->SetResult(threadLock, task));
+            resultP->SetResult(task);
             return (nint)resultP;
         }
+
+        // Set the "attach status" callback to the task completion, then return the async result handle
+        task.GetAwaiter().OnCompleted(() => resultP->SetResult(task));
+        return (nint)resultP;
     }
 
     /// <summary>
@@ -362,7 +321,8 @@ public struct ComAsyncResult() : IDisposable
     /// </summary>
     public unsafe void Dispose()
     {
-        if (_isFreed == 1) return;
+        if (Interlocked.Exchange(ref _isFreed, 1) == 1)
+            return;
 
         ExceptionMemory.Dispose();
         if (_resultP != nint.Zero)
@@ -371,9 +331,6 @@ public struct ComAsyncResult() : IDisposable
             _resultP = nint.Zero;
         }
 
-        void* ptr = Unsafe.AsPointer(ref this);
-        Mem.Free(ptr);
-
-        _isFreed = 1;
+        this.Free();
     }
 }

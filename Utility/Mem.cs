@@ -52,6 +52,14 @@ public static partial class Mem
     public static unsafe void Free(this nint ptr) => NativeMemory.Free((void*)ptr);
 
     /// <summary>
+    /// Free native memory of this reference object.
+    /// </summary>
+    /// <param name="refObj">The reference object to be freed.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe void Free<T>(this ref T refObj)
+        where T : unmanaged, allows ref struct => NativeMemory.Free(Unsafe.AsPointer(ref refObj));
+
+    /// <summary>
     /// Free native memory.
     /// </summary>
     /// <param name="ptr">The pointer of the memory.</param>

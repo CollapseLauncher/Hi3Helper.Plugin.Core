@@ -38,8 +38,9 @@ public partial class SharedStaticV1Ext<T>
     /// This method is an ABI proxy function between the PInvoke Export and the actual plugin's method.<br/>
     /// See the documentation for <see cref="SharedStaticV1Ext{T}.GetCurrentDiscordPresenceInfoCore"/> method for more information.
     /// </summary>
-    private static unsafe HResult GetCurrentDiscordPresenceInfo(void* presetConfigP, DiscordPresenceInfo** presenceInfoP)
+    private static unsafe HResult GetCurrentDiscordPresenceInfo(void* presetConfigP, out DiscordPresenceInfo* presenceInfoP)
     {
+        presenceInfoP = null;
         try
         {
             if (presetConfigP == null)
@@ -50,7 +51,7 @@ public partial class SharedStaticV1Ext<T>
 #if MANUALCOM
             IPluginPresetConfig presetConfig = ComWrappers.ComInterfaceDispatch.GetInstance<IPluginPresetConfig>((ComWrappers.ComInterfaceDispatch*)presetConfigP);
 #else
-            IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged((void*)presetConfigP);
+            IPluginPresetConfig? presetConfig = ComInterfaceMarshaller<IPluginPresetConfig>.ConvertToManaged(presetConfigP);
 
             if (presetConfig == null)
             {
@@ -85,8 +86,7 @@ public partial class SharedStaticV1Ext<T>
             info->SmallIconUrl     = Utf16StringMarshaller.ConvertToUnmanaged(smallIconUrl);
             info->SmallIconTooltip = Utf16StringMarshaller.ConvertToUnmanaged(smallIconTooltip);
 
-            *presenceInfoP = info;
-
+            presenceInfoP = info;
             return isSupported;
         }
         catch (Exception ex)
@@ -98,7 +98,7 @@ public partial class SharedStaticV1Ext<T>
 #if !MANUALCOM
         finally
         {
-            ComInterfaceMarshaller<IPluginPresetConfig>.Free((void*)presetConfigP);
+            ComInterfaceMarshaller<IPluginPresetConfig>.Free(presetConfigP);
         }
 #endif
     }

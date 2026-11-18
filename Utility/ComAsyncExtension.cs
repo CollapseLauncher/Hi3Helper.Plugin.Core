@@ -20,17 +20,12 @@ public static partial class ComAsyncExtension
     private delegate void SetExceptionDelegate(Exception ex);
 
     /// <summary>
-    /// A thread-lock used by the plugin to perform marshalling.
-    /// </summary>
-    private static readonly Lock CurrentThreadLock = new();
-
-    /// <summary>
     /// Marshal a <see cref="Task"/> to <see cref="ComAsyncResult"/> struct (as a pointer).
     /// </summary>
     /// <param name="task">A <see cref="Task"/> to marshal into.</param>
     /// <returns>A pointer into <see cref="ComAsyncResult"/> struct.</returns>
     public static nint AsResult(this Task task)
-        => ComAsyncResult.Alloc(CurrentThreadLock, task);
+        => ComAsyncResult.Alloc(task);
 
     /// <summary>
     /// Marshal a <see cref="Task{T}"/> to <see cref="ComAsyncResult"/> struct (as a pointer).
@@ -39,7 +34,7 @@ public static partial class ComAsyncExtension
     /// <returns>A pointer into <see cref="ComAsyncResult"/> struct.</returns>
     public static nint AsResult<T>(this Task<T> task)
         where T : unmanaged
-        => ComAsyncResult.Alloc(CurrentThreadLock, task);
+        => ComAsyncResult.Alloc(task);
 
     /// <summary>
     /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="Task"/>.
