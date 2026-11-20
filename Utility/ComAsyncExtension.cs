@@ -37,6 +37,23 @@ public static partial class ComAsyncExtension
         => ComAsyncResult.Alloc(task);
 
     /// <summary>
+    /// Marshal a <see cref="ValueTask"/> to <see cref="ComAsyncResult"/> struct (as a pointer).
+    /// </summary>
+    /// <param name="task">A <see cref="ValueTask"/> to marshal into.</param>
+    /// <returns>A pointer into <see cref="ComAsyncResult"/> struct.</returns>
+    public static nint AsResult(this ValueTask task)
+        => ComAsyncResult.Alloc(task);
+
+    /// <summary>
+    /// Marshal a <see cref="ValueTask{T}"/> to <see cref="ComAsyncResult"/> struct (as a pointer).
+    /// </summary>
+    /// <param name="task">A <see cref="ValueTask{T}"/> to marshal into.</param>
+    /// <returns>A pointer into <see cref="ComAsyncResult"/> struct.</returns>
+    public static nint AsResult<T>(this ValueTask<T> task)
+        where T : unmanaged
+        => ComAsyncResult.Alloc(task);
+
+    /// <summary>
     /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="Task"/>.
     /// </summary>
     /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
@@ -80,16 +97,10 @@ public static partial class ComAsyncExtension
             RegisteredWaitHandle = ThreadPool.RegisterWaitForSingleObject(WaitHandle, SetResultCallback, this, -1, true);
         }
 
-        private static void SetResultCallback(object? state, bool isTimedOut)
+        private static unsafe void SetResultCallback(object? state, bool isTimedOut)
         {
             RegisteredWaitHandleContext ctx = (RegisteredWaitHandleContext)state!;
-            ctx.SetResultCallbackCore();
-        }
-
-        protected virtual unsafe void SetResultCallbackCore()
-        {
-            SetResult<TaskCompletionSource, nint>(AsyncResultP.AsPointer<ComAsyncResult>(), TaskSourceResult);
-            CloseHandles();
+            SetResult<TaskCompletionSource, nint>(ctx.AsyncResultP.AsPointer<ComAsyncResult>(), ctx.TaskSourceResult);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using Hi3Helper.Plugin.Core.Utility.Windows;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -19,7 +20,8 @@ public struct ComAsyncResult() : IDisposable
     private byte _isFreed = 0;
     [FieldOffset(1)]
     private byte _statusFlags;
-
+    [FieldOffset(2)]
+    private byte _isValueTask;
     [FieldOffset(8)]
     private int _exceptionCount;
 
@@ -86,14 +88,46 @@ public struct ComAsyncResult() : IDisposable
     }
 
     /// <summary>
+    /// Whether this instance of task is a ValueTask type.<br/>
+    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.6.2 will not perform type check for this field. Therefore, all the
+    ///       task will be using <see cref="Task"/> anyways with a drawback of allocation overhead in a short, frequently accessed calls.<br/><br/>
+    ///
+    ///       Starting with API version 0.1.6.2 and newer, the call between the producers (plugins) and consumers (clients) are restricted. The caller and the
+    ///       callee must respect and choose the correct task type whether it's a <see cref="ValueTask"/> or <see cref="Task"/>. The type check will be
+    ///       performed to ensure the right contract and avoid any unnecessary memory allocation overhead in each call. If you choose a wrong type of the
+    ///       task type marshaller, it will throw an <see cref="InvalidOperationException"/> exception on the consumer (client) side.
+    /// </summary>
+    public bool IsValueTask
+    {
+        readonly get => _isValueTask == 1;
+        set => Interlocked.Exchange(ref _isValueTask, value ? (byte)1 : (byte)0);
+    }
+
+    /// <summary>
     /// Set the result of the task. This method is also used to write the information about the <see cref="Task"/> execution status/result to then being passed to managed code which loads the plugin.
     /// </summary>
     /// <param name="task">The <see cref="Task"/> in which the status/result is being written from.</param>
-    public void SetResult(Task task)
+    internal void SetResult(Task task)
     {
         try
         {
-            WriteTaskState(task);
+            _ = WriteTaskState(task);
+        }
+        finally
+        {
+            PInvoke.SetEvent(Handle);
+        }
+    }
+
+    /// <summary>
+    /// Set the result of the task. This method is also used to write the information about the <see cref="ValueTask"/> execution status/result to then being passed to managed code which loads the plugin.
+    /// </summary>
+    /// <param name="task">The <see cref="ValueTask"/> in which the status/result is being written from.</param>
+    internal void SetResult(ValueTask task)
+    {
+        try
+        {
+            _ = WriteTaskState(task);
         }
         finally
         {
@@ -105,17 +139,13 @@ public struct ComAsyncResult() : IDisposable
     /// Set the result of the task. This method is also used to write the information about the <see cref="Task"/> execution status/result to then being passed to managed code which loads the plugin.
     /// </summary>
     /// <param name="task">The <see cref="Task"/> in which the status/result is being written from.</param>
-    public unsafe void SetResult<T>(Task<T> task)
+    internal unsafe void SetResult<T>(Task<T> task)
         where T : unmanaged
     {
         try
         {
-            WriteTaskState(task);
-
-            if (task.IsFaulted || task.IsCanceled)
-            {
+            if (!WriteTaskState(task))
                 return;
-            }
 
 #if DEBUG
 #if MANUALCOM
@@ -155,20 +185,107 @@ public struct ComAsyncResult() : IDisposable
         }
     }
 
-    private void WriteTaskState(Task task)
+    /// <summary>
+    /// Set the result of the task. This method is also used to write the information about the <see cref="ValueTask{T}"/> execution status/result to then being passed to managed code which loads the plugin.
+    /// </summary>
+    /// <param name="task">The <see cref="ValueTask{T}"/> in which the status/result is being written from.</param>
+    internal unsafe void SetResult<T>(ValueTask<T> task)
+        where T : unmanaged
     {
-        IsFaulty = task.IsFaulted;
-        IsCancelled = task.IsCanceled;
+        try
+        {
+            if (!WriteTaskState(task))
+                return;
+
+#if DEBUG
+#if MANUALCOM
+            string nameOfT = $"<unknown>_sizeof({sizeof(T)})";
+#else
+            string nameOfT = typeof(T).Name;
+#endif
+#endif
+
+            // Allocate result pointer
+            Interlocked.Exchange(ref _resultP, (nint)Mem.Alloc<T>());
+#if DEBUG
+            // Log the exception info
+            SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] Result will be written at ptr: 0x{RetAddress:x8}", nameOfT, _resultP);
+#endif
+
+            if (_resultP == nint.Zero)
+            {
+#if DEBUG
+                SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult _resultP isn't allocated. The return value will not be written!", nameOfT);
+#endif
+                return;
+            }
+
+            if (task.IsCompletedSuccessfully)
+            {
+                Unsafe.Write((void*)_resultP, task.Result);
+            }
+
+#if DEBUG
+            SharedStatic.InstanceLogger.LogDebug("[ComAsyncResult::SetResult<{nameOfT}>] AsyncResult return value value has been written!", nameOfT);
+#endif
+        }
+        finally
+        {
+            PInvoke.SetEvent(Handle);
+        }
+    }
+
+    private bool WriteTaskState(Task task)
+    {
+        IsFaulty     = task.IsFaulted;
+        IsCancelled  = task.IsCanceled;
         IsSuccessful = task.IsCompletedSuccessfully;
 
         if (!IsFaulty && !IsCancelled)
         {
-            return;
+            return true; // The Task has completed successfully.
         }
 
+        WriteTaskException(task);
+        return false;
+    }
+
+    private bool WriteTaskState(ValueTask task)
+    {
+        IsFaulty     = task.IsFaulted;
+        IsCancelled  = task.IsCanceled;
+        IsSuccessful = task.IsCompletedSuccessfully;
+
+        if (!IsFaulty && !IsCancelled && IsSuccessful)
+        {
+            return true; // The Task has completed successfully.
+        }
+
+        AssertEnsureValueTaskGetInnerTask(task, out Task asTask);
+        WriteTaskException(asTask);
+        return false;
+    }
+
+    private bool WriteTaskState<T>(ValueTask<T> task)
+    {
+        IsFaulty     = task.IsFaulted;
+        IsCancelled  = task.IsCanceled;
+        IsSuccessful = task.IsCompletedSuccessfully;
+
+        if (!IsFaulty && !IsCancelled && IsSuccessful)
+        {
+            return true; // The Task has completed successfully.
+        }
+
+        AssertEnsureValueTaskGetInnerTask(task, out Task<T> asTask);
+        WriteTaskException(asTask);
+        return false;
+    }
+
+    private void WriteTaskException(Task task)
+    {
         Exception? exception = task.Exception?.Flatten();
         exception = exception is AggregateException ? exception.InnerException : exception;
-
         int exceptionCount = GetExceptionCount(exception);
         if (exceptionCount == 0)
         {
@@ -244,6 +361,36 @@ public struct ComAsyncResult() : IDisposable
 #endif
     }
 
+    private void AssertEnsureValueTaskGetInnerTask(ValueTask task, out Task innerTask)
+    {
+        Unsafe.SkipInit(out innerTask);
+
+        Task asTask = task.AsTask();
+#if DEBUG
+        Debug.Assert(asTask != null, "The ValueTask does not contain an inner Task or IValueTaskSource");
+#endif
+
+        if (asTask == null!)
+            throw new InvalidOperationException("The ValueTask.AsTask() SHOULD returns a Task!");
+
+        innerTask = asTask;
+    }
+
+    private void AssertEnsureValueTaskGetInnerTask<T>(ValueTask<T> task, out Task<T> innerTask)
+    {
+        Unsafe.SkipInit(out innerTask);
+
+        Task<T> asTask = task.AsTask();
+#if DEBUG
+        Debug.Assert(asTask != null, "The ValueTask does not contain an inner Task or IValueTaskSource");
+#endif
+
+        if (asTask == null!)
+            throw new InvalidOperationException("The ValueTask.AsTask() SHOULD returns a Task!");
+
+        innerTask = asTask;
+    }
+
     /// <summary>
     /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
     /// </summary>
@@ -280,6 +427,61 @@ public struct ComAsyncResult() : IDisposable
     {
         // Get the result and allocate the ComAsyncResult handle
         ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
+
+        // Allocate wait handle
+        resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
+
+        // If the task is completed before the OnCompleted was triggered, then set the result earlier
+        // and return the pointer.
+        if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
+        {
+            resultP->SetResult(task);
+            return (nint)resultP;
+        }
+
+        // Set the "attach status" callback to the task completion, then return the async result handle
+        task.GetAwaiter().OnCompleted(() => resultP->SetResult(task));
+        return (nint)resultP;
+    }
+
+    /// <summary>
+    /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
+    /// </summary>
+    /// <param name="task">The <see cref="ValueTask"/> instance in which the result being passed to <see cref="ComAsyncResult"/></param>
+    /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
+    public static unsafe nint Alloc(ValueTask task)
+    {
+        // Get the result and allocate the ComAsyncResult handle
+        ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
+        resultP->IsValueTask = true; // 0.1.6.2: Set the ValueTask contract.
+
+        // Allocate wait handle
+        resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
+
+        // If the task is completed before the OnCompleted was triggered, then set the result earlier
+        // and return the pointer.
+        if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
+        {
+            resultP->SetResult(task);
+            return (nint)resultP;
+        }
+
+        // Set the "attach status" callback to the task completion, then return the async result handle
+        task.GetAwaiter().OnCompleted(() => resultP->SetResult(task));
+        return (nint)resultP;
+    }
+
+    /// <summary>
+    /// Create/Alloc an instance of <see cref="ComAsyncResult"/> struct.
+    /// </summary>
+    /// <param name="task">The <see cref="ValueTask{T}"/> instance in which the result being passed to <see cref="ComAsyncResult"/></param>
+    /// <returns>A handle of the <see cref="ComAsyncResult"/> struct.</returns>
+    public static unsafe nint Alloc<T>(ValueTask<T> task)
+        where T : unmanaged
+    {
+        // Get the result and allocate the ComAsyncResult handle
+        ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
+        resultP->IsValueTask = true; // 0.1.6.2: Set the ValueTask contract.
 
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
