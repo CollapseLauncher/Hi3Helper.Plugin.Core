@@ -84,7 +84,7 @@ public static partial class ComAsyncExtension
         /// <param name="asyncResult">A pointer to the <see cref="ComAsyncResult"/> struct.</param>
         /// <param name="tcs">An instance of <see cref="TaskCompletionSource"/> or <see cref="TaskCompletionSource{TResult}"/> to set the exception or result to.</param>
         /// <exception cref="InvalidCastException">Whether the <typeparamref name="TSource"/> is not either <see cref="TaskCompletionSource"/> or <see cref="TaskCompletionSource{TResult}"/></exception>
-        internal static unsafe void SetResult<TSource, T>(ComAsyncResult* asyncResult, ref readonly TSource tcs)
+        protected static unsafe void SetResult<TSource, T>(ComAsyncResult* asyncResult, ref readonly TSource tcs)
             where T : unmanaged
         {
             // Try check the TCS kind.
@@ -96,19 +96,13 @@ public static partial class ComAsyncExtension
                 case TaskCompletionSource asTcs:
                     SetResultInner(asyncResult, asTcs.SetResult, asTcs.SetException, asTcs.SetCanceled);
                     return;
-                case ManualResetValueTaskSourceCore<T>:
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-                    var asVTcsRes = (ManualResetValueTaskSourceCore<T>*)Unsafe.AsPointer(in tcs);
- #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-                    SetResultInner(asyncResult, () => asVTcsRes->SetResult(*(T*)asyncResult->_resultP), asVTcsRes->SetException, null);
-                    return;
             }
 
             // Bada bing, bada bong. Throw the cast exception.
             throw new InvalidCastException($"Cannot cast {nameof(TSource)} to either {nameof(TaskCompletionSource<>)} or {nameof(TaskCompletionSource)}");
         }
 
-        private static unsafe void SetResultInner(ComAsyncResult* asyncResult, Action actionSetRes, SetExceptionDelegate actionSetExc, Action? actionSetCancel)
+        internal static unsafe void SetResultInner(ComAsyncResult* asyncResult, Action actionSetRes, SetExceptionDelegate actionSetExc, Action? actionSetCancel)
         {
             // IsCancelled is set without IsFaulty being set. So, try check if the exception is not empty. If yes, then set the default exception.
             if (asyncResult->IsCancelled)

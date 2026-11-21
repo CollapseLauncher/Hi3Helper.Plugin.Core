@@ -1,6 +1,7 @@
 ﻿using Hi3Helper.Plugin.Core.Utility.Windows;
 using Microsoft.Win32.SafeHandles;
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,19 +17,14 @@ public static partial class ComAsyncExtension
     /// A wait handle context to registers and returns a result once async operation is completed.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    private unsafe struct ValueTaskRegisteredWaitHandleContext : IValueTaskSource
+    private sealed unsafe class ValueTaskRegisteredWaitHandleContext : IValueTaskSource
     {
         private readonly nint                  _asyncResultP;
         private readonly nint                  _unmanagedWaitHandleP;
         private readonly EventWaitHandle?      _event;
         private readonly RegisteredWaitHandle? _registeredWaitHandle;
 
-        private          ManualResetValueTaskSourceCore<bool>  _core;
-        private readonly ManualResetValueTaskSourceCore<bool>* _coreP;
-        private          GCHandle                              _coreGcHandle;
-
-        private readonly ValueTaskRegisteredWaitHandleContext* _thisP;
-        private          GCHandle                              _thisGcHandle;
+        private ManualResetValueTaskSourceCore<bool> _core;
 
         private ValueTaskRegisteredWaitHandleContext(nint asyncResultP)
         {
@@ -36,13 +32,7 @@ public static partial class ComAsyncExtension
             _unmanagedWaitHandleP                = ComAsyncResult.GetWaitHandle(asyncResultP);
             _core.RunContinuationsAsynchronously = true;
 
-            // We choose unsafe way. Pin the VTSC and this struct to the GCHandle and get the pointer to be used for callbacks.
-            _thisGcHandle = GCHandle.Alloc(this,  GCHandleType.Pinned);
-            _coreGcHandle = GCHandle.Alloc(_core, GCHandleType.Pinned);
-            _thisP        = (ValueTaskRegisteredWaitHandleContext*)_thisGcHandle.AddrOfPinnedObject();
-            _coreP        = (ManualResetValueTaskSourceCore<bool>*)_coreGcHandle.AddrOfPinnedObject();
-
-            // Check whether the task is returning earlier and set the result early without allocating wait handles.
+            // Second-check: Check whether the task is returning after split seconds and eventually set the result early without allocating wait handles.
             if (ComAsyncResult.GetTaskCompletionState(asyncResultP,
                                                       out _,
                                                       out _,
@@ -52,21 +42,19 @@ public static partial class ComAsyncExtension
                 return;
             }
 
+            // Wait approach.
             _event = new EventWaitHandle(false, EventResetMode.ManualReset)
             {
                 SafeWaitHandle = new SafeWaitHandle(_unmanagedWaitHandleP, false)
             };
-            _registeredWaitHandle = ThreadPool.RegisterWaitForSingleObject(_event, SetResultCallback, (nint)_thisP, -1, true);
+            _registeredWaitHandle = ThreadPool.RegisterWaitForSingleObject(_event, SetResultCallback, this, -1, true);
         }
 
         /// <summary>
         /// Closes wait handles and free <see cref="ComAsyncResult"/> struct.
         /// </summary>
-        private readonly void CloseHandles()
+        private void CloseHandles()
         {
-            _thisP->_coreGcHandle.Free();
-            _thisP->_thisGcHandle.Free();
-
             _event?.Dispose();
             ComAsyncResult.FreeResult(_asyncResultP);
 
@@ -80,49 +68,70 @@ public static partial class ComAsyncExtension
 
         private static unsafe void SetResultCallback(object? state, bool isTimedOut)
         {
-            nint ctx = (nint)state!;
-            ((ValueTaskRegisteredWaitHandleContext*)ctx)->SetResultCallbackCore();
+            ValueTaskRegisteredWaitHandleContext stateP = (ValueTaskRegisteredWaitHandleContext)state!;
+            stateP.SetResultCallbackCore();
         }
 
         private unsafe void SetResultCallbackCore()
         {
-            TaskRegisteredWaitHandleContext.SetResult<ManualResetValueTaskSourceCore<bool>, nint>(_asyncResultP.AsPointer<ComAsyncResult>(), ref _core);
+            var             coreP   = (ManualResetValueTaskSourceCore<bool>*)Unsafe.AsPointer(ref _core);
+            ComAsyncResult* resultP = _asyncResultP.AsPointer<ComAsyncResult>();
+            TaskRegisteredWaitHandleContext.SetResultInner(resultP, () => coreP->SetResult(true), coreP->SetException, null);
             CloseHandles();
         }
 
         public static ValueTask CreateValueTask(nint asyncResultP)
         {
+            if (ComAsyncResult.GetTaskCompletionState(asyncResultP,
+                                                      out _,
+                                                      out _,
+                                                      out _))
+            {
+                ComAsyncResult* resultP = asyncResultP.AsPointer<ComAsyncResult>();
+                nint waitHandle = ComAsyncResult.GetWaitHandle(asyncResultP);
+
+                try
+                {
+                    ValueTask taskResult = default;
+                    TaskRegisteredWaitHandleContext.SetResultInner(resultP,
+                                                                   () => taskResult = ValueTask.CompletedTask,
+                                                                   ex => taskResult = ValueTask.FromException(ex),
+                                                                   null);
+                    return taskResult;
+                }
+                finally
+                {
+                    ComAsyncResult.FreeResult(asyncResultP);
+                    if (waitHandle != nint.Zero) PInvoke.CloseHandle(waitHandle);
+                }
+            }
+
             ValueTaskRegisteredWaitHandleContext context = new(asyncResultP);
             return new ValueTask(context, context._core.Version);
         }
 
         public void GetResult(short token)
-            => _coreP->GetResult(token);
+            => _core.GetResult(token);
 
         public ValueTaskSourceStatus GetStatus(short token)
-            => _coreP->GetStatus(token);
+            => _core.GetStatus(token);
 
         public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
-            => _coreP->OnCompleted(continuation, state, token, flags);
+            => _core.OnCompleted(continuation, state, token, flags);
     }
 
     /// <summary>
     /// A wait handle context to registers and returns a result once async operation is completed.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    private unsafe struct ValueTaskRegisteredWaitHandleContext<T> : IValueTaskSource<T>
+    private sealed unsafe class ValueTaskRegisteredWaitHandleContext<T> : IValueTaskSource<T>
     {
         private readonly nint                  _asyncResultP;
         private readonly nint                  _unmanagedWaitHandleP;
         private readonly EventWaitHandle?      _event;
         private readonly RegisteredWaitHandle? _registeredWaitHandle;
 
-        private          ManualResetValueTaskSourceCore<T>  _core;
-        private readonly ManualResetValueTaskSourceCore<T>* _coreP;
-        private          GCHandle                           _coreGcHandle;
-
-        private readonly ValueTaskRegisteredWaitHandleContext<T>* _thisP;
-        private          GCHandle                                 _thisGcHandle;
+        private ManualResetValueTaskSourceCore<T> _core;
 
         private ValueTaskRegisteredWaitHandleContext(nint asyncResultP)
         {
@@ -130,13 +139,7 @@ public static partial class ComAsyncExtension
             _unmanagedWaitHandleP                = ComAsyncResult.GetWaitHandle(asyncResultP);
             _core.RunContinuationsAsynchronously = true;
 
-            // We choose unsafe way. Pin the VTSC and this struct to the GCHandle and get the pointer to be used for callbacks.
-            _thisGcHandle = GCHandle.Alloc(this,  GCHandleType.Pinned);
-            _coreGcHandle = GCHandle.Alloc(_core, GCHandleType.Pinned);
-            _thisP        = (ValueTaskRegisteredWaitHandleContext<T>*)_thisGcHandle.AddrOfPinnedObject();
-            _coreP        = (ManualResetValueTaskSourceCore<T>*)_coreGcHandle.AddrOfPinnedObject();
-
-            // Check whether the task is returning earlier and set the result early without allocating wait handles.
+            // Second-check: Check whether the task is returning after split seconds and eventually set the result early without allocating wait handles.
             if (ComAsyncResult.GetTaskCompletionState(asyncResultP,
                                                       out _,
                                                       out _,
@@ -146,21 +149,19 @@ public static partial class ComAsyncExtension
                 return;
             }
 
+            // Wait approach.
             _event = new EventWaitHandle(false, EventResetMode.ManualReset)
             {
                 SafeWaitHandle = new SafeWaitHandle(_unmanagedWaitHandleP, false)
             };
-            _registeredWaitHandle = ThreadPool.RegisterWaitForSingleObject(_event, SetResultCallback, (nint)_thisP, -1, true);
+            _registeredWaitHandle = ThreadPool.RegisterWaitForSingleObject(_event, SetResultCallback, this, -1, true);
         }
 
         /// <summary>
         /// Closes wait handles and free <see cref="ComAsyncResult"/> struct.
         /// </summary>
-        private readonly void CloseHandles()
+        private void CloseHandles()
         {
-            _thisP->_coreGcHandle.Free();
-            _thisP->_thisGcHandle.Free();
-
             _event?.Dispose();
             ComAsyncResult.FreeResult(_asyncResultP);
 
@@ -174,29 +175,55 @@ public static partial class ComAsyncExtension
 
         private static unsafe void SetResultCallback(object? state, bool isTimedOut)
         {
-            nint ctx = (nint)state!;
-            ((ValueTaskRegisteredWaitHandleContext<T>*)ctx)->SetResultCallbackCore();
+            var stateP = (ValueTaskRegisteredWaitHandleContext<T>)state!;
+            stateP.SetResultCallbackCore();
         }
 
         private unsafe void SetResultCallbackCore()
         {
-            TaskRegisteredWaitHandleContext.SetResult<ManualResetValueTaskSourceCore<T>, nint>(_asyncResultP.AsPointer<ComAsyncResult>(), ref _core);
+            var             coreP   = (ManualResetValueTaskSourceCore<T>*)Unsafe.AsPointer(ref _core);
+            ComAsyncResult* resultP = _asyncResultP.AsPointer<ComAsyncResult>();
+            TaskRegisteredWaitHandleContext.SetResultInner(resultP, () => coreP->SetResult(*(T*)resultP->_resultP), coreP->SetException, null);
             CloseHandles();
         }
 
         public static ValueTask<T> CreateValueTask(nint asyncResultP)
         {
+            if (ComAsyncResult.GetTaskCompletionState(asyncResultP,
+                                                      out _,
+                                                      out _,
+                                                      out _))
+            {
+                ComAsyncResult* resultP    = asyncResultP.AsPointer<ComAsyncResult>();
+                nint            waitHandle = ComAsyncResult.GetWaitHandle(asyncResultP);
+
+                try
+                {
+                    ValueTask<T> taskResult = default;
+                    TaskRegisteredWaitHandleContext.SetResultInner(resultP,
+                                                                   () => taskResult = ValueTask.FromResult(*(T*)resultP->_resultP),
+                                                                   ex => taskResult = ValueTask.FromException<T>(ex),
+                                                                   null);
+                    return taskResult;
+                }
+                finally
+                {
+                    ComAsyncResult.FreeResult(asyncResultP);
+                    if (waitHandle != nint.Zero) PInvoke.CloseHandle(waitHandle);
+                }
+            }
+
             ValueTaskRegisteredWaitHandleContext<T> context = new(asyncResultP);
             return new ValueTask<T>(context, context._core.Version);
         }
 
         public T GetResult(short token)
-            => _coreP->GetResult(token);
+            => _core.GetResult(token);
 
         public ValueTaskSourceStatus GetStatus(short token)
-            => _coreP->GetStatus(token);
+            => _core.GetStatus(token);
 
         public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
-            => _coreP->OnCompleted(continuation, state, token, flags);
+            => _core.OnCompleted(continuation, state, token, flags);
     }
 }
