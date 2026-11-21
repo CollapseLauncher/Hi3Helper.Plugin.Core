@@ -23,7 +23,7 @@ public static partial class ComAsyncExtension
         private readonly EventWaitHandle?      _event;
         private readonly RegisteredWaitHandle? _registeredWaitHandle;
 
-        private readonly ManualResetValueTaskSourceCore<bool>  _core;
+        private          ManualResetValueTaskSourceCore<bool>  _core;
         private readonly ManualResetValueTaskSourceCore<bool>* _coreP;
         private          GCHandle                              _coreGcHandle;
 
@@ -86,7 +86,7 @@ public static partial class ComAsyncExtension
 
         private unsafe void SetResultCallbackCore()
         {
-            TaskRegisteredWaitHandleContext.SetResult<ManualResetValueTaskSourceCore<bool>, nint>(_asyncResultP.AsPointer<ComAsyncResult>(), in _core);
+            TaskRegisteredWaitHandleContext.SetResult<ManualResetValueTaskSourceCore<bool>, nint>(_asyncResultP.AsPointer<ComAsyncResult>(), ref _core);
             CloseHandles();
         }
 
@@ -117,7 +117,7 @@ public static partial class ComAsyncExtension
         private readonly EventWaitHandle?      _event;
         private readonly RegisteredWaitHandle? _registeredWaitHandle;
 
-        private readonly ManualResetValueTaskSourceCore<T>  _core;
+        private          ManualResetValueTaskSourceCore<T>  _core;
         private readonly ManualResetValueTaskSourceCore<T>* _coreP;
         private          GCHandle                           _coreGcHandle;
 
@@ -180,7 +180,7 @@ public static partial class ComAsyncExtension
 
         private unsafe void SetResultCallbackCore()
         {
-            TaskRegisteredWaitHandleContext.SetResult<ManualResetValueTaskSourceCore<T>, nint>(_asyncResultP.AsPointer<ComAsyncResult>(), in _core);
+            TaskRegisteredWaitHandleContext.SetResult<ManualResetValueTaskSourceCore<T>, nint>(_asyncResultP.AsPointer<ComAsyncResult>(), ref _core);
             CloseHandles();
         }
 
