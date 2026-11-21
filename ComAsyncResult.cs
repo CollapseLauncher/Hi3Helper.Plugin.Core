@@ -510,6 +510,33 @@ public struct ComAsyncResult() : IDisposable
         => ((ComAsyncResult*)handle)->Handle;
 
     /// <summary>
+    /// Gets the task completion of the <see cref="ComAsyncResult"/>'s handle.
+    /// </summary>
+    /// <param name="handle">A handle of the <see cref="ComAsyncResult"/> struct.</param>
+    /// <param name="isSuccessful">Whether the task has been completed successfully.</param>
+    /// <param name="isCancelled">Whether the task has been completed due to getting cancelled.</param>
+    /// <param name="isFaulty">Whether the task has been completed due to being faulty (throwing an <see cref="Exception"/>/error).</param>
+    /// <returns>
+    /// <see langword="true"/> if the task has been completed and either one of <paramref name="isSuccessful"/>/<paramref name="isCancelled"/>/<paramref name="isFaulty"/> should return <see langword="true"/>. <see langword="false"/> if the task is still running.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool GetTaskCompletionState(nint     handle,
+                                                     out bool isSuccessful,
+                                                     out bool isCancelled,
+                                                     out bool isFaulty)
+    {
+        var result = (ComAsyncResult*)handle;
+        if (result == null)
+            throw new NullReferenceException("Cannot get task completion state as the handle/pointer is null.");
+
+        isSuccessful = result->IsSuccessful;
+        isCancelled  = result->IsCancelled;
+        isFaulty     = result->IsFaulty;
+
+        return isSuccessful || isCancelled || isFaulty;
+    }
+
+    /// <summary>
     /// Dispose/Free the <see cref="ComAsyncResult"/> struct from its pointer.
     /// </summary>
     /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>

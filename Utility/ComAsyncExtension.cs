@@ -59,7 +59,7 @@ public static partial class ComAsyncExtension
     /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
     /// <returns>An awaitable managed <see cref="Task"/>.</returns>
     public static Task AsTask(this nint resultP)
-        => new RegisteredWaitHandleContext(resultP).Task;
+        => new RegisteredWaitHandleContext(resultP.EnsureTypeIsTask()).Task;
 
     /// <summary>
     /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="Task"/>.
@@ -67,18 +67,60 @@ public static partial class ComAsyncExtension
     /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
     /// <returns>An awaitable managed <see cref="Task"/>.</returns>
     public static Task<T> AsTask<T>(this nint resultP)
-        where T : unmanaged => (Task<T>)new RegisteredWaitHandleContext<T>(resultP).Task;
+        where T : unmanaged => (Task<T>)new RegisteredWaitHandleContext<T>(resultP.EnsureTypeIsTask()).Task;
+
+    /// <summary>
+    /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="ValueTask"/>.
+    /// </summary>
+    /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
+    /// <returns>An awaitable managed <see cref="Task"/>.</returns>
+    public static ValueTask AsValueTask(this nint resultP)
+        => throw new NotImplementedException(); // TODO: Implement marshaller for ValueTask via IValueTaskSource.
+
+    /// <summary>
+    /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="ValueTask"/>.
+    /// </summary>
+    /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
+    /// <returns>An awaitable managed <see cref="Task"/>.</returns>
+    public static ValueTask<T> AsValueTask<T>(this nint resultP)
+        => throw new NotImplementedException(); // TODO: Implement marshaller for ValueTask via IValueTaskSource.
+
+    /// <summary>
+    /// Perform a check whether the <see cref="ComAsyncResult"/> is correctly assigned for a <see cref="Task"/>.
+    /// </summary>
+    /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
+    private static unsafe nint EnsureTypeIsTask(this nint resultP)
+    {
+        ComAsyncResult* result = (ComAsyncResult*)resultP;
+        if (result->IsValueTask)
+            throw new InvalidOperationException("This callee uses ValueTask or ValueTask<T>. Please use AsValueTask() instead!");
+
+        return resultP;
+    }
+
+    /// <summary>
+    /// Perform a check whether the <see cref="ComAsyncResult"/> is correctly assigned for a <see cref="ValueTask"/>.
+    /// </summary>
+    /// <param name="resultP">A pointer of the <see cref="ComAsyncResult"/> struct.</param>
+    private static unsafe nint EnsureTypeIsValueTask(this nint resultP)
+    {
+        ComAsyncResult* result = (ComAsyncResult*)resultP;
+        if (!result->IsValueTask)
+            throw new InvalidOperationException("This callee uses Task or Task<T>. Please use AsTask() instead!");
+
+        return resultP;
+    }
 
     /// <summary>
     /// A wait handle context to registers and returns a result once async operation is completed.
     /// </summary>
     private class RegisteredWaitHandleContext
     {
-        protected nint                 AsyncResultP         { get; }
-        private   nint                 UnmanagedWaitHandleP { get; }
-        private   SafeWaitHandle       SafeWaitHandle       { get; }
-        private   WaitHandle           WaitHandle           { get; }
-        private   RegisteredWaitHandle RegisteredWaitHandle { get; }
+        protected nint                  AsyncResultP         { get; }
+        private   nint                  UnmanagedWaitHandleP { get; }
+        private   SafeWaitHandle?       SafeWaitHandle       { get; }
+        private   WaitHandle?           WaitHandle           { get; }
+        private   RegisteredWaitHandle? RegisteredWaitHandle { get; }
 
         private TaskCompletionSource TaskSourceResult { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -88,6 +130,16 @@ public static partial class ComAsyncExtension
         {
             AsyncResultP         = asyncResultP;
             UnmanagedWaitHandleP = ComAsyncResult.GetWaitHandle(asyncResultP);
+
+            // Check whether the task is returning earlier and set the result early without allocating wait handles.
+            if (ComAsyncResult.GetTaskCompletionState(asyncResultP,
+                                                      out _,
+                                                      out _,
+                                                      out _))
+            {
+                SetResultCallback(this, false);
+                return;
+            }
 
             SafeWaitHandle = new SafeWaitHandle(UnmanagedWaitHandleP, false);
             WaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset)
@@ -100,7 +152,13 @@ public static partial class ComAsyncExtension
         private static unsafe void SetResultCallback(object? state, bool isTimedOut)
         {
             RegisteredWaitHandleContext ctx = (RegisteredWaitHandleContext)state!;
-            SetResult<TaskCompletionSource, nint>(ctx.AsyncResultP.AsPointer<ComAsyncResult>(), ctx.TaskSourceResult);
+            ctx.SetResultCallbackCore();
+        }
+
+        protected virtual unsafe void SetResultCallbackCore()
+        {
+            SetResult<TaskCompletionSource, nint>(AsyncResultP.AsPointer<ComAsyncResult>(), TaskSourceResult);
+            CloseHandles();
         }
 
         /// <summary>
@@ -108,8 +166,8 @@ public static partial class ComAsyncExtension
         /// </summary>
         protected void CloseHandles()
         {
-            SafeWaitHandle.Dispose();
-            WaitHandle.Dispose();
+            SafeWaitHandle?.Dispose();
+            WaitHandle?.Dispose();
             ComAsyncResult.FreeResult(AsyncResultP);
 
             if (UnmanagedWaitHandleP != nint.Zero)
@@ -117,7 +175,7 @@ public static partial class ComAsyncExtension
                 PInvoke.CloseHandle(UnmanagedWaitHandleP);
             }
 
-            RegisteredWaitHandle.Unregister(null);
+            RegisteredWaitHandle?.Unregister(null);
         }
 
         /// <summary>
