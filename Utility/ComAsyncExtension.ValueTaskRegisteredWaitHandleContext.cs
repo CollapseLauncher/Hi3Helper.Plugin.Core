@@ -106,7 +106,6 @@ public static partial class ComAsyncExtension
             => _coreP->OnCompleted(continuation, state, token, flags);
     }
 
-
     /// <summary>
     /// A wait handle context to registers and returns a result once async operation is completed.
     /// </summary>

@@ -164,16 +164,18 @@ public static partial class ComAsyncExtension
             exception.SetExceptionStackTrace()       =  currentStackTrace.ToString();
             actionSetExc(exception);
 
-            if (exception is OperationCanceledException)
+            if (exception is not OperationCanceledException)
             {
-                if (actionSetCancel == null)
-                {
-                    actionSetExc(exception);
-                    return;
-                }
-
-                actionSetCancel();
+                return;
             }
+
+            if (actionSetCancel == null)
+            {
+                actionSetExc(exception);
+                return;
+            }
+
+            actionSetCancel();
         }
     }
 
