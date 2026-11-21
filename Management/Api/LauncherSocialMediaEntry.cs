@@ -5,6 +5,7 @@ using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
 // ReSharper disable ReplaceWithPrimaryConstructorParameter
 // ReSharper disable UnusedMember.Global
 
@@ -270,7 +271,8 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_isFreed == 1) return;
+        if (Interlocked.Exchange(ref _isFreed, 1) == 1)
+            return;
 
         Utf8StringMarshaller.Free(_iconPath);
         Utf8StringMarshaller.Free(_iconHoverPath);
@@ -280,10 +282,6 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
         Utf8StringMarshaller.Free(_socialMediaClickUrl);
 
         if (_childEntryHandle != null)
-        {
             _childEntryHandle->Dispose();
-        }
-
-        _isFreed = 1;
     }
 }

@@ -2,6 +2,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
+
 // ReSharper disable ConvertToAutoProperty
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
@@ -52,11 +54,10 @@ public unsafe struct LauncherPathEntry()
 
     public void Dispose()
     {
-        if (_isFreed == 1) return;
+        if (Interlocked.Exchange(ref _isFreed, 1) == 1)
+            return;
 
         Utf8StringMarshaller.Free(_path);
         Mem.Free(_fileHash);
-
-        _isFreed = 1;
     }
 }

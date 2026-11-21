@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
 // ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
@@ -51,12 +52,11 @@ public unsafe struct LauncherCarouselEntry()
 
     public void Dispose()
     {
-        if (_isFreed == 1) return;
+        if (Interlocked.Exchange(ref _isFreed, 1) == 1)
+            return;
 
         Utf8StringMarshaller.Free(_description);
         Utf8StringMarshaller.Free(_imageUrl);
         Utf8StringMarshaller.Free(_clickUrl);
-
-        _isFreed = 1;
     }
 }
