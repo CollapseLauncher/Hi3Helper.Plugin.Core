@@ -144,10 +144,7 @@ public unsafe struct ComAsyncException()
                 return parentException;
             }
 
-            if (lastInnerException != null)
-            {
-                lastInnerException.SetExceptionInnerException() = innerExceptionCurrent;
-            }
+            lastInnerException?.SetExceptionInnerException() = innerExceptionCurrent;
 
             innerException ??= innerExceptionCurrent;
             lastInnerException = innerExceptionCurrent;

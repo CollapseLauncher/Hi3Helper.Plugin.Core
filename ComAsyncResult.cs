@@ -45,12 +45,17 @@ public struct ComAsyncResult() : IDisposable
         readonly get => new((ComAsyncException*)_exception, _exceptionCount);
         set
         {
-            nint oldException = Interlocked.Exchange(ref _exception, (nint)Unsafe.AsPointer(ref value[0]));
-            Interlocked.Exchange(ref _exceptionCount, value.Length);
+            nint newExceptionHandle = value.IsEmpty ? nint.Zero : (nint)Unsafe.AsPointer(ref value[0]);
+            nint oldException       = Interlocked.Exchange(ref _exception,      newExceptionHandle);
+            int  oldExceptionCount  = Interlocked.Exchange(ref _exceptionCount, value.Length);
+
+            if (oldException == nint.Zero || oldExceptionCount == 0)
+            {
+                return;
+            }
 
             // Dispose old exception
-            if (oldException != nint.Zero)
-                ((ComAsyncException*)_exception)->Dispose();
+            DisposeException(ref oldException, ref oldExceptionCount);
         }
     }
 
@@ -553,7 +558,7 @@ public struct ComAsyncResult() : IDisposable
         if (Interlocked.Exchange(ref _isFreed, 1) == 1)
             return;
 
-        ExceptionMemory.Dispose();
+        DisposeException(ref _exception, ref _exceptionCount);
         if (_resultP != nint.Zero)
         {
             _resultP.Free();
@@ -561,5 +566,21 @@ public struct ComAsyncResult() : IDisposable
         }
 
         this.Free();
+    }
+
+    private static unsafe void DisposeException(ref nint exceptionHandle, ref int exceptionCount)
+    {
+        if (exceptionHandle == nint.Zero || exceptionCount == 0)
+            return;
+
+        using PluginDisposableMemory<ComAsyncException> span = new((ComAsyncException*)exceptionHandle, exceptionCount);
+        for (int i = 0; i < span.Length; i++)
+        {
+            ref ComAsyncException current = ref span[i];
+            current.Dispose();
+        }
+
+        exceptionHandle = 0;
+        exceptionCount  = 0;
     }
 }
