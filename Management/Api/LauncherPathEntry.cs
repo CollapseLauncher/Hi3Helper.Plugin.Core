@@ -31,6 +31,11 @@ public unsafe struct LauncherPathEntry()
     public readonly PluginDisposableMemory<byte> FileHash => new(_fileHash, _fileHashLength);
 
     /// <summary>
+    /// Indicates when this entry is empty.
+    /// </summary>
+    public bool IsEmpty => _path == null && _fileHash == null;
+
+    /// <summary>
     /// Write the strings into the current struct.
     /// </summary>
     /// <param name="path">The local path of where the asset is stored.</param>

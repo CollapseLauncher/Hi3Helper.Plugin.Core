@@ -34,6 +34,13 @@ public unsafe struct LauncherCarouselEntry()
     public readonly string? ClickUrl => Utf8StringMarshaller.ConvertToManaged(_clickUrl);
 
     /// <summary>
+    /// Indicates when this entry is empty.
+    /// </summary>
+    public readonly bool IsEmpty => _description == null &&
+                                    _imageUrl == null &&
+                                    _clickUrl == null;
+
+    /// <summary>
     /// Write the strings into the current struct.
     /// </summary>
     /// <param name="description">A string to the description of the carousel entry.</param>

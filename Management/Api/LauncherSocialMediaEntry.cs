@@ -117,6 +117,18 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     }
 
     /// <summary>
+    /// Indicates when this entry is empty.
+    /// </summary>
+    public readonly bool IsEmpty => _iconPath == null &&
+                                    _iconHoverPath == null &&
+                                    _qrPath == null &&
+                                    _qrImageDescription == null &&
+                                    _socialMediaDescription == null &&
+                                    _socialMediaClickUrl == null &&
+                                    _childEntryHandle == null &&
+                                    Flags == default;
+
+    /// <summary>
     /// Write <see cref="IconPath"/> as a path or URL.
     /// </summary>
     /// <param name="path">The path/URL to write.</param>
