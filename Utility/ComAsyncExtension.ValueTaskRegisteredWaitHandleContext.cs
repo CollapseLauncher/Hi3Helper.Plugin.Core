@@ -2,7 +2,6 @@
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
@@ -16,7 +15,6 @@ public static partial class ComAsyncExtension
     /// <summary>
     /// A wait handle context to registers and returns a result once async operation is completed.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
     private sealed unsafe class ValueTaskRegisteredWaitHandleContext : IValueTaskSource
     {
         private readonly nint                  _asyncResultP;
@@ -123,7 +121,6 @@ public static partial class ComAsyncExtension
     /// <summary>
     /// A wait handle context to registers and returns a result once async operation is completed.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
     private sealed unsafe class ValueTaskRegisteredWaitHandleContext<T> : IValueTaskSource<T>
     {
         private readonly nint                  _asyncResultP;
