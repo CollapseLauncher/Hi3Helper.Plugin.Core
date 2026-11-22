@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Hi3Helper.Plugin.Core.Utility;
@@ -55,6 +56,7 @@ public static partial class ComAsyncExtension
         /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="Task"/>.
         /// </summary>
         /// <returns>An awaitable managed <see cref="Task"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task AsTask()
             => new TaskRegisteredWaitHandleContext(resultP.EnsureTypeIsTask()).Task;
 
@@ -62,6 +64,7 @@ public static partial class ComAsyncExtension
         /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="Task{T}"/>.
         /// </summary>
         /// <returns>An awaitable managed <see cref="Task{T}"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task<T> AsTask<T>()
             where T : unmanaged => (Task<T>)new TaskRegisteredWaitHandleContext<T>(resultP.EnsureTypeIsTask()).Task;
 
@@ -69,38 +72,34 @@ public static partial class ComAsyncExtension
         /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="ValueTask"/>.
         /// </summary>
         /// <returns>An awaitable managed <see cref="ValueTask"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ValueTask AsValueTask()
-            => ValueTaskRegisteredWaitHandleContext.CreateValueTask(resultP.EnsureTypeIsValueTask());
+            => ValueTaskRegisteredWaitHandleContext<nint>.CreateValueTaskNoReturn(resultP.EnsureTypeIsValueTask());
 
         /// <summary>
         /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="ValueTask{T}"/>.
         /// </summary>
         /// <returns>An awaitable managed <see cref="ValueTask{T}"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ValueTask<T> AsValueTask<T>()
             => ValueTaskRegisteredWaitHandleContext<T>.CreateValueTask(resultP.EnsureTypeIsValueTask());
 
         /// <summary>
         /// Perform a check whether the <see cref="ComAsyncResult"/> is correctly assigned for a <see cref="Task"/>.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe nint EnsureTypeIsTask()
-        {
-            var result = (ComAsyncResult*)resultP;
-            if (result->IsValueTask)
-                throw new InvalidOperationException("This callee uses ValueTask or ValueTask<T>. Please use AsValueTask() instead!");
-
-            return resultP;
-        }
+            => ((ComAsyncResult*)resultP)->IsValueTask
+                ? throw new InvalidOperationException("This callee uses ValueTask or ValueTask<T>. Please use AsValueTask() instead!")
+                : resultP;
 
         /// <summary>
         /// Perform a check whether the <see cref="ComAsyncResult"/> is correctly assigned for a <see cref="ValueTask"/>.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe nint EnsureTypeIsValueTask()
-        {
-            var result = (ComAsyncResult*)resultP;
-            if (!result->IsValueTask)
-                throw new InvalidOperationException("This callee uses Task or Task<T>. Please use AsTask() instead!");
-
-            return resultP;
-        }
+            => !((ComAsyncResult*)resultP)->IsValueTask
+                ? throw new InvalidOperationException("This callee uses Task or Task<T>. Please use AsTask() instead!")
+                : resultP;
     }
 }
