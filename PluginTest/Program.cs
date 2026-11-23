@@ -63,6 +63,11 @@ internal class Program
                 return (false, errorCode);
             }
 
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentPluginPath", out errorCode, Test.TestGetWorkingPathCallback);
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentPluginDirectory", out errorCode, Test.TestGetWorkingPathCallback);
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentLoaderPath", out errorCode, Test.TestGetWorkingPathCallback);
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentLoaderDirectory", out errorCode, Test.TestGetWorkingPathCallback);
+
             bool isSetLoggerCallback = LogInvokeTest<PluginSetLoggerCallback>(libraryHandle, "SetLoggerCallback", out errorCode, Test.TestSetLoggerCallback);
             if (errorCode != 0) return (false, errorCode);
             bool isSetDnsResolverCallback = LogInvokeTest<PluginSetDnsResolverCallback>(libraryHandle, "SetDnsResolverCallback", out errorCode, Test.TestSetDnsResolverCallback);

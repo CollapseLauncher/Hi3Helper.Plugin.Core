@@ -5,7 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace PluginTest
 {
-    internal        delegate void         PluginSetLoggerCallback(nint callback);
+    internal        delegate void         PluginGetStringCallback(out nint ptr, out int length);
+    internal        delegate void         PluginSetLoggerCallback(nint      callback);
     internal        delegate void         PluginSetDnsResolverCallback(nint callback);
     internal unsafe delegate GameVersion* PluginGetPluginVersion();
     internal unsafe delegate void*        PluginGetPlugin();
