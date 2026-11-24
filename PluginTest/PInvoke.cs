@@ -5,7 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace PluginTest
 {
-    internal        delegate void         PluginSetLoggerCallback(nint callback);
+    internal        delegate void         PluginGetStringCallback(out nint ptr, out int length);
+    internal        delegate void         PluginSetLoggerCallback(nint      callback);
     internal        delegate void         PluginSetDnsResolverCallback(nint callback);
     internal unsafe delegate GameVersion* PluginGetPluginVersion();
     internal unsafe delegate void*        PluginGetPlugin();
@@ -13,6 +14,9 @@ namespace PluginTest
 
     internal static partial class PInvoke
     {
+        private const uint GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS       = 0x00000004u;
+        private const uint GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = 0x00000002u;
+
         [LibraryImport("kernel32.dll", EntryPoint = "LoadLibraryW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         public static partial nint LoadLibrary(string libName);
 
@@ -22,6 +26,18 @@ namespace PluginTest
         [LibraryImport("kernel32.dll", EntryPoint = "FreeLibrary")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static partial bool FreeLibrary(nint handle);
+
+        [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleExW", StringMarshalling = StringMarshalling.Utf16)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static partial bool GetModuleHandleEx(uint     dwFlags,
+                                                     string?  lpModuleName,
+                                                     out nint phModule);
+
+        public static bool IsModuleLoaded(string libName, nint previousHandle)
+            => GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                 libName,
+                                 out nint phModule) &&
+               phModule == previousHandle;
 
         public static bool TryLoadLibrary(string libName, out int err, out nint handle)
         {

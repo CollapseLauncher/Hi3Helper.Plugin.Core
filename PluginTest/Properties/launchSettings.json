@@ -7,7 +7,7 @@
     },
     "PluginTest - HBR": {
       "commandName": "Project",
-      "commandLineArgs": "NoWait \"H:\\myGit\\Hi3Helper.Plugin.HBR\\Hi3Helper.Plugin.HBR\\publish\\Debug\\main.dll\"",
+      "commandLineArgs": "NoWait \"G:\\myGit\\Hi3Helper.Plugin.HBR\\Hi3Helper.Plugin.HBR\\publish\\ReleaseNoReflection\\Seraphim.dll\"",
       "nativeDebugging": true
     },
     "PluginTest - DNA": {

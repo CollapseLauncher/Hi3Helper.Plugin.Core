@@ -1,4 +1,5 @@
-﻿using Hi3Helper.Plugin.Core.Management;
+﻿using System.Reflection;
+using Hi3Helper.Plugin.Core.Management;
 
 namespace Hi3Helper.Plugin.Core;
 
@@ -27,6 +28,7 @@ public partial class SharedStaticV1Ext<T> : SharedStaticV1Ext
         InitExtension_Update4Exports();
         InitExtension_Update5Exports();
         InitExtension_Update6Exports();
+        InitExtension_Update7Exports();
     }
 
     /// <summary>
@@ -35,5 +37,10 @@ public partial class SharedStaticV1Ext<T> : SharedStaticV1Ext
     /// <typeparam name="TPlugin">A member of COM Interface of <see cref="IPlugin"/>.</typeparam>
     protected new static void Load<TPlugin>(GameVersion interceptDllVersionTo = default)
         where TPlugin : class, IPlugin, new()
-        => SharedStatic.Load<TPlugin>(interceptDllVersionTo);
+    {
+        if (interceptDllVersionTo == GameVersion.Empty)
+            interceptDllVersionTo = Assembly.GetEntryAssembly()?.GetName().Version;
+
+        SharedStatic.Load<TPlugin>(interceptDllVersionTo);
+    }
 }

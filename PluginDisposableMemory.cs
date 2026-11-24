@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+
 // ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core;
@@ -69,10 +71,10 @@ public unsafe struct PluginDisposableMemory<T>(T* handle, int count, bool isDisp
     /// </summary>
     public void ForceDispose()
     {
-        if (_isFreed == 1) return;
+        if (Interlocked.Exchange(ref _isFreed, 1) == 1)
+            return;
 
         Mem.Free(handle);
-        _isFreed = 1;
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
 // ReSharper disable UnusedMember.Global
 
 namespace Hi3Helper.Plugin.Core.Management.Api;
@@ -44,6 +45,14 @@ public unsafe struct LauncherNewsEntry()
     public readonly string? PostDate => Utf8StringMarshaller.ConvertToManaged(_postDate);
 
     /// <summary>
+    /// Indicates when this entry is empty.
+    /// </summary>
+    public readonly bool IsEmpty => _title == null &&
+                                    _description == null &&
+                                    _url == null &&
+                                    _postDate == null;
+
+    /// <summary>
     /// Write the strings into the current struct.
     /// </summary>
     /// <param name="title">The title of the news entry.</param>
@@ -67,16 +76,12 @@ public unsafe struct LauncherNewsEntry()
 
     public void Dispose()
     {
-        if (_isFreed == 1)
-        {
+        if (Interlocked.Exchange(ref _isFreed, 1) == 1)
             return;
-        }
 
         Utf8StringMarshaller.Free(_title);
         Utf8StringMarshaller.Free(_description);
         Utf8StringMarshaller.Free(_url);
         Utf8StringMarshaller.Free(_postDate);
-
-        _isFreed = 1;
     }
 }

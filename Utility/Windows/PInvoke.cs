@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static System.Environment;
 // ReSharper disable InconsistentNaming
@@ -10,6 +11,11 @@ namespace Hi3Helper.Plugin.Core.Utility.Windows;
 
 public static partial class PInvoke
 {
+    private const uint GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS       = 0x00000004;
+    private const uint GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = 0x00000002;
+    public const  nint ModulePathThisPluginAddr                     = -1;
+    public const  nint ModulePathLoaderAddr                         = 0;
+
     [LibraryImport("kernel32.dll", EntryPoint = "SetEvent", SetLastError = true)]
     public static partial int SetEvent(nint hEvent);
 
@@ -22,8 +28,26 @@ public static partial class PInvoke
     [LibraryImport("shell32.dll", EntryPoint = "SHGetKnownFolderPath", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     public static partial int SHGetKnownFolderPath(in Guid rfid, uint dwFlags, nint hToken, out string? ppszPath);
 
-    /// Reference:
-    /// https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Shell32/Interop.SHGetKnownFolderPath.cs#L269
+    [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleExW", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool GetModuleHandleEx(
+        uint     dwFlags,
+        void*    lpModuleNameW,
+        out nint phModule);
+
+    [LibraryImport("kernel32.dll", EntryPoint = "GetModuleFileNameW", SetLastError = true)]
+    public static partial int GetModuleFileName(
+        nint    hModule,
+        ushort* lpFilenameW,
+        uint    nSize);
+
+    /// <summary>
+    /// Gets the system special folder path based on its location.<br/>
+    /// Reference: <seealso href="https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Shell32/Interop.SHGetKnownFolderPath.cs#L269"/>
+    /// </summary>
+    /// <param name="folder">The type of the Special Folder.</param>
+    /// <param name="option">The options of the Special Folder.</param>
+    /// <returns>Full path of the Special Folder.</returns>
     public static string GetFolderPath(SpecialFolder folder, SpecialFolderOption option = SpecialFolderOption.None)
     {
         // We're using SHGetKnownFolderPath instead of SHGetFolderPath as SHGetFolderPath is
@@ -203,5 +227,35 @@ public static partial class PInvoke
 
         // Fallback logic if SHGetKnownFolderPath failed (nanoserver)
         return fallbackEnv != null ? GetEnvironmentVariable(fallbackEnv) ?? string.Empty : string.Empty;
+    }
+
+    /// <summary>
+    /// Gets a module path based on the address of the function, module or the loader app.
+    /// </summary>
+    /// <param name="addr">The base address to lookup for.</param>
+    /// <returns>A full path of the corresponding module owning the address. Returns <see langword="null"/> if no module owner of the address is found.</returns>
+    [SkipLocalsInit]
+    public static unsafe string? GetModulePathFromAddr(nint addr)
+    {
+        const int MaxPathBufferLen = 32 << 10;
+        if (addr < 0)
+            addr = (nint)(delegate* unmanaged<void>)&ThisPluginAnchor;
+
+        nint handle = 0;
+        if (addr != nint.Zero)
+        {
+            if (!GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                   (void*)addr,
+                                   out handle))
+                return null;
+        }
+
+        ushort* buffer = stackalloc ushort[MaxPathBufferLen];
+        int     length = GetModuleFileName(handle, buffer, MaxPathBufferLen - 1);
+
+        return length is 0 or > MaxPathBufferLen - 1 ? null : new string((char*)buffer, 0, length);
+
+        [UnmanagedCallersOnly]
+        static void ThisPluginAnchor() { }
     }
 }

@@ -250,32 +250,32 @@ public static partial class Mem
         }
     }
 
-    // ReSharper disable once IdentifierTypo
-    // ReSharper disable once CommentTypo
     /// <summary>
     /// Get pinnable pointer of the string.
     /// </summary>
     /// <param name="str">A string to get its pointer from.</param>
     /// <returns>A pinned pointer of the string.</returns>
     public static unsafe char* GetPinnableStringPointer(this string? str)
-    {
-        fixed (char* ptr = &Utf16StringMarshaller.GetPinnableReference(str))
-        {
-            return ptr;
-        }
-    }
+        => (char*)Unsafe.AsPointer(in Utf16StringMarshaller.GetPinnableReference(str));
 
-    // ReSharper disable once IdentifierTypo
-    // ReSharper disable once CommentTypo
     /// <summary>
     /// Get pinnable pointer of the string.
     /// </summary>
     /// <param name="str">A string to get its pointer from.</param>
     /// <returns>A pinned pointer of the string.</returns>
     public static unsafe nint GetPinnableStringPointerSafe(this string? str)
+        => (nint)str.GetPinnableStringPointer();
+
+    /// <summary>
+    /// Get pinnable pointer of the string and its length.
+    /// </summary>
+    /// <param name="str">A string to get its pointer from.</param>
+    /// <param name="stringP">A pinned pointer of the string.</param>
+    /// <param name="length">The length of the string.</param>
+    public static unsafe void GetPinnableStringPointerAndLength(this string? str, out nint stringP, out int length)
     {
-        char* p = str.GetPinnableStringPointer();
-        return (nint)p;
+        stringP = str.GetPinnableStringPointerSafe();
+        length  = str?.Length ?? 0;
     }
 
     /// <summary>

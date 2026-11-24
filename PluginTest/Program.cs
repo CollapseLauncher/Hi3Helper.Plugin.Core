@@ -57,18 +57,34 @@ internal class Program
                 return (false, errorCode);
             }
 
+            (bool isHotSwappablePluginSuccess, errorCode) = TryPerformHotSwappablePlugin(libraryPath, ref libraryHandle);
+            if (!isHotSwappablePluginSuccess)
+            {
+                return (false, errorCode);
+            }
+
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentPluginPath", out errorCode, Test.TestGetWorkingPathCallback);
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentPluginDirectory", out errorCode, Test.TestGetWorkingPathCallback);
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentLoaderPath", out errorCode, Test.TestGetWorkingPathCallback);
+            _ = LogInvokeTest<PluginGetStringCallback>(libraryHandle, "GetCurrentLoaderDirectory", out errorCode, Test.TestGetWorkingPathCallback);
+
             bool isSetLoggerCallback = LogInvokeTest<PluginSetLoggerCallback>(libraryHandle, "SetLoggerCallback", out errorCode, Test.TestSetLoggerCallback);
+            if (errorCode != 0) return (false, errorCode);
             bool isSetDnsResolverCallback = LogInvokeTest<PluginSetDnsResolverCallback>(libraryHandle, "SetDnsResolverCallback", out errorCode, Test.TestSetDnsResolverCallback);
+            if (errorCode != 0) return (false, errorCode);
             bool isResetDnsResolverCallback = LogInvokeTest<PluginSetDnsResolverCallback>(libraryHandle, "SetDnsResolverCallback", out errorCode, Test.TestResetSetDnsResolverCallback);
+            if (errorCode != 0) return (false, errorCode);
             bool isGetPluginStandardVersion = LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginStandardVersion", out errorCode, Test.TestGetPluginStandardVersion);
-            bool isGetPluginVersion = errorCode == 0 && LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion);
+            if (errorCode != 0) return (false, errorCode);
+            bool isGetPluginVersion = LogInvokeTest<PluginGetPluginVersion>(libraryHandle, "GetPluginVersion", out errorCode, Test.TestGetPluginVersion);
+            if (errorCode != 0) return (false, errorCode);
 
             (bool isGetPlugin, _) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestGetPlugin);
             (bool isTestApiMedia, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestApiMedia);
+            if (errorCode != 0) return (false, errorCode);
             (bool isTestManagedUpdate, errorCode) = await LogInvokeTestAsync<PluginGetUpdateCdnListDelegate>(libraryHandle, "GetPluginUpdateCdnList", Test.TestManagedUpdate, true);
+            if (errorCode != 0) return (false, errorCode);
             (bool isTestSelfUpdate, errorCode) = await LogInvokeTestAsync<PluginGetPlugin>(libraryHandle, "GetPlugin", Test.TestSelfUpdate);
-
-            FreeLibrary(libraryHandle);
 
             return (isSetLoggerCallback &&
                 isSetDnsResolverCallback &&
@@ -83,6 +99,7 @@ internal class Program
         }
         finally
         {
+            FreePlugin(libraryHandle);
             if (nint.Zero != libraryHandle)
             {
                 PInvoke.FreeLibrary(libraryHandle);
@@ -90,9 +107,50 @@ internal class Program
         }
     }
 
+    private static (bool IsSuccess, int ErrorCode) TryPerformHotSwappablePlugin(string libraryPath, ref nint libraryHandle)
+    {
+        int errorCode = 0;
+
+        nint dllProcessAttachProc = PInvoke.GetProcAddress(libraryHandle, "DllProcessAttach");
+        if (dllProcessAttachProc != nint.Zero)
+        {
+            Console.WriteLine("  [HotSwappablePlugin] This plugin has custom .NET's DllMain export exposed. Trying to perform Free-Load test.");
+            Console.Write($"    +-> Freeing dll handle at: 0x{libraryHandle}...");
+            if (!PInvoke.FreeLibrary(libraryHandle))
+            {
+                Console.WriteLine(" Failed! handle is immutable :(");
+                errorCode = 40;
+                goto ContinueReturn;
+            }
+            Console.WriteLine(" Unloading success! Checking if module has really been freed...");
+            if (!PInvoke.IsModuleLoaded(libraryPath, libraryHandle))
+            {
+                errorCode = 80;
+                goto ContinueReturn;
+            }
+
+            Console.WriteLine("    +-> Unloading successful! The module fully implemented custom DllMain. The plugin can be Freed and Loaded.");
+            Console.WriteLine("    +-> Trying to reload the plugin...");
+            if (!PInvoke.TryLoadLibrary(libraryPath, out errorCode, out libraryHandle))
+            {
+                Console.WriteLine("    !-> The plugin cannot be reloaded. Test cannot be continued! :(");
+                return (false, errorCode);
+            }
+            Console.WriteLine("    +-> Plugin has been successfully reloaded. Continue performing test :)");
+        }
+
+    ContinueReturn:
+        if (errorCode is 40 or 80)
+        {
+            Console.WriteLine("    !-> [WARNING] Module is still loaded and the handle is immutable. Although, the test can still be continued. In the mean-time, you need to fix the implementation later.");
+            Console.WriteLine("                  Consider checking the author's repo: https://github.com/Xpl0itR/NativeDllMain to see how to implement it.");
+        }
+        return (errorCode is 0 or 40 or 80, errorCode);
+    }
+
     private delegate void FreeLibraryDelegate();
 
-    private static void FreeLibrary(nint handle)
+    private static void FreePlugin(nint handle)
     {
         if (!PInvoke.TryGetProcAddress(handle, "FreePlugin", out _, out FreeLibraryDelegate exportFreePlugin))
             throw new InvalidOperationException("Cannot find \"FreePlugin\" export API from the plugin.");

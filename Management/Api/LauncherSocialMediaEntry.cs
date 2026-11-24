@@ -5,6 +5,7 @@ using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
 // ReSharper disable ReplaceWithPrimaryConstructorParameter
 // ReSharper disable UnusedMember.Global
 
@@ -114,6 +115,18 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Utf8StringMarshaller.ConvertToManaged(_socialMediaClickUrl);
     }
+
+    /// <summary>
+    /// Indicates when this entry is empty.
+    /// </summary>
+    public readonly bool IsEmpty => _iconPath == null &&
+                                    _iconHoverPath == null &&
+                                    _qrPath == null &&
+                                    _qrImageDescription == null &&
+                                    _socialMediaDescription == null &&
+                                    _socialMediaClickUrl == null &&
+                                    _childEntryHandle == null &&
+                                    Flags == default;
 
     /// <summary>
     /// Write <see cref="IconPath"/> as a path or URL.
@@ -270,7 +283,8 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_isFreed == 1) return;
+        if (Interlocked.Exchange(ref _isFreed, 1) == 1)
+            return;
 
         Utf8StringMarshaller.Free(_iconPath);
         Utf8StringMarshaller.Free(_iconHoverPath);
@@ -280,10 +294,6 @@ public unsafe struct LauncherSocialMediaEntry() : IDisposable
         Utf8StringMarshaller.Free(_socialMediaClickUrl);
 
         if (_childEntryHandle != null)
-        {
             _childEntryHandle->Dispose();
-        }
-
-        _isFreed = 1;
     }
 }

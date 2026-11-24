@@ -643,6 +643,9 @@ public struct GameVersion :
         return null;
     }
 
+    public static implicit operator GameVersion(Version? version)
+        => version is null ? default : new GameVersion(version);
+
     public static implicit operator GameVersion?(Version? version)
         => version is null ? null : new GameVersion(version);
 

@@ -4,7 +4,7 @@ using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -12,6 +12,7 @@ using System.Runtime.InteropServices.Marshalling;
 
 #if MANUALCOM
 using Hi3Helper.Plugin.Core.ABI;
+using System.Runtime.CompilerServices;
 #endif
 
 #pragma warning disable CS8500
@@ -102,16 +103,17 @@ public class SharedStatic
     internal static Uri?                            ProxyHost;
     internal static string?                         ProxyUsername;
     internal static string?                         ProxyPassword;
-    
-    public static string               PluginLocaleCode       { get; internal set; } = "en-us";
-    public static readonly GameVersion LibraryStandardVersion = new(0, 1, 6, 2);
+
+    public static          string      PluginLocaleCode { get; internal set; } = "en-us";
     public static readonly ILogger     InstanceLogger         = new SharedLogger();
+    public static readonly GameVersion LibraryStandardVersion = Assembly.GetExecutingAssembly().GetName().Version;
 
 #if DEBUG
-    internal static bool IsDebug = true;
+    public static bool IsDebug = true;
 #else
-    internal static bool IsDebug = false;
+    public static bool IsDebug = false;
 #endif
+
     internal static unsafe GameVersion CurrentPluginVersion => *(GameVersion*)GetPluginVersion();
     #endregion
 
