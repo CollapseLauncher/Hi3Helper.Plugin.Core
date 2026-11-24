@@ -29,15 +29,15 @@ public static partial class PInvoke
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleExA", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool GetModuleHandleEx(
+    public static partial bool GetModuleHandleEx(
         uint     dwFlags,
-        void*    lpModuleName,
+        void*    lpModuleNameA,
         out nint phModule);
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetModuleFileNameA", SetLastError = true)]
-    private static partial int GetModuleFileName(
+    public static partial int GetModuleFileName(
         nint   hModule,
-        sbyte* lpFilename,
+        sbyte* lpFilenameA,
         uint   nSize);
 
     /// <summary>
