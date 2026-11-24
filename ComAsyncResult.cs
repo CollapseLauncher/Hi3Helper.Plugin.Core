@@ -101,10 +101,10 @@ public struct ComAsyncResult() : IDisposable
 
     /// <summary>
     /// Whether this instance of task is a ValueTask type.<br/>
-    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.6.2 will not perform type check for this field. Therefore, all the
+    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.7.0 will not perform type check for this field. Therefore, all the
     ///       task will be using <see cref="Task"/> anyways with a drawback of allocation overhead in a short, frequently accessed calls.<br/><br/>
     ///
-    ///       Starting with API version 0.1.6.2 and newer, the call between the producers (plugins) and consumers (clients) are restricted. The caller and the
+    ///       Starting with API version 0.1.7.0 and newer, the call between the producers (plugins) and consumers (clients) are restricted. The caller and the
     ///       callee must respect and choose the correct task type whether it's a <see cref="ValueTask"/> or <see cref="Task"/>. The type check will be
     ///       performed to ensure the right contract and avoid any unnecessary memory allocation overhead in each call. If you choose a wrong type of the
     ///       task type marshaller, it will throw an <see cref="InvalidOperationException"/> exception on the consumer (client) side.
@@ -121,7 +121,7 @@ public struct ComAsyncResult() : IDisposable
 
     /// <summary>
     /// Whether this instance returns a generic type.<br/>
-    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.6.2 will not perform type check for this field. Therefore, all the
+    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.7.0 will not perform type check for this field. Therefore, all the
     ///       task will return a <see langword="default"/> value based on what generic type is it containing.
     /// </summary>
     public bool IsHasReturn
@@ -136,7 +136,7 @@ public struct ComAsyncResult() : IDisposable
 
     /// <summary>
     /// Whether this instance requires to perform task type check.
-    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.6.2 will not perform type check for this field. If not set, all the
+    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.7.0 will not perform type check for this field. If not set, all the
     ///       checks against <see cref="IsValueTask"/> or <see cref="IsHasReturn"/> will not be performed.
     /// </summary>
     public bool IsRequireTaskTypeCheck
@@ -450,7 +450,7 @@ public struct ComAsyncResult() : IDisposable
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
-        //  0.1.6.2: Set the flag to perform task type checks.
+        //  0.1.7.0: Set the flag to perform task type checks.
         resultP->IsRequireTaskTypeCheck = true;
 
         // If the task is completed before the OnCompleted was triggered, then set the result earlier
@@ -480,10 +480,10 @@ public struct ComAsyncResult() : IDisposable
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
-        //  0.1.6.2: Set the flag to perform task type checks.
+        //  0.1.7.0: Set the flag to perform task type checks.
         resultP->IsRequireTaskTypeCheck = true;
 
-        //  0.1.6.2: Set the flag to tell the task has return value.
+        //  0.1.7.0: Set the flag to tell the task has return value.
         resultP->IsHasReturn = true;
 
         // If the task is completed before the OnCompleted was triggered, then set the result earlier
@@ -508,12 +508,12 @@ public struct ComAsyncResult() : IDisposable
     {
         // Get the result and allocate the ComAsyncResult handle
         ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
-        resultP->IsValueTask = true; // 0.1.6.2: Set the ValueTask contract.
+        resultP->IsValueTask = true; // 0.1.7.0: Set the ValueTask contract.
 
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
-        //  0.1.6.2: Set the flag to perform task type checks.
+        //  0.1.7.0: Set the flag to perform task type checks.
         resultP->IsRequireTaskTypeCheck = true;
 
         // If the task is completed before the OnCompleted was triggered, then set the result earlier
@@ -539,15 +539,15 @@ public struct ComAsyncResult() : IDisposable
     {
         // Get the result and allocate the ComAsyncResult handle
         ComAsyncResult* resultP = Mem.Alloc<ComAsyncResult>();
-        resultP->IsValueTask = true; // 0.1.6.2: Set the ValueTask contract.
+        resultP->IsValueTask = true; // 0.1.7.0: Set the ValueTask contract.
 
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
-        //  0.1.6.2: Set the flag to perform task type checks.
+        //  0.1.7.0: Set the flag to perform task type checks.
         resultP->IsRequireTaskTypeCheck = true;
 
-        //  0.1.6.2: Set the flag to tell the task has return value.
+        //  0.1.7.0: Set the flag to tell the task has return value.
         resultP->IsHasReturn = true;
 
         // If the task is completed before the OnCompleted was triggered, then set the result earlier

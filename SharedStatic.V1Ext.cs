@@ -28,7 +28,7 @@ public partial class SharedStaticV1Ext<T> : SharedStaticV1Ext
         InitExtension_Update4Exports();
         InitExtension_Update5Exports();
         InitExtension_Update6Exports();
-        InitExtension_Update6Patch2Exports();
+        InitExtension_Update7Exports();
     }
 
     /// <summary>

@@ -12,7 +12,7 @@
     <DebugType>embedded</DebugType>
     <Deterministic>true</Deterministic>
     <NoWarn>$(NoWarn);CA2256</NoWarn>
-    <Version>0.1.6.2</Version>
+    <Version>0.1.7.0</Version>
     <Configurations>Debug;Release;DebugNoReflection;ReleaseNoReflection</Configurations>
   </PropertyGroup>
 

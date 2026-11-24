@@ -31,7 +31,7 @@ public partial class SharedStaticV1Ext
 
 public partial class SharedStaticV1Ext<T>
 {
-    private static unsafe void InitExtension_Update6Patch2Exports()
+    private static unsafe void InitExtension_Update7Exports()
     {
         TryRegisterApiExport<GetStringDelegate>("GetCurrentPluginPath", GetCurrentPluginPath);
         TryRegisterApiExport<GetStringDelegate>("GetCurrentPluginDirectory", GetCurrentPluginDirectory);
