@@ -28,18 +28,18 @@ public static partial class PInvoke
     [LibraryImport("shell32.dll", EntryPoint = "SHGetKnownFolderPath", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     public static partial int SHGetKnownFolderPath(in Guid rfid, uint dwFlags, nint hToken, out string? ppszPath);
 
-    [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleExA", SetLastError = true)]
+    [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleExW", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool GetModuleHandleEx(
         uint     dwFlags,
-        void*    lpModuleNameA,
+        void*    lpModuleNameW,
         out nint phModule);
 
-    [LibraryImport("kernel32.dll", EntryPoint = "GetModuleFileNameA", SetLastError = true)]
+    [LibraryImport("kernel32.dll", EntryPoint = "GetModuleFileNameW", SetLastError = true)]
     public static partial int GetModuleFileName(
-        nint   hModule,
-        sbyte* lpFilenameA,
-        uint   nSize);
+        nint    hModule,
+        ushort* lpFilenameW,
+        uint    nSize);
 
     /// <summary>
     /// Gets the system special folder path based on its location.<br/>
@@ -250,10 +250,10 @@ public static partial class PInvoke
                 return null;
         }
 
-        sbyte* buffer = stackalloc sbyte[MaxPathBufferLen];
-        int    length = GetModuleFileName(handle, buffer, MaxPathBufferLen - 1);
+        ushort* buffer = stackalloc ushort[MaxPathBufferLen];
+        int     length = GetModuleFileName(handle, buffer, MaxPathBufferLen - 1);
 
-        return length is 0 or > MaxPathBufferLen - 1 ? null : new string(buffer, 0, length);
+        return length is 0 or > MaxPathBufferLen - 1 ? null : new string((char*)buffer, 0, length);
 
         [UnmanagedCallersOnly]
         static void ThisPluginAnchor() { }
