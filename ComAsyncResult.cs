@@ -21,7 +21,7 @@ public struct ComAsyncResult() : IDisposable
     [FieldOffset(1)]
     private byte _statusFlags;
     [FieldOffset(2)]
-    private byte _isValueTask;
+    private byte _returnFlags;
     [FieldOffset(8)]
     private int _exceptionCount;
 
@@ -42,6 +42,7 @@ public struct ComAsyncResult() : IDisposable
     /// </summary>
     public unsafe PluginDisposableMemory<ComAsyncException> ExceptionMemory
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => new((ComAsyncException*)_exception, _exceptionCount);
         set
         {
@@ -64,7 +65,9 @@ public struct ComAsyncResult() : IDisposable
     /// </summary>
     public bool IsCancelled
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => (_statusFlags & 0b001) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Interlocked.Exchange(ref _statusFlags, value
                                         ? (byte)(_statusFlags | 0b001)
                                         : (byte)(_statusFlags & ~0b001));
@@ -75,7 +78,9 @@ public struct ComAsyncResult() : IDisposable
     /// </summary>
     public bool IsSuccessful
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => (_statusFlags & 0b010) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Interlocked.Exchange(ref _statusFlags, value
                                         ? (byte)(_statusFlags | 0b010)
                                         : (byte)(_statusFlags & ~0b010));
@@ -86,7 +91,9 @@ public struct ComAsyncResult() : IDisposable
     /// </summary>
     public bool IsFaulty
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => (_statusFlags & 0b100) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Interlocked.Exchange(ref _statusFlags, value
                                         ? (byte)(_statusFlags | 0b100)
                                         : (byte)(_statusFlags & ~0b100));
@@ -104,8 +111,42 @@ public struct ComAsyncResult() : IDisposable
     /// </summary>
     public bool IsValueTask
     {
-        readonly get => _isValueTask == 1;
-        set => Interlocked.Exchange(ref _isValueTask, value ? (byte)1 : (byte)0);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => (_returnFlags & 0b001) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => Interlocked.Exchange(ref _returnFlags, value
+                                        ? (byte)(_returnFlags | 0b001)
+                                        : (byte)(_returnFlags & ~0b001));
+    }
+
+    /// <summary>
+    /// Whether this instance returns a generic type.<br/>
+    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.6.2 will not perform type check for this field. Therefore, all the
+    ///       task will return a <see langword="default"/> value based on what generic type is it containing.
+    /// </summary>
+    public bool IsHasReturn
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => (_returnFlags & 0b010) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => Interlocked.Exchange(ref _returnFlags, value
+                                        ? (byte)(_returnFlags | 0b010)
+                                        : (byte)(_returnFlags & ~0b010));
+    }
+
+    /// <summary>
+    /// Whether this instance requires to perform task type check.
+    /// Note: To maintain compatibility, both plugins or clients with API version older than 0.1.6.2 will not perform type check for this field. If not set, all the
+    ///       checks against <see cref="IsValueTask"/> or <see cref="IsHasReturn"/> will not be performed.
+    /// </summary>
+    public bool IsRequireTaskTypeCheck
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => (_returnFlags & 0b100) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => Interlocked.Exchange(ref _returnFlags, value
+                                        ? (byte)(_returnFlags | 0b100)
+                                        : (byte)(_returnFlags & ~0b100));
     }
 
     /// <summary>
@@ -409,6 +450,9 @@ public struct ComAsyncResult() : IDisposable
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
+        //  0.1.6.2: Set the flag to perform task type checks.
+        resultP->IsRequireTaskTypeCheck = true;
+
         // If the task is completed before the OnCompleted was triggered, then set the result earlier
         // and return the pointer.
         if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
@@ -435,6 +479,12 @@ public struct ComAsyncResult() : IDisposable
 
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
+
+        //  0.1.6.2: Set the flag to perform task type checks.
+        resultP->IsRequireTaskTypeCheck = true;
+
+        //  0.1.6.2: Set the flag to tell the task has return value.
+        resultP->IsHasReturn = true;
 
         // If the task is completed before the OnCompleted was triggered, then set the result earlier
         // and return the pointer.
@@ -463,6 +513,9 @@ public struct ComAsyncResult() : IDisposable
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
 
+        //  0.1.6.2: Set the flag to perform task type checks.
+        resultP->IsRequireTaskTypeCheck = true;
+
         // If the task is completed before the OnCompleted was triggered, then set the result earlier
         // and return the pointer.
         if (task.IsCompleted || task.IsCanceled || task.IsFaulted)
@@ -490,6 +543,12 @@ public struct ComAsyncResult() : IDisposable
 
         // Allocate wait handle
         resultP->Handle = PInvoke.CreateEvent(nint.Zero, 1, 0, null);
+
+        //  0.1.6.2: Set the flag to perform task type checks.
+        resultP->IsRequireTaskTypeCheck = true;
+
+        //  0.1.6.2: Set the flag to tell the task has return value.
+        resultP->IsHasReturn = true;
 
         // If the task is completed before the OnCompleted was triggered, then set the result earlier
         // and return the pointer.

@@ -66,7 +66,9 @@ public static partial class ComAsyncExtension
         /// <returns>An awaitable managed <see cref="Task{T}"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task<T> AsTask<T>()
-            where T : unmanaged => (Task<T>)new TaskRegisteredWaitHandleContext<T>(resultP.EnsureTypeIsTask()).Task;
+            where T : unmanaged
+            => (Task<T>)new TaskRegisteredWaitHandleContext<T>(resultP.EnsureTypeIsTask()
+                                                                      .EnsureTypeHasReturnValue()).Task;
 
         /// <summary>
         /// Re-marshal a pointer of <see cref="ComAsyncResult"/> struct into a managed <see cref="ValueTask"/>.
@@ -82,24 +84,36 @@ public static partial class ComAsyncExtension
         /// <returns>An awaitable managed <see cref="ValueTask{T}"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ValueTask<T> AsValueTask<T>()
-            => ValueTaskRegisteredWaitHandleContext<T>.CreateValueTask(resultP.EnsureTypeIsValueTask());
+            => ValueTaskRegisteredWaitHandleContext<T>.CreateValueTask(resultP.EnsureTypeIsValueTask()
+                                                                              .EnsureTypeHasReturnValue());
 
         /// <summary>
         /// Perform a check whether the <see cref="ComAsyncResult"/> is correctly assigned for a <see cref="Task"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe nint EnsureTypeIsTask()
-            => ((ComAsyncResult*)resultP)->IsValueTask
+            => ((ComAsyncResult*)resultP)->IsRequireTaskTypeCheck && ((ComAsyncResult*)resultP)->IsValueTask
                 ? throw new InvalidOperationException("This callee uses ValueTask or ValueTask<T>. Please use AsValueTask() instead!")
                 : resultP;
 
         /// <summary>
         /// Perform a check whether the <see cref="ComAsyncResult"/> is correctly assigned for a <see cref="ValueTask"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe nint EnsureTypeIsValueTask()
-            => !((ComAsyncResult*)resultP)->IsValueTask
+            => ((ComAsyncResult*)resultP)->IsRequireTaskTypeCheck && !((ComAsyncResult*)resultP)->IsValueTask
                 ? throw new InvalidOperationException("This callee uses Task or Task<T>. Please use AsTask() instead!")
+                : resultP;
+
+        /// <summary>
+        /// Perform a check whether the <see cref="ComAsyncResult"/> actually has <see cref="ComAsyncResult.IsHasReturn"/> flag being set.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"/>
+        private unsafe nint EnsureTypeHasReturnValue()
+            => ((ComAsyncResult*)resultP)->IsRequireTaskTypeCheck && !((ComAsyncResult*)resultP)->IsHasReturn
+                ? throw new InvalidOperationException("You are trying to marshal a \"non-generic task type\" as \"generic task type\"! Please use non-generic AsValueTask() or AsTask() instead!")
                 : resultP;
     }
 }
