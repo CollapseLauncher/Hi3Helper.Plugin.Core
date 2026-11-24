@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static System.Environment;
 // ReSharper disable InconsistentNaming
@@ -233,6 +234,7 @@ public static partial class PInvoke
     /// </summary>
     /// <param name="addr">The base address to lookup for.</param>
     /// <returns>A full path of the corresponding module owning the address. Returns <see langword="null"/> if no module owner of the address is found.</returns>
+    [SkipLocalsInit]
     public static unsafe string? GetModulePathFromAddr(nint addr)
     {
         const int MaxPathBufferLen = 32 << 10;
